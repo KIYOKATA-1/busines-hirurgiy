@@ -1,21 +1,29 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import Image from "next/image";
 import { useAuthStore } from "@/store/auth.store";
 import styles from "./login.module.scss";
+import { useRouter } from "next/navigation";
+
 
 export default function LoginPage() {
   const { login, loading, error, isAuth, user } = useAuthStore();
   const [active, setActive] = useState<"login" | "register">("login");
-
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    if (isAuth) {
+      router.push("/"); 
+    }
+  }, [isAuth, router]);
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     await login({ email, password });
-  };
+  }
 
   return (
     <main className={styles.container}>
