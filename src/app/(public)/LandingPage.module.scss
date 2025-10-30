@@ -1,0 +1,15 @@
+.container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #020618 0%, #162456 50%, #0F172B 100%);
+
+  .title{
+    color: #fff;
+    font-size: 2.5rem;
+    align-self: center;
+  }
+}
