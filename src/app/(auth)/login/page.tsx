@@ -7,8 +7,7 @@ import styles from "./login.module.scss";
 
 export default function LoginPage() {
   const { login, loading, error, isAuth, user } = useAuthStore();
-    const [active, setActive] = useState<"login" | "register">("login");
-
+  const [active, setActive] = useState<"login" | "register">("login");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -71,8 +70,18 @@ export default function LoginPage() {
         {error && <div className={styles.error}>{error}</div>}
 
         <div className={styles.toggleButtons}>
-          <button className={active === 'login' ? styles.active : ""} onClick={() =>setActive("login")}>Вход</button>
-          <button className={active === 'register' ? styles.active : ""} onClick={() => setActive("register")}>Регистрация</button>
+          <button
+            className={active === "login" ? styles.active : ""}
+            onClick={() => setActive("login")}
+          >
+            Вход
+          </button>
+          <button
+            className={active === "register" ? styles.active : ""}
+            onClick={() => setActive("register")}
+          >
+            Регистрация
+          </button>
         </div>
 
         <label className={styles.label}>
@@ -103,7 +112,7 @@ export default function LoginPage() {
           disabled={loading}
           aria-busy={loading}
         >
-          {loading ? "Вход..." : "Войти"}
+          {active === "login" ? "Войти" : "Зарегистрироваться"}
         </button>
       </form>
     </main>
