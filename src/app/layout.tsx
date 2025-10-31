@@ -1,12 +1,15 @@
-import './globals.scss';
-import { ReactNode } from 'react';
+import type { Metadata } from "next";
+import "./globals.scss";
 
-export const metadata = {
-  title: 'MyApp',
-  description: 'Secure Next.js SSR app',
+export const metadata: Metadata = {
+  title: "Business Hirurgiy",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="ru">
       <body>{children}</body>

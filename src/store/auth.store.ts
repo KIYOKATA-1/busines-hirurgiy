@@ -1,52 +1,69 @@
 import { create } from "zustand";
-import { AuthService } from "@/services/auth/auth.service";
+import { authService } from "@/services/auth/auth.service";
 import { IUser, ILoginRequest } from "@/services/auth/auth.types";
-import { tokenManager } from "@/services/auth/tokenManager";
 
 interface AuthState {
   user: IUser | null;
+  accessToken: string | null;
   isAuth: boolean;
   loading: boolean;
   error: string | null;
 
+  init: () => Promise<void>;
   login: (payload: ILoginRequest) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  accessToken: null,
   isAuth: false,
   loading: false,
   error: null,
 
-  login: async (payload: ILoginRequest): Promise<void> => {
+  init: async () => {
     try {
-      set({ loading: true, error: null });
-
-      const res = await AuthService.login(payload);
-
+      const token = authService.getAccessToken();
+      if (token) {
+        set({ accessToken: token, isAuth: true, loading: false });
+        return;
+      }
+      const res = await authService.refresh();
       set({
         user: res.user ?? null,
+        accessToken: res.accessToken,
         isAuth: true,
         loading: false,
-        error: null,
       });
-    } catch (err) {
-      set({
-        loading: false,
-        error: err instanceof Error ? err.message : "Login failed",
-        isAuth: false,
-      });
-
-      tokenManager.clear();
+    } catch {
+      set({ user: null, accessToken: null, isAuth: false, loading: false });
     }
   },
 
-  logout: async (): Promise<void> => {
-    await AuthService.logout();
+  login: async (payload: ILoginRequest) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await authService.login(payload);
+      set({
+        user: res.user,
+        accessToken: res.accessToken,
+        isAuth: true,
+        loading: false,
+      });
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : "Login failed",
+        isAuth: false,
+        loading: false,
+      });
+    }
+  },
 
+  logout: async () => {
+    authService.logout();
     set({
       user: null,
+      accessToken: null,
       isAuth: false,
       loading: false,
       error: null,

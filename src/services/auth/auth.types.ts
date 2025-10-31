@@ -4,10 +4,9 @@ export interface ILoginRequest {
 }
 
 export interface IUser {
-  id: number;
+  id: string;
   email: string;
-  fullName: string;
-  role: string;
+  role: "admin" | "user" | string;
 }
 
 export interface ILoginResponse {
@@ -21,9 +20,5 @@ export interface IRefreshRequest {
 
 export interface IRefreshResponse {
   accessToken: string;
-}
-
-export interface IApiError {
-  status: number;
-  message: string;
+  user?: IUser;
 }

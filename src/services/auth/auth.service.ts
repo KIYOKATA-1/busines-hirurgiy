@@ -1,73 +1,35 @@
-import {
-  ILoginRequest,
-  ILoginResponse,
-  IRefreshRequest,
-  IRefreshResponse,
-} from "./auth.types";
+import { api } from "@/lib/axios";
+import { setCookie, getCookie, deleteCookie } from "@/utils/cookies";
+import { ILoginRequest, ILoginResponse, IRefreshResponse } from "./auth.types";
 
-import { getCookie } from "@/utils/cookies";
-import { tokenManager } from "./tokenManager";
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
-
-export class AuthService {
-  public static async login(payload: ILoginRequest): Promise<ILoginResponse> {
-    const res = await fetch(`${BASE_URL}/auth/login`, {
-      method: "POST",
-      credentials: "include", 
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      throw new Error("Invalid email or password");
-    }
-
-    const data = (await res.json()) as ILoginResponse;
-
-    tokenManager.setAccessToken(data.accessToken);
-
-    return data;
+class AuthService {
+  async login(payload: ILoginRequest): Promise<ILoginResponse> {
+    const res = await api.post<ILoginResponse>("/api/v1/auth/login", payload);
+    const { accessToken, user } = res.data;
+    setCookie("access_token", accessToken, 1);
+    return { accessToken, user };
   }
 
-  public static async refresh(): Promise<IRefreshResponse> {
-    const csrfToken = getCookie("csrf_token"); 
-    const refreshTokenFromCookie = getCookie("refresh_token"); 
+  async refresh(): Promise<IRefreshResponse> {
+    const csrf = getCookie("csrf_token");
+    const res = await api.post<IRefreshResponse>(
+      "/api/v1/auth/login/refresh",
+      { refreshToken: "" },
+      { headers: csrf ? { "X-CSRF": csrf } : {} }
+    );
 
-    const body: IRefreshRequest = {
-      refreshToken: refreshTokenFromCookie ?? "",
-    };
-
-    const res = await fetch(`${BASE_URL}/auth/refresh`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF": csrfToken ?? "",
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      tokenManager.clear();
-      throw new Error("Unable to refresh token");
-    }
-
-    const data = (await res.json()) as IRefreshResponse;
-
-    tokenManager.setAccessToken(data.accessToken);
-
-    return data;
+    const { accessToken, user } = res.data;
+    setCookie("access_token", accessToken, 1);
+    return { accessToken, user };
   }
 
-  public static async logout(): Promise<void> {
-    await fetch(`${BASE_URL}/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
+  logout() {
+    deleteCookie("access_token");
+  }
 
-    tokenManager.clear();
+  getAccessToken(): string | null {
+    return getCookie("access_token");
   }
 }
+
+export const authService = new AuthService();

@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
 import styles from "./LandingPage.module.scss";
-import { AuthService } from "@/services/auth/auth.service";
-import { tokenManager } from "@/services/auth/tokenManager";
+
+import { authService } from "@/services/auth/auth.service";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -15,14 +14,14 @@ export default function LandingPage() {
   useEffect(() => {
     async function verifyAuth() {
       try {
-        const token = tokenManager.getAccessToken();
+        const token = authService.getAccessToken();
 
         if (token) {
           router.replace("/main");
           return;
         }
 
-        await AuthService.refresh();
+        await authService.refresh();
 
         router.replace("/main");
       } catch {
