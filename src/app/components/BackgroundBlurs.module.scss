@@ -1,0 +1,40 @@
+.blurLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.blur {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(35px);
+  opacity: 0.15;
+}
+
+.cyan {
+  width: 350px;
+  height: 350px;
+  transform: translateX(-50%);
+  right: 17%;
+  top: 57%;
+  background: #00B8DB;
+}
+
+.blue {
+  width: 350px;
+  height: 350px;
+  left: 25%;
+  top: 15%;
+  background: #2B7FFF;
+
+}
+
+.purple {
+  width: 350px;
+  height: 350px;
+  background: #AD46FF;
+  right: 15%;
+  top: 45%;
+  transform: translateX(-50%);
+}

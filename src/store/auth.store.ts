@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { authService } from "@/services/auth/auth.service";
-import { IUser, ILoginRequest } from "@/services/auth/auth.types";
+import {
+  IUser,
+  ILoginRequest,
+  IRegistRequest,
+  IRegisterResponse,
+} from "@/services/auth/auth.types";
 
 interface AuthState {
   user: IUser | null;
@@ -11,6 +16,7 @@ interface AuthState {
 
   init: () => Promise<void>;
   login: (payload: ILoginRequest) => Promise<void>;
+  register: (payload: IRegistRequest) => Promise<IRegisterResponse | null>;
   logout: () => Promise<void>;
 }
 
@@ -56,6 +62,21 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuth: false,
         loading: false,
       });
+    }
+  },
+
+  register: async (payload: IRegistRequest) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await authService.register(payload);
+      set({ loading: false });
+      return res;
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : "Registration failed",
+        loading: false,
+      });
+      return null;
     }
   },
 

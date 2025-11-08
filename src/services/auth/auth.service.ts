@@ -1,6 +1,12 @@
 import { api } from "@/lib/axios";
 import { setCookie, getCookie, deleteCookie } from "@/utils/cookies";
-import { ILoginRequest, ILoginResponse, IRefreshResponse } from "./auth.types";
+import {
+  ILoginRequest,
+  ILoginResponse,
+  IRefreshResponse,
+  IRegistRequest,
+  IRegisterResponse,
+} from "./auth.types";
 
 class AuthService {
   async login(payload: ILoginRequest): Promise<ILoginResponse> {
@@ -10,14 +16,18 @@ class AuthService {
     return { accessToken, user };
   }
 
+  async register(payload: IRegistRequest): Promise<IRegisterResponse> {
+    const res = await api.post<IRegisterResponse>("/api/v1/auth/register", payload);
+    return res.data;
+  }
+
   async refresh(): Promise<IRefreshResponse> {
     const csrf = getCookie("csrf_token");
     const res = await api.post<IRefreshResponse>(
-      "/api/v1/auth/login/refresh",
+      "/api/v1/auth/refresh",
       { refreshToken: "" },
       { headers: csrf ? { "X-CSRF": csrf } : {} }
     );
-
     const { accessToken, user } = res.data;
     setCookie("access_token", accessToken, 1);
     return { accessToken, user };

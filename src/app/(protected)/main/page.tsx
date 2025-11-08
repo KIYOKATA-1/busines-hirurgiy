@@ -26,7 +26,7 @@ export default function MainPage() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>Привет, {user?.email || "Пользователь"}!</h1>
+        <h1>MAIN</h1>
       <button onClick={logout}>Выйти</button>
     </div>
   );
