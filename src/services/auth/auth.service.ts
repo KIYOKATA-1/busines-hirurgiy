@@ -3,9 +3,9 @@ import { setCookie, getCookie, deleteCookie } from "@/utils/cookies";
 import {
   ILoginRequest,
   ILoginResponse,
-  IRefreshResponse,
   IRegistRequest,
   IRegisterResponse,
+  IRefreshResponse,
 } from "./auth.types";
 
 class AuthService {
@@ -28,9 +28,23 @@ class AuthService {
       { refreshToken: "" },
       { headers: csrf ? { "X-CSRF": csrf } : {} }
     );
+
     const { accessToken, user } = res.data;
     setCookie("access_token", accessToken, 1);
     return { accessToken, user };
+  }
+
+  async loginWithGoogle(code: string, state?: string) {
+    const res = await api.get("/api/v1/auth/oauth/google/callback", {
+      params: { code, state },
+    });
+
+    const { accessToken, csrfToken, user } = res.data;
+
+    if (accessToken) setCookie("access_token", accessToken, 1);
+    if (csrfToken) setCookie("csrf_token", csrfToken, 1);
+
+    return user;
   }
 
   logout() {
