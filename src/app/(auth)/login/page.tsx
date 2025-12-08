@@ -14,7 +14,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-
   useEffect(() => {
     if (isAuth) router.replace("/main");
   }, [isAuth, router]);
@@ -29,6 +28,11 @@ export default function LoginPage() {
     e.preventDefault();
     await login({ email, password });
     router.replace("/main");
+  };
+
+  const GoogleLogin = () => {
+    window.location.href =
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/oauth/google/login`;
   };
 
   return (
@@ -85,12 +89,16 @@ export default function LoginPage() {
           />
         </label>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className={styles.submitButton}
-        >
+        <button type="submit" disabled={loading} className={styles.submitButton}>
           {loading ? "Входим..." : "Войти"}
+        </button>
+
+        <button
+          type="button"
+          className={styles.submitButton}
+          onClick={GoogleLogin}
+        >
+          Войти через Google
         </button>
       </form>
     </main>
