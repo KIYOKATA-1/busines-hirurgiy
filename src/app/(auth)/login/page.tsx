@@ -37,7 +37,7 @@ export default function LoginPage() {
 
   return (
     <main className={styles.container}>
-      <BackgroundBlurs />
+      {/* <BackgroundBlurs /> */}
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.logoContainer}>
           <Image src="/assets/logo.svg" width={64} height={64} alt="image" />
