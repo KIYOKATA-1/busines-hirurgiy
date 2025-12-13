@@ -26,7 +26,7 @@ export interface RefreshResponse {
 class AuthService {
   async login(payload: LoginPayload) {
     // логин — только cookies
-    await plainAxios.post("/api/v1/auth/login", payload);
+    await plainAxios.post("/v1/auth/login", payload);
   }
 
   async refresh(): Promise<RefreshResponse> {
@@ -34,7 +34,7 @@ class AuthService {
     if (!csrf) throw new Error("CSRF token not found");
 
     const res = await plainAxios.post(
-      "/api/v1/auth/refresh",
+      "/v1/auth/refresh",
       {},
       {
         headers: {
@@ -48,7 +48,7 @@ class AuthService {
   }
 
   async register(payload: RegisterPayload) {
-    await plainAxios.post("/api/v1/auth/register", payload);
+    await plainAxios.post("/v1/auth/register", payload);
   }
 
   logout() {
