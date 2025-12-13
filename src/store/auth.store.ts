@@ -1,10 +1,6 @@
 import { create } from "zustand";
 import { authService } from "@/services/auth/auth.service";
-import {
-  IUser,
-  ILoginRequest,
-  IRegistRequest,
-} from "@/services/auth/auth.types";
+import { IUser, ILoginRequest, IRegistRequest } from "@/services/auth/auth.types";
 
 interface AuthState {
   user: IUser | null;
@@ -27,11 +23,28 @@ export const useAuthStore = create<AuthState>((set) => ({
   error: null,
 
   init: async () => {
+    const access = authService.getAccessToken();
+    if (access) {
+      set({ isAuth: true, initialized: true });
+      try {
+        set({ loading: true });
+        const res = await authService.refresh();
+        set({
+          user: res.user ?? null,
+          isAuth: true,
+          loading: false,
+          initialized: true,
+        });
+      } catch {
+        set({ loading: false, initialized: true });
+      }
+      return;
+    }
+
+    // ✅ 2) Если access_token нет — пробуем refresh как раньше
     try {
       set({ loading: true });
-
       const res = await authService.refresh();
-
       set({
         user: res.user ?? null,
         isAuth: true,
@@ -51,19 +64,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (payload) => {
     try {
       set({ loading: true, error: null });
-
       const res = await authService.login(payload);
-
-      set({
-        user: res.user,
-        isAuth: true,
-        loading: false,
-      });
+      set({ user: res.user, isAuth: true, loading: false });
     } catch {
-      set({
-        error: "Неверный логин или пароль",
-        loading: false,
-      });
+      set({ error: "Неверный логин или пароль", loading: false, isAuth: false });
     }
   },
 
@@ -73,20 +77,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       await authService.register(payload);
       set({ loading: false });
     } catch {
-      set({
-        error: "Ошибка регистрации",
-        loading: false,
-      });
+      set({ error: "Ошибка регистрации", loading: false });
       throw new Error();
     }
   },
 
   logout: async () => {
     await authService.logout();
-    set({
-      user: null,
-      isAuth: false,
-      initialized: true,
-    });
+    set({ user: null, isAuth: false, initialized: true, loading: false, error: null });
   },
 }));
