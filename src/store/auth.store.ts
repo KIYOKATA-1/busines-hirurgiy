@@ -1,9 +1,11 @@
 import { create } from "zustand";
-import { authService, LoginPayload, RegisterPayload } from "@/services/auth/auth.service";
+import { authService, RegisterPayload } from "@/services/auth/auth.service";
 
 interface User {
   id: string;
   email: string;
+  name: string;
+  surname: string;
   role: string;
 }
 
@@ -15,7 +17,7 @@ interface AuthState {
   error: string | null;
 
   init: () => Promise<void>;
-  login: (p: LoginPayload) => Promise<void>;
+  login: (p: { email: string; password: string }) => Promise<void>;
   register: (p: RegisterPayload) => Promise<void>;
   logout: () => void;
 }
@@ -29,21 +31,16 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   init: async () => {
     try {
-      set({ loading: true });
-
       const res = await authService.refresh();
-
       set({
         user: res.user ?? null,
         isAuth: true,
-        loading: false,
         initialized: true,
       });
     } catch {
       set({
         user: null,
         isAuth: false,
-        loading: false,
         initialized: true,
       });
     }
@@ -52,10 +49,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (payload) => {
     try {
       set({ loading: true, error: null });
-
-      await authService.login(payload);
-
+      const res = await authService.login(payload);
       set({
+        user: res.user,
         isAuth: true,
         loading: false,
       });
@@ -73,7 +69,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       await authService.register(payload);
       set({ loading: false });
     } catch {
-      set({ error: "Ошибка регистрации", loading: false });
+      set({
+        error: "Ошибка регистрации",
+        loading: false,
+      });
       throw new Error();
     }
   },
