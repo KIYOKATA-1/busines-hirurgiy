@@ -2,12 +2,14 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useAuthStore } from "@/store/auth.store";
+
+import plugImage from "@/assets/plug.jpg";
 
 export default function MainPage() {
   const router = useRouter();
-  const { init, isAuth, initialized, loading, logout, user } =
-    useAuthStore();
+  const { init, isAuth, initialized, loading, logout } = useAuthStore();
 
   useEffect(() => {
     init();
@@ -28,7 +30,17 @@ export default function MainPage() {
   return (
     <div style={{ padding: 20 }}>
       <h1>MAIN</h1>
-      <pre>{JSON.stringify(user, null, 2)}</pre>
+
+      <Image
+        src={plugImage}
+        alt="Plug image"
+        width={300}
+        height={300}
+        priority
+      />
+
+      <br />
+
       <button onClick={logout}>Выйти</button>
     </div>
   );
