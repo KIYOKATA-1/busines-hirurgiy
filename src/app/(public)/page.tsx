@@ -1,40 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./LandingPage.module.scss";
-
-import { authService } from "@/services/auth/auth.service";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function LandingPage() {
   const router = useRouter();
-  const [checking, setChecking] = useState(true);
+  const { init, isAuth, loading } = useAuthStore();
 
   useEffect(() => {
-    async function verifyAuth() {
-      try {
-        const token = authService.getAccessToken();
+    init();
+  }, [init]);
 
-        if (token) {
-          router.replace("/main");
-          return;
-        }
-
-        await authService.refresh();
-
-        router.replace("/main");
-      } catch {
-        console.log("Не авторизован, остаёмся на лендинге");
-      } finally {
-        setChecking(false);
-      }
+  useEffect(() => {
+    if (!loading && isAuth) {
+      router.replace("/main");
     }
+  }, [loading, isAuth, router]);
 
-    verifyAuth();
-  }, [router]);
-
-  if (checking) {
+  if (loading) {
     return (
       <main className={styles.container}>
         <h1 className={styles.title}>Проверяем сессию...</h1>

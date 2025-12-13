@@ -32,17 +32,19 @@ export default function RegisterPage() {
       return;
     }
 
-    const res = await register({
-      email,
-      name,
-      surname,
-      password,
-      role: "participant",
-    });
+    try {
+      await register({
+        email,
+        name,
+        surname,
+        password,
+        role: "participant",
+      });
 
-    if (res) {
       alert("Регистрация прошла успешно!");
       router.push("/login");
+    } catch {
+      // ошибка уже в store.error
     }
   };
 
@@ -137,7 +139,11 @@ export default function RegisterPage() {
           <p className={styles.error}>{localError || error}</p>
         )}
 
-        <button type="submit" className={styles.submitButton} disabled={loading}>
+        <button
+          type="submit"
+          className={styles.submitButton}
+          disabled={loading}
+        >
           {loading ? "Регистрация..." : "Зарегистрироваться"}
         </button>
       </form>

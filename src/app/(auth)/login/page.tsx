@@ -14,7 +14,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-
   useEffect(() => {
     if (isAuth) router.replace("/main");
   }, [isAuth, router]);
@@ -28,8 +27,11 @@ export default function LoginPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     await login({ email, password });
-    router.replace("/main");
   };
+
+  useEffect(() => {
+    if (isAuth) router.replace("/main");
+  }, [isAuth]);
 
   return (
     <main className={styles.container}>
