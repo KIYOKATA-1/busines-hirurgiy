@@ -22,12 +22,12 @@ class AuthService {
   }
 
   async register(payload: IRegistRequest): Promise<IRegisterResponse> {
-    const res = await plainAxios.post<IRegisterResponse>("/v1/auth/register", payload);
+    const res = await plainAxios.post<IRegisterResponse>("/api/v1/auth/register", payload);
     return res.data;
   }
 
   async login(payload: ILoginRequest): Promise<ILoginResponse> {
-    const res = await plainAxios.post<ILoginResponse>("/v1/auth/login", payload);
+    const res = await plainAxios.post<ILoginResponse>("/api/v1/auth/login", payload);
     this.setAccessToken(res.data.accessToken);
     return res.data;
   }
@@ -37,7 +37,7 @@ class AuthService {
     if (!csrf) throw new Error("CSRF token not found");
 
     const res = await plainAxios.post<IRefreshResponse>(
-      "/v1/auth/refresh",
+      "/api/v1/auth/refresh",
       {},
       { headers: { "X-CSRF": csrf } }
     );
@@ -48,7 +48,7 @@ class AuthService {
 
   async logout(): Promise<void> {
     try {
-      await plainAxios.post("/v1/auth/logout");
+      await plainAxios.post("/api/v1/auth/logout");
     } catch {}
     this.clearAccessToken();
   }
