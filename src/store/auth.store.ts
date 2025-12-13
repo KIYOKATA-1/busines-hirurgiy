@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { authService } from "@/services/auth/auth.service";
-import { IUser, ILoginRequest, IRegistRequest } from "@/services/auth/auth.types";
+
+export interface IUser {
+  id: string;
+  email: string;
+  role: string;
+}
 
 interface AuthState {
   user: IUser | null;
@@ -9,8 +14,14 @@ interface AuthState {
   error: string | null;
 
   init: () => Promise<void>;
-  login: (p: ILoginRequest) => Promise<void>;
-  register: (p: IRegistRequest) => Promise<void>;
+  login: (p: { email: string; password: string }) => Promise<void>;
+  register: (p: {
+    email: string;
+    name: string;
+    surname: string;
+    password: string;
+    role: "participant";
+  }) => Promise<void>;
   logout: () => void;
 }
 
@@ -40,13 +51,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (payload) => {
     try {
       set({ loading: true, error: null });
-      const res = await authService.login(payload);
+      await authService.login(payload);
+      const res = await authService.refresh();
       set({
-        user: res.user,
+        user: res.user ?? null,
         isAuth: true,
         loading: false,
       });
-    } catch (e) {
+    } catch {
       set({
         error: "Неверный логин или пароль",
         loading: false,
@@ -55,12 +67,21 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   register: async (payload) => {
-    await authService.register(payload);
+    try {
+      set({ loading: true, error: null });
+      await authService.register(payload);
+      set({ loading: false });
+    } catch {
+      set({ error: "Ошибка регистрации", loading: false });
+      throw new Error();
+    }
   },
 
   logout: () => {
     authService.logout();
-    set({ user: null, isAuth: false });
-    window.location.href = "/login";
+    set({
+      user: null,
+      isAuth: false,
+    });
   },
 }));

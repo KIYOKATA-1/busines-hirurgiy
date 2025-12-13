@@ -1,33 +1,32 @@
+// services/auth/auth.service.ts
 import { api } from "@/lib/axios";
-import { setCookie, deleteCookie } from "@/utils/cookies";
-import {
-  ILoginRequest,
-  ILoginResponse,
-  IRefreshResponse,
-  IRegistRequest,
-  IRegisterResponse,
-} from "./auth.types";
+
+export interface RegisterPayload {
+  email: string;
+  name: string;
+  surname: string;
+  password: string;
+  role: "participant";
+}
 
 class AuthService {
-  async login(payload: ILoginRequest): Promise<ILoginResponse> {
-    const res = await api.post<ILoginResponse>("/api/v1/auth/login", payload);
-    setCookie("access_token", res.data.accessToken, 1);
+  async login(payload: { email: string; password: string }) {
+    await api.post("/api/v1/auth/login", payload);
+  }
+
+  async refresh() {
+    const res = await api.post("/api/v1/auth/refresh");
+    document.cookie = `access_token=${res.data.accessToken}; path=/`;
     return res.data;
   }
 
-  async refresh(): Promise<IRefreshResponse> {
-    const res = await api.post<IRefreshResponse>("/api/v1/auth/refresh");
-    setCookie("access_token", res.data.accessToken, 1);
-    return res.data;
-  }
-
-  async register(payload: IRegistRequest): Promise<IRegisterResponse> {
-    const res = await api.post<IRegisterResponse>("/api/v1/auth/register", payload);
-    return res.data;
+  async register(payload: RegisterPayload) {
+    await api.post("/api/v1/auth/register", payload);
   }
 
   logout() {
-    deleteCookie("access_token");
+    document.cookie = "access_token=; Max-Age=0; path=/";
+    window.location.href = "/login";
   }
 }
 

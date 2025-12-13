@@ -1,80 +1,80 @@
-import axios, { AxiosError, AxiosInstance } from "axios";
-import { getCookie, setCookie, deleteCookie } from "@/utils/cookies";
+import axios, { AxiosError } from "axios";
+import { getCookie } from "@/utils/cookies";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
-class ApiClient {
-  private instance: AxiosInstance;
-  private isRefreshing = false;
-  private queue: Array<(token: string | null) => void> = [];
+export const api = axios.create({
+  baseURL: BASE_URL,
+  withCredentials: true, 
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
-  constructor() {
-    this.instance = axios.create({
-      baseURL: BASE_URL,
-      withCredentials: true,
-      headers: { "Content-Type": "application/json" },
-    });
+api.interceptors.request.use((config) => {
+  const token = getCookie("access_token");
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-    this.instance.interceptors.request.use((config) => {
-      const token = getCookie("access_token");
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
+let isRefreshing = false;
+let queue: Array<(token: string | null) => void> = [];
 
-    this.instance.interceptors.response.use(
-      (res) => res,
-      async (error: AxiosError) => {
-        const original = error.config;
-        if (!original || error.response?.status !== 401) {
-          return Promise.reject(error);
-        }
+api.interceptors.response.use(
+  (res) => res,
+  async (error: AxiosError) => {
+    const original = error.config;
 
-        if (this.isRefreshing) {
-          return new Promise((resolve, reject) => {
-            this.queue.push((token) => {
-              if (!token) reject(error);
-              if (original.headers) {
-                original.headers.Authorization = token!;
-              }
-              resolve(this.instance(original));
-            });
-          });
-        }
+    if (error.response?.status !== 401 || !original) {
+      return Promise.reject(error);
+    }
 
-        this.isRefreshing = true;
-
-        try {
-          const resp = await this.instance.post("/api/v1/auth/refresh");
-          const newToken = (resp.data as { accessToken: string }).accessToken;
-
-          setCookie("access_token", newToken, 1);
-
-          this.queue.forEach((cb) => cb(`Bearer ${newToken}`));
-          this.queue = [];
-
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        queue.push((token) => {
+          if (!token) reject(error);
           if (original.headers) {
-            original.headers.Authorization = `Bearer ${newToken}`;
+            original.headers.Authorization = token!;
           }
+          resolve(api(original));
+        });
+      });
+    }
 
-          return this.instance(original);
-        } catch {
-          this.queue.forEach((cb) => cb(null));
-          this.queue = [];
-          deleteCookie("access_token");
-          window.location.href = "/login";
-          return Promise.reject(error);
-        } finally {
-          this.isRefreshing = false;
+    isRefreshing = true;
+
+    try {
+      const csrf = getCookie("csrf_token");
+
+      const resp = await api.post(
+        "/api/v1/auth/refresh",
+        {},
+        {
+          headers: csrf ? { "X-CSRF": csrf } : {},
         }
+      );
+
+      const accessToken = (resp.data as { accessToken: string }).accessToken;
+
+      document.cookie = `access_token=${accessToken}; path=/`;
+
+      queue.forEach((cb) => cb(`Bearer ${accessToken}`));
+      queue = [];
+
+      if (original.headers) {
+        original.headers.Authorization = `Bearer ${accessToken}`;
       }
-    );
-  }
 
-  get() {
-    return this.instance;
+      return api(original);
+    } catch (e) {
+      queue.forEach((cb) => cb(null));
+      queue = [];
+      window.location.href = "/login";
+      return Promise.reject(e);
+    } finally {
+      isRefreshing = false;
+    }
   }
-}
-
-export const api = new ApiClient().get();
+);
