@@ -25,11 +25,6 @@ export default function LoginPage() {
 
   return (
     <main className={styles.container}>
-      <div className={styles.blurLayer}>
-        <Image src="/assets/blue.png" alt="" fill className={styles.blue} />
-        <Image src="/assets/purple.png" alt="" fill className={styles.purple} />
-        <Image src="/assets/cyan.png" alt="" fill className={styles.cyan} />
-      </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.logoContainer}>
