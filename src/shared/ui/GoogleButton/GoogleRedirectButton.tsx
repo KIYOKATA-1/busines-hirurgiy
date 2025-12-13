@@ -3,7 +3,7 @@
 export default function GoogleRedirectButton() {
   const handleGoogleLogin = () => {
     window.location.href =
-      "https://businesssurgerybackend-dev-fa4d.up.railway.app/api/v1/auth/oauth/google/login";
+      "/api/v1/auth/oauth/google/login";
   };
 
   return (

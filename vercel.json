@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": "https://businesssurgerybackend-dev-fa4d.up.railway.app/api/v1/:path*"
+    }
+  ]
+}
