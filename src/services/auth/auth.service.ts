@@ -1,36 +1,24 @@
 import { plainAxios } from "@/lib/plainAxios";
 import { getCookie } from "@/utils/cookies";
-
-export interface RegisterPayload {
-  email: string;
-  name: string;
-  surname: string;
-  password: string;
-  role: "participant";
-}
-
-export interface LoginResponse {
-  accessToken: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    surname: string;
-    role: string;
-  };
-}
+import {
+  ILoginRequest,
+  ILoginResponse,
+  IRegistRequest,
+  IRegisterResponse,
+  IRefreshResponse,
+} from "./auth.types";
 
 class AuthService {
-  async register(payload: RegisterPayload) {
-    const res = await plainAxios.post(
+  async register(payload: IRegistRequest): Promise<IRegisterResponse> {
+    const res = await plainAxios.post<IRegisterResponse>(
       "/v1/auth/register",
       payload
     );
     return res.data;
   }
 
-  async login(payload: { email: string; password: string }): Promise<LoginResponse> {
-    const res = await plainAxios.post<LoginResponse>(
+  async login(payload: ILoginRequest): Promise<ILoginResponse> {
+    const res = await plainAxios.post<ILoginResponse>(
       "/v1/auth/login",
       payload
     );
@@ -39,23 +27,32 @@ class AuthService {
     return res.data;
   }
 
-  async refresh() {
+  async refresh(): Promise<IRefreshResponse> {
     const csrf = getCookie("csrf_token");
-    if (!csrf) throw new Error("No CSRF");
+    if (!csrf) {
+      throw new Error("CSRF token not found");
+    }
 
-    const res = await plainAxios.post(
+    const res = await plainAxios.post<IRefreshResponse>(
       "/v1/auth/refresh",
       {},
-      { headers: { "X-CSRF": csrf } }
+      {
+        headers: { "X-CSRF": csrf },
+      }
     );
 
     document.cookie = `access_token=${res.data.accessToken}; path=/`;
     return res.data;
   }
 
-  logout() {
+  async logout(): Promise<void> {
+    try {
+      await plainAxios.post("/v1/auth/logout");
+    } catch {
+      // backend может уже считать сессию закрытой
+    }
+
     document.cookie = "access_token=; Max-Age=0; path=/";
-    window.location.href = "/login";
   }
 }
 

@@ -3,12 +3,12 @@ export interface ILoginRequest {
   password: string;
 }
 
-export interface IRegistRequest{
+export interface IRegistRequest {
   email: string;
   name: string;
-  password: string;
-  role: 'participant';
   surname: string;
+  password: string;
+  role: "participant";
 }
 
 export interface IRegisterResponse {
@@ -22,16 +22,14 @@ export interface IRegisterResponse {
 export interface IUser {
   id: string;
   email: string;
-  role: "admin" | "user" | string;
+  name?: string;
+  surname?: string;
+  role: "admin" | "user" | "participant" | string;
 }
 
 export interface ILoginResponse {
   accessToken: string;
   user: IUser;
-}
-
-export interface IRefreshRequest {
-  refreshToken: string;
 }
 
 export interface IRefreshResponse {

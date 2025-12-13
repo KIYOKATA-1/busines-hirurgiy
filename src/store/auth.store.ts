@@ -1,25 +1,22 @@
 import { create } from "zustand";
-import { authService, RegisterPayload } from "@/services/auth/auth.service";
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  surname: string;
-  role: string;
-}
+import { authService } from "@/services/auth/auth.service";
+import {
+  IUser,
+  ILoginRequest,
+  IRegistRequest,
+} from "@/services/auth/auth.types";
 
 interface AuthState {
-  user: User | null;
+  user: IUser | null;
   isAuth: boolean;
   loading: boolean;
   initialized: boolean;
   error: string | null;
 
   init: () => Promise<void>;
-  login: (p: { email: string; password: string }) => Promise<void>;
-  register: (p: RegisterPayload) => Promise<void>;
-  logout: () => void;
+  login: (payload: ILoginRequest) => Promise<void>;
+  register: (payload: IRegistRequest) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -49,7 +46,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (payload) => {
     try {
       set({ loading: true, error: null });
+
       const res = await authService.login(payload);
+
       set({
         user: res.user,
         isAuth: true,
@@ -77,12 +76,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  logout: () => {
-    authService.logout();
+  logout: async () => {
+    await authService.logout();
     set({
       user: null,
       isAuth: false,
-      initialized: false,
+      initialized: true,
     });
   },
 }));
