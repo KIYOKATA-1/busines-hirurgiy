@@ -26,18 +26,24 @@ export const useAuthStore = create<AuthState>((set) => ({
   initialized: false,
   error: null,
 
+  // 🔴 ЕДИНСТВЕННОЕ МЕСТО, ГДЕ ВЫЗЫВАЕТСЯ refresh
   init: async () => {
     try {
+      set({ loading: true });
+
       const res = await authService.refresh();
+
       set({
         user: res.user ?? null,
         isAuth: true,
+        loading: false,
         initialized: true,
       });
     } catch {
       set({
         user: null,
         isAuth: false,
+        loading: false,
         initialized: true,
       });
     }

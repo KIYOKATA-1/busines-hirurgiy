@@ -6,7 +6,8 @@ import { useAuthStore } from "@/store/auth.store";
 
 export default function MainPage() {
   const router = useRouter();
-  const { init, isAuth, initialized, loading, logout, user } = useAuthStore();
+  const { init, isAuth, initialized, loading, logout, user } =
+    useAuthStore();
 
   useEffect(() => {
     init();
