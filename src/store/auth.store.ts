@@ -11,6 +11,7 @@ interface AuthState {
   user: User | null;
   isAuth: boolean;
   loading: boolean;
+  initialized: boolean;
   error: string | null;
 
   init: () => Promise<void>;
@@ -23,22 +24,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuth: false,
   loading: false,
+  initialized: false,
   error: null,
 
   init: async () => {
     try {
       set({ loading: true });
+
       const res = await authService.refresh();
+
       set({
         user: res.user ?? null,
         isAuth: true,
         loading: false,
+        initialized: true,
       });
     } catch {
       set({
         user: null,
         isAuth: false,
         loading: false,
+        initialized: true,
       });
     }
   },
@@ -74,6 +80,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     authService.logout();
-    set({ user: null, isAuth: false });
+    set({
+      user: null,
+      isAuth: false,
+      initialized: false,
+    });
   },
 }));
