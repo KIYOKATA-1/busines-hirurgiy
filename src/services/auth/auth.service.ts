@@ -1,5 +1,6 @@
-// services/auth/auth.service.ts
 import { api } from "@/lib/axios";
+import { plainAxios } from "@/lib/plainAxios";
+import { getCookie } from "@/utils/cookies";
 
 export interface RegisterPayload {
   email: string;
@@ -15,9 +16,24 @@ class AuthService {
   }
 
   async refresh() {
-    const res = await api.post("/api/v1/auth/refresh");
+    const csrf = getCookie("csrf_token");
+
+    if (!csrf) {
+      throw new Error("CSRF token not found");
+    }
+
+    const res = await plainAxios.post(
+      "/api/v1/auth/refresh",
+      {},
+      {
+        headers: {
+          "X-CSRF": csrf,
+        },
+      }
+    );
+
     document.cookie = `access_token=${res.data.accessToken}; path=/`;
-    return res.data;
+    return res.data; 
   }
 
   async register(payload: RegisterPayload) {
