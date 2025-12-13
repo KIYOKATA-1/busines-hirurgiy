@@ -26,7 +26,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   initialized: false,
   error: null,
 
-  // 🔴 ЕДИНСТВЕННОЕ МЕСТО, ГДЕ ВЫЗЫВАЕТСЯ refresh
   init: async () => {
     try {
       set({ loading: true });
