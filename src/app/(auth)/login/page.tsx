@@ -5,6 +5,7 @@ import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import styles from "../styles/auth.module.scss";
+import GoogleRedirectButton from "@/shared/ui/GoogleButton/GoogleRedirectButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,6 +60,9 @@ export default function LoginPage() {
         <button className={styles.submitButton} disabled={loading}>
           {loading ? "Входим..." : "Войти"}
         </button>
+
+        <GoogleRedirectButton />
+
       </form>
     </main>
   );

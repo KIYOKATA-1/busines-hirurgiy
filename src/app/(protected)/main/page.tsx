@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 
 export default function MainPage() {
-  const { init, isAuth, loading, initialized, user, logout } = useAuthStore();
   const router = useRouter();
+  const { init, isAuth, initialized, loading, logout, user } = useAuthStore();
 
   useEffect(() => {
     init();
