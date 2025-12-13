@@ -1,6 +1,10 @@
-import { api } from "@/lib/axios";
 import { plainAxios } from "@/lib/plainAxios";
 import { getCookie } from "@/utils/cookies";
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
 
 export interface RegisterPayload {
   email: string;
@@ -10,17 +14,24 @@ export interface RegisterPayload {
   role: "participant";
 }
 
+export interface RefreshResponse {
+  accessToken: string;
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
+
 class AuthService {
-  async login(payload: { email: string; password: string }) {
-    await api.post("/api/v1/auth/login", payload);
+  async login(payload: LoginPayload) {
+    // логин — только cookies
+    await plainAxios.post("/api/v1/auth/login", payload);
   }
 
-  async refresh() {
+  async refresh(): Promise<RefreshResponse> {
     const csrf = getCookie("csrf_token");
-
-    if (!csrf) {
-      throw new Error("CSRF token not found");
-    }
+    if (!csrf) throw new Error("CSRF token not found");
 
     const res = await plainAxios.post(
       "/api/v1/auth/refresh",
@@ -33,11 +44,11 @@ class AuthService {
     );
 
     document.cookie = `access_token=${res.data.accessToken}; path=/`;
-    return res.data; 
+    return res.data;
   }
 
   async register(payload: RegisterPayload) {
-    await api.post("/api/v1/auth/register", payload);
+    await plainAxios.post("/api/v1/auth/register", payload);
   }
 
   logout() {

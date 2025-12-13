@@ -19,19 +19,16 @@ api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
     const original = error.config;
-
     if (error.response?.status !== 401 || !original) {
       return Promise.reject(error);
     }
 
     try {
       await authService.refresh();
-
       const token = getCookie("access_token");
-      if (original.headers && token) {
+      if (token && original.headers) {
         original.headers.Authorization = `Bearer ${token}`;
       }
-
       return api(original);
     } catch {
       window.location.href = "/login";

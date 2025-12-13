@@ -1,38 +1,33 @@
 import { create } from "zustand";
-import { authService } from "@/services/auth/auth.service";
+import { authService, LoginPayload, RegisterPayload } from "@/services/auth/auth.service";
 
-export interface IUser {
+interface User {
   id: string;
   email: string;
   role: string;
 }
 
 interface AuthState {
-  user: IUser | null;
+  user: User | null;
   isAuth: boolean;
   loading: boolean;
   error: string | null;
 
   init: () => Promise<void>;
-  login: (p: { email: string; password: string }) => Promise<void>;
-  register: (p: {
-    email: string;
-    name: string;
-    surname: string;
-    password: string;
-    role: "participant";
-  }) => Promise<void>;
+  login: (p: LoginPayload) => Promise<void>;
+  register: (p: RegisterPayload) => Promise<void>;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuth: false,
-  loading: true,
+  loading: false,
   error: null,
 
   init: async () => {
     try {
+      set({ loading: true });
       const res = await authService.refresh();
       set({
         user: res.user ?? null,
@@ -51,10 +46,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (payload) => {
     try {
       set({ loading: true, error: null });
+
       await authService.login(payload);
-      const res = await authService.refresh();
+
       set({
-        user: res.user ?? null,
         isAuth: true,
         loading: false,
       });
@@ -79,9 +74,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     authService.logout();
-    set({
-      user: null,
-      isAuth: false,
-    });
+    set({ user: null, isAuth: false });
   },
 }));
