@@ -29,7 +29,7 @@ export default function MainPage() {
     <div style={{ padding: 20 }}>
       <h1>MAIN</h1>
       {user && (
-        <p>
+        <p style={{color: 'green'}}>
           Привет, {user.name} {user.surname} ({user.email})
         </p>
       )}
