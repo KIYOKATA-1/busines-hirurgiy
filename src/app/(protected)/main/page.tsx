@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuthStore } from "@/store/auth.store";
@@ -28,6 +28,11 @@ export default function MainPage() {
   return (
     <div style={{ padding: 20 }}>
       <h1>MAIN</h1>
+      {user && (
+        <p>
+          Привет, {user.name} {user.surname} ({user.email})
+        </p>
+      )}
       <Image
         src="/assets/plug.jpg"
         alt="Plug"
