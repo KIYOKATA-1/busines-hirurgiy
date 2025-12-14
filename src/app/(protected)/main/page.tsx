@@ -30,7 +30,7 @@ export default function MainPage() {
       <h1>MAIN</h1>
       {user && (
         <p style={{color: 'green'}}>
-          Привет, {user.name} {user.surname} ({user.email})
+          Привет, {user.name} {user.surname} 
         </p>
       )}
       <Image
