@@ -1,9 +1,11 @@
 import { create } from "zustand";
 import { authService } from "@/services/auth/auth.service";
-import { IUser, ILoginRequest, IRegistRequest } from "@/services/auth/auth.types";
+import { userService } from "@/services/user/user.service";
+import { IUserMe } from "@/services/user/user.types";
+import { ILoginRequest, IRegistRequest } from "@/services/auth/auth.types";
 
 interface AuthState {
-  user: IUser | null;
+  user: IUserMe | null;
   isAuth: boolean;
   loading: boolean;
   initialized: boolean;
@@ -23,30 +25,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   error: null,
 
   init: async () => {
-    const access = authService.getAccessToken();
-    if (access) {
-      set({ isAuth: true, initialized: true });
-      try {
-        set({ loading: true });
-        const res = await authService.refresh();
+    set({ loading: true, error: null });
+
+    try {
+      const access = authService.getAccessToken();
+      if (access) {
+        const me = await userService.me();
         set({
-          user: res.user ?? null,
+          user: me,
           isAuth: true,
           loading: false,
           initialized: true,
         });
-      } catch {
-        set({ loading: false, initialized: true });
+        return;
       }
-      return;
-    }
 
-    // ✅ 2) Если access_token нет — пробуем refresh как раньше
-    try {
-      set({ loading: true });
-      const res = await authService.refresh();
+      await authService.refresh();
+
+      const me = await userService.me();
+
       set({
-        user: res.user ?? null,
+        user: me,
         isAuth: true,
         loading: false,
         initialized: true,
@@ -64,10 +63,23 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (payload) => {
     try {
       set({ loading: true, error: null });
-      const res = await authService.login(payload);
-      set({ user: res.user, isAuth: true, loading: false });
+
+      await authService.login(payload);
+
+      const me = await userService.me();
+
+      set({
+        user: me,
+        isAuth: true,
+        loading: false,
+      });
     } catch {
-      set({ error: "Неверный логин или пароль", loading: false, isAuth: false });
+      set({
+        error: "Неверный логин или пароль",
+        loading: false,
+        isAuth: false,
+        user: null,
+      });
     }
   },
 
@@ -84,6 +96,12 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     await authService.logout();
-    set({ user: null, isAuth: false, initialized: true, loading: false, error: null });
+    set({
+      user: null,
+      isAuth: false,
+      initialized: true,
+      loading: false,
+      error: null,
+    });
   },
 }));
