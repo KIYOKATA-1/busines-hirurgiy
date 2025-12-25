@@ -27,12 +27,7 @@ export default function MainPage() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>MAIN</h1>
-      {user && (
-        <p style={{color: 'green'}}>
-          Привет, {user.name} {user.surname} 
-        </p>
-      )}
+      <h1>MAIdaN</h1>
       <Image
         src="/assets/plug.jpg"
         alt="Plug"
