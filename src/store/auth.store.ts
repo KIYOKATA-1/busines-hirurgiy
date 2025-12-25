@@ -38,9 +38,9 @@ export const useAuthStore = create<AuthState>((set) => ({
           initialized: true,
         });
         return;
+      } else {
+        await authService.refresh();
       }
-
-      await authService.refresh();
 
       const me = await userService.me();
 

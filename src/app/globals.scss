@@ -1,6 +1,11 @@
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    sans-serif;
   background: #fdfdfd;
   color: #000;
 }
@@ -13,10 +18,26 @@ a {
   color: #6c8cff;
   text-decoration: none;
 }
-h1, h2 {
+h1,
+h2 {
   margin-bottom: 16px;
 }
 form {
   display: grid;
   gap: 12px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
