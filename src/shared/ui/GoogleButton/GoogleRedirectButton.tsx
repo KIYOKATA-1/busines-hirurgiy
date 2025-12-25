@@ -6,7 +6,8 @@ export default function GoogleRedirectButton() {
   const handleGoogleLogin = async () => {
     await plainAxios.get("/api/v1/auth/csrf");
 
-    window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/google`;
+    window.location.href =
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/oauth/google/login`;
   };
 
   return (
