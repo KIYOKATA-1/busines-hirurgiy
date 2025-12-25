@@ -1,26 +1,15 @@
-"use client";
+import { plainAxios } from "@/lib/plainAxios";
 
 export default function GoogleRedirectButton() {
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
+    await plainAxios.get("/api/v1/auth/csrf");
+
     window.location.href =
-      "/api/v1/auth/oauth/google/login";
+      `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/google`;
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleGoogleLogin}
-      style={{
-        width: "100%",
-        marginTop: 12,
-        padding: "10px",
-        borderRadius: 6,
-        border: "1px solid #ddd",
-        background: "#fff",
-        cursor: "pointer",
-        fontWeight: 500,
-      }}
-    >
+    <button type="button" onClick={handleGoogleLogin}>
       Войти через Google
     </button>
   );
