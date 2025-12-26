@@ -1,0 +1,41 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.desc {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.canvas {
+  height: 360px;
+  border-radius: 18px;
+  border: 1px dashed var(--border-soft);
+  background: radial-gradient(
+    900px 400px at 40% 10%,
+    rgba(255, 255, 255, 0.04),
+    transparent 60%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.35);
+}
