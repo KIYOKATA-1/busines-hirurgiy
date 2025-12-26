@@ -10,14 +10,38 @@ import {
 import { useRouter } from "next/navigation";
 import { useSession } from "@/hooks/useSession";
 import Header from "@/app/components/Header/Header";
+import BusinessAnatomy from "./components/BusinessAnatomy/BusinessAnatomy";
+import MyProgress from "./components/MyProgress/MyProgress";
+import ActivityDiary from "./components/ActivityDiary/ActivityDiary";
 import styles from "./main.module.scss";
+import {
+  BusinesAnatomyIcon,
+  MyProgressIcon,
+  ActivityDiaryIcon,
+} from "@/app/components/icons";
 
 type TabKey = "anatomy" | "progress" | "diary";
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "anatomy", label: "Анатомия Бизнеса" },
-  { key: "progress", label: "Мой Прогресс" },
-  { key: "diary", label: "Дневник Активности" },
+const TABS: {
+  key: TabKey;
+  label: string;
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
+}[] = [
+  {
+    key: "anatomy",
+    label: "Анатомия Бизнеса",
+    icon: BusinesAnatomyIcon,
+  },
+  {
+    key: "progress",
+    label: "Мой Прогресс",
+    icon: MyProgressIcon,
+  },
+  {
+    key: "diary",
+    label: "Дневник Активности",
+    icon: ActivityDiaryIcon,
+  },
 ];
 
 export default function MainPage() {
@@ -26,7 +50,7 @@ export default function MainPage() {
 
   const [activeTab, setActiveTab] = useState<TabKey>("anatomy");
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  const tabletRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<TabKey, HTMLButtonElement | null>>({
     anatomy: null,
@@ -37,29 +61,34 @@ export default function MainPage() {
   const moveIndicator = useCallback(() => {
     const activeEl = tabRefs.current[activeTab];
     const indicator = indicatorRef.current;
-    const container = containerRef.current;
+    const tablet = tabletRef.current;
 
-    if (!activeEl || !indicator || !container) return;
+    if (!activeEl || !indicator || !tablet) return;
 
     const tabRect = activeEl.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
+    const tabletRect = tablet.getBoundingClientRect();
 
     indicator.style.width = `${tabRect.width}px`;
-    indicator.style.transform = `translateX(${tabRect.left - containerRect.left}px)`;
+    indicator.style.transform = `translateX(${tabRect.left - tabletRect.left}px)`;
   }, [activeTab]);
 
-  /* 🔑 ставим bg при первом рендере */
   useLayoutEffect(() => {
-    moveIndicator();
-  }, [moveIndicator]);
+    if (!initialized || loading) return;
 
-  /* 🔑 переставляем при resize */
+    requestAnimationFrame(() => {
+      moveIndicator();
+    });
+  }, [initialized, loading, activeTab, moveIndicator]);
+
   useEffect(() => {
-    window.addEventListener("resize", moveIndicator);
-    return () => window.removeEventListener("resize", moveIndicator);
-  }, [moveIndicator]);
+    if (!initialized || loading) return;
 
-  /* auth guard */
+    const onResize = () => moveIndicator();
+    window.addEventListener("resize", onResize);
+
+    return () => window.removeEventListener("resize", onResize);
+  }, [initialized, loading, moveIndicator]);
+
   useEffect(() => {
     if (!initialized) return;
     if (!isAuth) router.replace("/login");
@@ -68,7 +97,7 @@ export default function MainPage() {
   if (!initialized || loading) {
     return (
       <div className={styles.loader}>
-        <div className="spinner" />
+        <div className={styles.spinner} />
       </div>
     );
   }
@@ -78,25 +107,40 @@ export default function MainPage() {
       <Header user={user ?? null} onLogout={logout} />
 
       <main className={styles.main}>
-        <section ref={containerRef} className={styles.tablet}>
-          {/* sliding bg */}
-          <div ref={indicatorRef} className={styles.indicator} />
+        <div className={styles.container}>
+          <section className={styles.tabletWrap}>
+            <div ref={tabletRef} className={styles.tablet}>
+              <div ref={indicatorRef} className={styles.indicator} />
 
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              ref={(el) => {
-                tabRefs.current[tab.key] = el;
-              }}
-              className={`${styles.tab} ${
-                activeTab === tab.key ? styles.active : ""
-              }`}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </section>
+              {TABS.map((tab) => {
+                const Icon = tab.icon;
+
+                return (
+                  <button
+                    key={tab.key}
+                    ref={(el) => {
+                      tabRefs.current[tab.key] = el;
+                    }}
+                    className={`${styles.tab} ${
+                      activeTab === tab.key ? styles.active : ""
+                    }`}
+                    onClick={() => setActiveTab(tab.key)}
+                    type="button"
+                  >
+                    <Icon className={styles.tabIcon} width={16} height={16} />
+                    <span className={styles.tabLabel}>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className={styles.content}>
+            {activeTab === "anatomy" && <BusinessAnatomy />}
+            {activeTab === "progress" && <MyProgress />}
+            {activeTab === "diary" && <ActivityDiary />}
+          </section>
+        </div>
       </main>
     </div>
   );

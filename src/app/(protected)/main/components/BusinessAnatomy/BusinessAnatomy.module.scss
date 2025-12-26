@@ -1,0 +1,111 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.desc {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.action {
+  display: inline-flex; 
+  align-items: center; 
+  gap: 8px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #e5e7eb;
+
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.icon {
+  display: block; 
+  flex-shrink: 0;
+}
+
+.canvas {
+  height: 520px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: radial-gradient(
+    1200px 500px at 40% 10%,
+    rgba(255, 255, 255, 0.06),
+    transparent 55%
+  );
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 14px;
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tagGreen,
+.tagYellow,
+.tagRed {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.tagGreen {
+  color: #86efac;
+}
+
+.tagYellow {
+  color: #fde68a;
+}
+
+.tagRed {
+  color: #fca5a5;
+}
+
+@media (max-width: 900px) {
+  .canvas {
+    height: 420px;
+  }
+  .legend {
+    grid-template-columns: 1fr;
+  }
+}

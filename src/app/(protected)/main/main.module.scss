@@ -7,43 +7,75 @@
 .main {
   flex: 1;
   padding: 28px;
-  background: linear-gradient(150deg, #191919 -100%, #000000 60%, #020618 120%);
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(
+    150deg,
+    var(--bg-main-start) -100%,
+    var(--bg-main-mid) 60%,
+    var(--bg-main-end) 120%
+  );
+}
+
+.container {
+  width: 100%;
+  max-width: 1280px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tabletWrap {
+  width: 40%;
+  min-width: 420px;
+  max-width: 560px;
 }
 
 .tablet {
   position: relative;
   display: inline-flex;
-  gap: 6px;
-  padding: 8px;
-  border-radius: 16px;
-  background: #020618;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 999px;
+
+  background: linear-gradient(
+    180deg,
+    var(--bg-tablet-start),
+    var(--bg-tablet-end)
+  );
+
+  border: 1px solid var(--border-soft);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid #1D293D;
+
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
-    0 10px 40px rgba(0, 0, 0, 0.45);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    var(--shadow-soft);
 }
 
 .indicator {
   position: absolute;
   top: 6px;
-  left: 0;
-
+  left: 6px;
   height: calc(100% - 12px);
   width: 0;
+  border-radius: 999px;
 
-  border-radius: 12px;
-
-  background: linear-gradient(
-    140deg,
-    #3a3d42 -70%,
-    #070f1e 100%
-  );
+  background:
+    radial-gradient(
+      120% 120% at 30% 20%,
+      rgba(255, 255, 255, 0.18),
+      transparent 60%
+    ),
+    linear-gradient(
+      140deg,
+      var(--bg-indicator-start),
+      var(--bg-indicator-end)
+    );
 
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 6px 20px rgba(0, 0, 0, 0.45);
+    var(--shadow-soft);
 
   transition:
     transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
@@ -57,22 +89,67 @@
   position: relative;
   z-index: 1;
 
-  padding: 2px 12px;
-  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 6px 14px;
+  border-radius: 999px;
 
   font-size: 14px;
   font-weight: 500;
-  color: #cbd5e1;
+  color: var(--text-secondary);
+  white-space: nowrap;
 
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .tab:hover {
-  color: #ffffff;
+  color: var(--text-primary);
+}
+
+.tab:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--focus-ring),
+    0 0 0 6px rgba(96, 165, 250, 0.25);
 }
 
 .active {
-  color: #ffffff;
+  color: var(--text-primary);
+}
+
+.tabIcon {
+  display: block;
+  flex-shrink: 0;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.tab:hover .tabIcon,
+.active .tabIcon {
+  opacity: 1;
+}
+
+.tabLabel {
+  line-height: 1;
+}
+
+.content {
+  width: 100%;
+  padding: 22px;
+  border-radius: 20px;
+
+  background: linear-gradient(
+    180deg,
+    var(--bg-tablet-start),
+    var(--bg-tablet-end)
+  );
+
+  border: 1px solid var(--border-strong);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    var(--shadow-strong);
 }
 
 .loader {
@@ -80,5 +157,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #02040a;
+  background: var(--bg-tablet-end);
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--text-primary);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .tabletWrap {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .tab {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
 }
