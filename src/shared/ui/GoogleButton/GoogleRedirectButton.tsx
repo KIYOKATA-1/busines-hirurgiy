@@ -1,10 +1,9 @@
 "use client";
 
-import { plainAxios } from "@/lib/plainAxios";
-
 export default function GoogleRedirectButton() {
-  const handleGoogleLogin = async () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/oauth/google/login`;
+  const handleGoogleLogin = () => {
+    window.location.href =
+      "/api/v1/auth/oauth/google/login";
   };
 
   return (
