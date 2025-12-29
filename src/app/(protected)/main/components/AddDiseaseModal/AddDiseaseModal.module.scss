@@ -17,9 +17,13 @@
   width: min(760px, 100%);
   border-radius: 18px;
 
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background:
-    radial-gradient(900px 420px at 40% 10%, rgba(255, 255, 255, 0.05), transparent 60%),
+    radial-gradient(
+      900px 420px at 40% 10%,
+      rgba(255, 255, 255, 0.05),
+      transparent 60%
+    ),
     linear-gradient(90deg, rgba(63, 63, 70, 0.18), rgba(29, 41, 61, 0.18));
 
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
@@ -68,7 +72,10 @@
   justify-content: center;
 
   cursor: pointer;
-  transition: transform 120ms ease, border-color 160ms ease, background 160ms ease;
+  transition:
+    transform 120ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
 }
 
 .closeBtn:hover {
@@ -105,7 +112,7 @@
 
 .label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.60);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .input {
@@ -113,15 +120,21 @@
   border-radius: 12px;
   padding: 0 14px;
 
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: linear-gradient(90deg, rgba(63, 63, 70, 0.12), rgba(29, 41, 61, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    90deg,
+    rgba(63, 63, 70, 0.12),
+    rgba(29, 41, 61, 0.12)
+  );
 
   color: rgba(255, 255, 255, 0.92);
   font-size: 13px;
   font-weight: 500;
   outline: none;
 
-  transition: box-shadow 160ms ease, border-color 160ms ease;
+  transition:
+    box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 
 .input:focus {
@@ -136,15 +149,21 @@
   border-radius: 12px;
   padding: 12px 14px;
 
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: linear-gradient(90deg, rgba(63, 63, 70, 0.10), rgba(29, 41, 61, 0.10));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    90deg,
+    rgba(63, 63, 70, 0.1),
+    rgba(29, 41, 61, 0.1)
+  );
 
   color: rgba(255, 255, 255, 0.92);
   font-size: 13px;
   font-weight: 500;
   outline: none;
 
-  transition: box-shadow 160ms ease, border-color 160ms ease;
+  transition:
+    box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 
 .textarea:focus {
@@ -159,16 +178,19 @@
   text-align: right;
 }
 
-/* select like page */
 .selectWrap {
   position: relative;
   width: 100%;
   height: 40px;
 
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 
-  background: linear-gradient(90deg, rgba(63, 63, 70, 0.12), rgba(29, 41, 61, 0.12));
+  background: linear-gradient(
+    90deg,
+    rgba(63, 63, 70, 0.12),
+    rgba(29, 41, 61, 0.12)
+  );
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
@@ -180,7 +202,7 @@
   outline: none;
 
   background: transparent;
-  color: rgba(255, 255, 255, 0.90);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 13px;
   font-weight: 500;
 
@@ -215,9 +237,9 @@
   padding: 10px 12px;
   font-size: 12px;
 
-  background: rgba(59, 130, 246, 0.10);
+  background: rgba(59, 130, 246, 0.1);
   color: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(59, 130, 246, 0.20);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .footer {
@@ -240,14 +262,18 @@
   cursor: pointer;
   user-select: none;
 
-  transition: transform 120ms ease, border-color 160ms ease, background 160ms ease,
-    box-shadow 160ms ease, opacity 160ms ease;
+  transition:
+    transform 120ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
 }
 
 .secondary {
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.90);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .secondary:hover {
@@ -270,6 +296,33 @@
 .primary:active,
 .secondary:active {
   transform: translateY(1px);
+}
+
+.inlineError {
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(239, 68, 68, 0.92);
+}
+
+.alertError,
+.alertOk {
+  margin-top: 12px;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.alertError {
+  background: rgba(239, 68, 68, 0.1);
+  color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(239, 68, 68, 0.22);
+}
+
+.alertOk {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(34, 197, 94, 0.22);
 }
 
 @media (max-width: 640px) {

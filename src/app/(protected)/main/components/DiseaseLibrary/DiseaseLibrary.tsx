@@ -1,12 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import styles from "./DiseaseLibrary.module.scss";
 import AddDiseaseModal from "../AddDiseaseModal/AddDiseaseModal";
+import { IDiseaseListItem } from "@/services/disease/disease.types";
+import { diseaseService } from "@/services/disease/disease.service";
+import { WarningIcon } from "@/app/components/icons/WarningIcon";
+import { DeleteIcon, EditIcon } from "@/app/components/icons";
+
+type LoadState = "idle" | "loading" | "success" | "error";
 
 export default function DiseaseLibrary() {
-
   const [openAdd, setOpenAdd] = useState(false);
+
+  const [items, setItems] = useState<IDiseaseListItem[]>([]);
+  const [state, setState] = useState<LoadState>("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDiseases = useCallback(async () => {
+    try {
+      setError(null);
+      setState("loading");
+
+      const data = await diseaseService.getAll();
+      setItems(data);
+      setState("success");
+    } catch {
+      setItems([]);
+      setState("error");
+      setError("Не удалось загрузить болезни");
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDiseases();
+  }, [fetchDiseases]);
+
+  const onCreated = async () => {
+    setOpenAdd(false);
+    await fetchDiseases();
+  };
 
   return (
     <div className={styles.wrap}>
@@ -40,10 +73,77 @@ export default function DiseaseLibrary() {
       </div>
 
       <div className={styles.canvas}>
-        <div className={styles.placeholder}>Здесь будет библиотека бизнес-болезней</div>
+        {state === "loading" && (
+          <div className={styles.cards}>
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <div key={idx} className={styles.cardSkeleton} />
+            ))}
+          </div>
+        )}
+
+        {state === "error" && (
+          <div className={styles.empty}>
+            <div className={styles.emptyTitle}>Ошибка</div>
+            <div className={styles.emptyDesc}>{error}</div>
+            <button
+              type="button"
+              className={styles.retryBtn}
+              onClick={fetchDiseases}
+            >
+              Повторить
+            </button>
+          </div>
+        )}
+
+        {state !== "loading" && state !== "error" && items.length === 0 && (
+          <div className={styles.empty}>
+            <div className={styles.emptyTitle}>Пока пусто</div>
+            <div className={styles.emptyDesc}>
+              Добавьте первую болезнь — карточки появятся здесь.
+            </div>
+          </div>
+        )}
+
+        {state !== "loading" && state !== "error" && items.length > 0 && (
+          <div className={styles.cards}>
+            {items.map((d) => (
+              <div key={d.id} className={styles.card}>
+                <div className={styles.cardTop}>
+                  <div className={styles.cardTitleRow}>
+                    <WarningIcon />
+
+                    <div className={styles.cardTitle}>{d.title}</div>
+                  </div>
+
+                  <div className={styles.cardActions}>
+                    <button type="button" className={styles.iconBtn} aria-label="Редактировать">
+                      <EditIcon />
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.iconBtn} ${styles.danger}`}
+                      aria-label="Удалить"
+                    >
+                      <DeleteIcon />
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.badgeRow}>
+                  <span className={styles.badge}>{d.category?.title}</span>
+                </div>
+                <div className={styles.cardDesc}>{d.description}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      <AddDiseaseModal open={openAdd} onClose={() => setOpenAdd(false)} />
+      <AddDiseaseModal
+        open={openAdd}
+        onClose={() => setOpenAdd(false)}
+        onCreated={onCreated}
+      />
     </div>
   );
 }
