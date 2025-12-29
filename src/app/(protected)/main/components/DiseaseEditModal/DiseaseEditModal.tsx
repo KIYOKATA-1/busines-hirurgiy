@@ -4,12 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./DiseaseEditModal.module.scss";
 
 import { diseaseService } from "@/services/disease/disease.service";
-import { authService } from "@/services/auth/auth.service";
 import { organService } from "@/services/organs/organs.service";
 
 import {
   IDiseaseCategory,
   IDiseaseDetailsResponse,
+  IUpdateDiseaseRequest,
 } from "@/services/disease/disease.types";
 
 import { IOrgan } from "@/services/organs/organ.types";
@@ -177,12 +177,6 @@ export default function DiseaseEditModal({
   const onSave = async () => {
     if (!diseaseId) return;
 
-    const token = authService.getAccessToken();
-    if (!token) {
-      showToast("error", "Токен не найден (access_token). Перелогиньтесь.");
-      return;
-    }
-
     if (!title.trim()) {
       setError("Название не может быть пустым");
       return;
@@ -196,20 +190,18 @@ export default function DiseaseEditModal({
       return;
     }
 
+    const payload: IUpdateDiseaseRequest = {
+      title: title.trim(),
+      description: description.trim(),
+      categoryId,
+      organId,
+    };
+
     try {
       setError(null);
       setSaving(true);
 
-      await diseaseService.update(
-        diseaseId,
-        {
-          title: title.trim(),
-          description: description.trim(),
-          categoryId,
-          organId,
-        },
-        token
-      );
+      await diseaseService.update(diseaseId, payload);
 
       await fetchDetails(diseaseId);
 
@@ -319,9 +311,7 @@ export default function DiseaseEditModal({
               <div className={styles.cardTop}>
                 {!editCategory ? (
                   <div className={styles.topLine}>
-                    <span className={styles.badge}>
-                      {selectedCategoryTitle}
-                    </span>
+                    <span className={styles.badge}>{selectedCategoryTitle}</span>
                     <button
                       type="button"
                       className={styles.linkBtn}
@@ -480,57 +470,6 @@ export default function DiseaseEditModal({
               </div>
 
               <div className={styles.divider} />
-
-              {/* PLAN */}
-              {/* <div className={styles.block}>
-                <div className={styles.blockHead}>
-                  <div className={styles.blockTitle}>План</div>
-                  <div className={styles.blockHint}>
-                    {data.plan ? "Есть" : "Нет"}
-                  </div>
-                </div>
-
-                {data.plan ? (
-                  <div className={styles.planBox}>
-                    <div className={styles.planTitle}>{data.plan.title}</div>
-                    <div className={styles.planDesc}>
-                      {data.plan.description}
-                    </div>
-                  </div>
-                ) : (
-                  <div className={styles.muted}>—</div>
-                )}
-              </div> */}
-
-              {/* STEPS */}
-              {/* <div className={styles.block}>
-                <div className={styles.blockHead}>
-                  <div className={styles.blockTitle}>Шаги</div>
-                  <div className={styles.blockHint}>
-                    {data.steps?.length
-                      ? `Кол-во: ${data.steps.length}`
-                      : "Нет"}
-                  </div>
-                </div>
-
-                {data.steps?.length ? (
-                  <div className={styles.steps}>
-                    {[...data.steps]
-                      .sort((a, b) => (a.orderNo ?? 0) - (b.orderNo ?? 0))
-                      .map((s) => (
-                        <div key={s.id} className={styles.step}>
-                          <div className={styles.stepTop}>
-                            <span className={styles.stepNo}>#{s.orderNo}</span>
-                            <div className={styles.stepTitle}>{s.title}</div>
-                          </div>
-                          <div className={styles.stepDesc}>{s.description}</div>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <div className={styles.muted}>—</div>
-                )}
-              </div> */}
             </div>
           )}
         </div>
@@ -551,11 +490,7 @@ export default function DiseaseEditModal({
             onClick={onSave}
             disabled={saving || loading || !data?.disease || !isDirty}
             title={
-              !isDirty
-                ? "Нет изменений"
-                : saving
-                  ? "Сохранение..."
-                  : "Сохранить"
+              !isDirty ? "Нет изменений" : saving ? "Сохранение..." : "Сохранить"
             }
           >
             {saving ? "Сохранение..." : "Сохранить"}

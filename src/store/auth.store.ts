@@ -11,52 +11,57 @@ interface AuthState {
   initialized: boolean;
   error: string | null;
 
+  accessToken: string | null;
+
   init: () => Promise<void>;
   login: (payload: ILoginRequest) => Promise<void>;
   register: (payload: IRegistRequest) => Promise<void>;
   logout: () => Promise<void>;
+
+  setAccessToken: (token: string | null) => void;
+  clearSession: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isAuth: false,
   loading: false,
   initialized: false,
   error: null,
 
+  accessToken: null,
+
+  setAccessToken: (token) => set({ accessToken: token }),
+  clearSession: () =>
+    set({
+      user: null,
+      isAuth: false,
+      accessToken: null,
+      loading: false,
+      error: null,
+      initialized: true,
+    }),
+
   init: async () => {
     set({ loading: true, error: null });
 
     try {
-      const access = authService.getAccessToken();
-      if (access) {
-        const me = await userService.me();
-        set({
-          user: me,
-          isAuth: true,
-          loading: false,
-          initialized: true,
-        });
-        return;
-      } else {
-        await authService.refresh();
-      }
-
+      // 1) пробуем /me (вдруг accessToken уже стоит в памяти, например после навигации)
       const me = await userService.me();
-
-      set({
-        user: me,
-        isAuth: true,
-        loading: false,
-        initialized: true,
-      });
+      set({ user: me, isAuth: true, loading: false, initialized: true });
+      return;
     } catch {
-      set({
-        user: null,
-        isAuth: false,
-        loading: false,
-        initialized: true,
-      });
+      // 2) если нет — пробуем refresh по cookie refresh_token
+      try {
+        const refreshed = await authService.refresh();
+        if (refreshed?.accessToken) get().setAccessToken(refreshed.accessToken);
+
+        const me = await userService.me();
+        set({ user: me, isAuth: true, loading: false, initialized: true });
+        return;
+      } catch {
+        get().clearSession();
+      }
     }
   },
 
@@ -64,21 +69,18 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ loading: true, error: null });
 
-      await authService.login(payload);
+      const res = await authService.login(payload);
+      if (res?.accessToken) get().setAccessToken(res.accessToken);
 
       const me = await userService.me();
-
-      set({
-        user: me,
-        isAuth: true,
-        loading: false,
-      });
+      set({ user: me, isAuth: true, loading: false });
     } catch {
       set({
         error: "Неверный логин или пароль",
         loading: false,
         isAuth: false,
         user: null,
+        accessToken: null,
       });
     }
   },
@@ -96,12 +98,6 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     await authService.logout();
-    set({
-      user: null,
-      isAuth: false,
-      initialized: true,
-      loading: false,
-      error: null,
-    });
+    get().clearSession();
   },
 }));

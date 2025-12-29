@@ -7,17 +7,8 @@ export function useSession() {
   const { init, initialized, loading, isAuth, user, error, logout } = useAuthStore();
 
   useEffect(() => {
-    if (!initialized) {
-      init();
-    }
+    if (!initialized) init();
   }, [initialized, init]);
 
-  return {
-    initialized,
-    loading,
-    isAuth,
-    user,
-    error,
-    logout,
-  };
+  return { initialized, loading, isAuth, user, error, logout };
 }

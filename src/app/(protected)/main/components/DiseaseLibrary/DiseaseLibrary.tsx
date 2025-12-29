@@ -2,14 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import styles from "./DiseaseLibrary.module.scss";
+
 import AddDiseaseModal from "../AddDiseaseModal/AddDiseaseModal";
 import DiseaseEditModal from "../DiseaseEditModal/DiseaseEditModal";
 
-import { IDiseaseListItem, IDiseaseCategory } from "@/services/disease/disease.types";
+import {
+  IDiseaseListItem,
+  IDiseaseCategory,
+} from "@/services/disease/disease.types";
+
 import { diseaseService } from "@/services/disease/disease.service";
 import { WarningIcon } from "@/app/components/icons/WarningIcon";
 import { DeleteIcon, EditIcon } from "@/app/components/icons";
-import { authService } from "@/services/auth/auth.service";
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
@@ -45,7 +49,9 @@ export default function DiseaseLibrary() {
       setError(null);
       setState("loading");
 
-      const data = await diseaseService.getAll(categoryId ? { categoryId } : undefined);
+      const data = await diseaseService.getAll(
+        categoryId ? { categoryId } : undefined
+      );
 
       setItems(data);
       setState("success");
@@ -73,15 +79,10 @@ export default function DiseaseLibrary() {
     const ok = window.confirm(`Удалить болезнь "${disease.title}"?`);
     if (!ok) return;
 
-    const token = authService.getAccessToken();
-    if (!token) {
-      alert("Токен не найден (access_token). Перелогиньтесь.");
-      return;
-    }
-
     try {
       setDeletingId(disease.id);
-      await diseaseService.remove(disease.id, token);
+
+      await diseaseService.remove(disease.id);
 
       setItems((prev) => prev.filter((x) => x.id !== disease.id));
       await fetchDiseases();
@@ -113,7 +114,11 @@ export default function DiseaseLibrary() {
             </div>
           </div>
 
-          <button type="button" className={styles.addBtn} onClick={() => setOpenAdd(true)}>
+          <button
+            type="button"
+            className={styles.addBtn}
+            onClick={() => setOpenAdd(true)}
+          >
             <span className={styles.addIcon} aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path
@@ -174,7 +179,11 @@ export default function DiseaseLibrary() {
           <div className={styles.empty}>
             <div className={styles.emptyTitle}>Ошибка</div>
             <div className={styles.emptyDesc}>{error}</div>
-            <button type="button" className={styles.retryBtn} onClick={fetchDiseases}>
+            <button
+              type="button"
+              className={styles.retryBtn}
+              onClick={fetchDiseases}
+            >
               Повторить
             </button>
           </div>
@@ -183,7 +192,9 @@ export default function DiseaseLibrary() {
         {state !== "loading" && state !== "error" && items.length === 0 && (
           <div className={styles.empty}>
             <div className={styles.emptyTitle}>Пока пусто</div>
-            <div className={styles.emptyDesc}>По выбранной категории ничего не найдено.</div>
+            <div className={styles.emptyDesc}>
+              По выбранной категории ничего не найдено.
+            </div>
           </div>
         )}
 
@@ -236,7 +247,11 @@ export default function DiseaseLibrary() {
         )}
       </div>
 
-      <AddDiseaseModal open={openAdd} onClose={() => setOpenAdd(false)} onCreated={onCreated} />
+      <AddDiseaseModal
+        open={openAdd}
+        onClose={() => setOpenAdd(false)}
+        onCreated={onCreated}
+      />
 
       <DiseaseEditModal
         open={openEdit}

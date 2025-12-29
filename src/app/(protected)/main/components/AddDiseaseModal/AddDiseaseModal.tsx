@@ -3,10 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import styles from "./AddDiseaseModal.module.scss";
-import { IOrgan } from "@/services/organs/organ.types";
 
-import { authService } from "@/services/auth/auth.service";
-import { ICreateDiseaseRequest, IDiseaseCategory } from "@/services/disease/disease.types";
+import { IOrgan } from "@/services/organs/organ.types";
+import {
+  ICreateDiseaseRequest,
+  IDiseaseCategory,
+} from "@/services/disease/disease.types";
+
 import { diseaseService } from "@/services/disease/disease.service";
 import { organService } from "@/services/organs/organs.service";
 
@@ -55,8 +58,14 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
 
   const descriptionValue = watch("description") ?? "";
 
-  const categoryOptions = useMemo(() => diseaseService.toSelectOptions(categories), [categories]);
-  const organOptions = useMemo(() => organService.toSelectOptions(organs), [organs]);
+  const categoryOptions = useMemo(
+    () => diseaseService.toSelectOptions(categories),
+    [categories]
+  );
+  const organOptions = useMemo(
+    () => organService.toSelectOptions(organs),
+    [organs]
+  );
 
   const disableCategorySelect = catLoading || categoryOptions.length <= 1;
   const disableOrganSelect = orgLoading || organOptions.length <= 1;
@@ -80,11 +89,17 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
         setCategories(data);
 
         const firstId = data[0]?.id ?? "";
-        setValue("categoryId", firstId, { shouldValidate: true, shouldDirty: true });
+        setValue("categoryId", firstId, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
       } catch {
         if (!mounted) return;
         setCategories([]);
-        setValue("categoryId", "", { shouldValidate: true, shouldDirty: true });
+        setValue("categoryId", "", {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
       } finally {
         if (!mounted) return;
         setCatLoading(false);
@@ -100,11 +115,17 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
         setOrgans(data);
 
         const firstId = data[0]?.id ?? "";
-        setValue("organId", firstId, { shouldValidate: true, shouldDirty: true });
+        setValue("organId", firstId, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
       } catch {
         if (!mounted) return;
         setOrgans([]);
-        setValue("organId", "", { shouldValidate: true, shouldDirty: true });
+        setValue("organId", "", {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
       } finally {
         if (!mounted) return;
         setOrgLoading(false);
@@ -127,12 +148,6 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
     setSubmitError(null);
     setSubmitOk(null);
 
-    const accessToken = authService.getAccessToken();
-    if (!accessToken) {
-      setSubmitError("Токен не найден (access_token). Перелогиньтесь.");
-      return;
-    }
-
     const payload: ICreateDiseaseRequest = {
       title: values.title.trim(),
       description: values.description.trim(),
@@ -142,7 +157,8 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
 
     try {
       setSaving(true);
-      await diseaseService.create(payload, accessToken);
+      await diseaseService.create(payload);
+
       setSubmitOk("Болезнь успешно добавлена");
       onCreated?.();
       setTimeout(() => onClose(), 350);
@@ -155,7 +171,8 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
 
   if (!open) return null;
 
-  const hasRequiredLists = categoryOptions.length > 0 && organOptions.length > 0;
+  const hasRequiredLists =
+    categoryOptions.length > 0 && organOptions.length > 0;
 
   const disabledSubmit =
     saving || catLoading || orgLoading || !hasRequiredLists || !isValid;
@@ -202,7 +219,9 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
                 })}
               />
               {errors.title?.message && (
-                <div className={styles.inlineError}>{errors.title.message}</div>
+                <div className={styles.inlineError}>
+                  {errors.title.message}
+                </div>
               )}
             </div>
 
@@ -282,15 +301,21 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
                   minLength: { value: 5, message: "Минимум 5 символов" },
                 })}
               />
-              <div className={styles.hint}>{descriptionValue.trim().length}/2000</div>
+              <div className={styles.hint}>
+                {descriptionValue.trim().length}/2000
+              </div>
 
               {errors.description?.message && (
-                <div className={styles.inlineError}>{errors.description.message}</div>
+                <div className={styles.inlineError}>
+                  {errors.description.message}
+                </div>
               )}
             </div>
           </div>
 
-          {submitError && <div className={styles.alertError}>{submitError}</div>}
+          {submitError && (
+            <div className={styles.alertError}>{submitError}</div>
+          )}
           {submitOk && <div className={styles.alertOk}>{submitOk}</div>}
 
           <div className={styles.footer}>
@@ -303,7 +328,11 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
               Отмена
             </button>
 
-            <button type="submit" className={styles.primary} disabled={disabledSubmit}>
+            <button
+              type="submit"
+              className={styles.primary}
+              disabled={disabledSubmit}
+            >
               {saving ? "Сохранение..." : "Добавить"}
             </button>
           </div>
