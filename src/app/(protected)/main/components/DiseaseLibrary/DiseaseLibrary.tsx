@@ -7,6 +7,7 @@ import { IDiseaseListItem } from "@/services/disease/disease.types";
 import { diseaseService } from "@/services/disease/disease.service";
 import { WarningIcon } from "@/app/components/icons/WarningIcon";
 import { DeleteIcon, EditIcon } from "@/app/components/icons";
+import { authService } from "@/services/auth/auth.service";
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
@@ -16,6 +17,8 @@ export default function DiseaseLibrary() {
   const [items, setItems] = useState<IDiseaseListItem[]>([]);
   const [state, setState] = useState<LoadState>("idle");
   const [error, setError] = useState<string | null>(null);
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchDiseases = useCallback(async () => {
     try {
@@ -39,6 +42,30 @@ export default function DiseaseLibrary() {
   const onCreated = async () => {
     setOpenAdd(false);
     await fetchDiseases();
+  };
+
+  const onDelete = async (disease: IDiseaseListItem) => {
+    const ok = window.confirm(`Удалить болезнь "${disease.title}"?`);
+    if (!ok) return;
+
+    const token = authService.getAccessToken();
+    if (!token) {
+      alert("Токен не найден (access_token). Перелогиньтесь.");
+      return;
+    }
+
+    try {
+      setDeletingId(disease.id);
+      await diseaseService.remove(disease.id, token);
+
+      setItems((prev) => prev.filter((x) => x.id !== disease.id));
+
+      await fetchDiseases();
+    } catch {
+      alert("Не удалось удалить болезнь");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -85,11 +112,7 @@ export default function DiseaseLibrary() {
           <div className={styles.empty}>
             <div className={styles.emptyTitle}>Ошибка</div>
             <div className={styles.emptyDesc}>{error}</div>
-            <button
-              type="button"
-              className={styles.retryBtn}
-              onClick={fetchDiseases}
-            >
+            <button type="button" className={styles.retryBtn} onClick={fetchDiseases}>
               Повторить
             </button>
           </div>
@@ -106,35 +129,48 @@ export default function DiseaseLibrary() {
 
         {state !== "loading" && state !== "error" && items.length > 0 && (
           <div className={styles.cards}>
-            {items.map((d) => (
-              <div key={d.id} className={styles.card}>
-                <div className={styles.cardTop}>
-                  <div className={styles.cardTitleRow}>
-                    <WarningIcon />
+            {items.map((d) => {
+              const isDeleting = deletingId === d.id;
 
-                    <div className={styles.cardTitle}>{d.title}</div>
+              return (
+                <div key={d.id} className={styles.card}>
+                  <div className={styles.cardTop}>
+                    <div className={styles.cardTitleRow}>
+                      <WarningIcon />
+                      <div className={styles.cardTitle}>{d.title}</div>
+                    </div>
+
+                    <div className={styles.cardActions}>
+                      <button
+                        type="button"
+                        className={styles.iconBtn}
+                        aria-label="Редактировать"
+                        disabled={isDeleting}
+                      >
+                        <EditIcon />
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`${styles.iconBtn} ${styles.danger}`}
+                        aria-label="Удалить"
+                        onClick={() => onDelete(d)}
+                        disabled={isDeleting}
+                        title={isDeleting ? "Удаление..." : "Удалить"}
+                      >
+                        <DeleteIcon />
+                      </button>
+                    </div>
                   </div>
 
-                  <div className={styles.cardActions}>
-                    <button type="button" className={styles.iconBtn} aria-label="Редактировать">
-                      <EditIcon />
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.iconBtn} ${styles.danger}`}
-                      aria-label="Удалить"
-                    >
-                      <DeleteIcon />
-                    </button>
+                  <div className={styles.badgeRow}>
+                    <span className={styles.badge}>{d.category?.title}</span>
                   </div>
-                </div>
 
-                <div className={styles.badgeRow}>
-                  <span className={styles.badge}>{d.category?.title}</span>
+                  <div className={styles.cardDesc}>{d.description}</div>
                 </div>
-                <div className={styles.cardDesc}>{d.description}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

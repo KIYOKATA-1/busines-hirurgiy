@@ -32,6 +32,12 @@ class DiseaseService {
     return res.data;
   }
 
+  async remove(id: string, accessToken: string): Promise<void> {
+    await api.delete(`/api/v1/diseases/${id}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  }
+
   toSelectOptions(
     categories: IDiseaseCategory[]
   ): Array<{ id: string; label: string }> {
