@@ -22,21 +22,27 @@ import {
 } from "@/app/components/icons";
 
 import styles from "./main.module.scss";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import ScreenTooSmall from "@/app/components/ScreenTooSmall/ScreenTooSmall";
 
 export default function MainPage() {
   const router = useRouter();
   const { initialized, loading, isAuth, logout, user } = useSession();
+  const isSmall = useMediaQuery("(max-width: 767px)");
 
   const role: Role =
     user?.role === "admin" || user?.role === "moderator"
       ? user.role
       : "participant";
 
-  const tabsByRole: Record<Role, readonly {
-    key: TabKey;
-    label: string;
-    icon: React.FC<React.SVGProps<SVGSVGElement>>;
-  }[]> = {
+  const tabsByRole: Record<
+    Role,
+    readonly {
+      key: TabKey;
+      label: string;
+      icon: React.FC<React.SVGProps<SVGSVGElement>>;
+    }[]
+  > = {
     participant: [
       { key: "anatomy", label: "Анатомия Бизнеса", icon: BusinesAnatomyIcon },
       { key: "progress", label: "Мой Прогресс", icon: MyProgressIcon },
@@ -44,12 +50,20 @@ export default function MainPage() {
     ],
     moderator: [
       { key: "anatomy", label: "Анатомия Бизнеса", icon: BusinesAnatomyIcon },
-      { key: "library", label: "Библиотека Болезней", icon: DiseaseLibraryIcon },
+      {
+        key: "library",
+        label: "Библиотека Болезней",
+        icon: DiseaseLibraryIcon,
+      },
       { key: "participants", label: "Участники", icon: ParticipantsIcon },
     ],
     admin: [
       { key: "anatomy", label: "Анатомия Бизнеса", icon: BusinesAnatomyIcon },
-      { key: "library", label: "Библиотека Болезней", icon: DiseaseLibraryIcon },
+      {
+        key: "library",
+        label: "Библиотека Болезней",
+        icon: DiseaseLibraryIcon,
+      },
       { key: "participants", label: "Участники", icon: ParticipantsIcon },
     ],
   };
@@ -74,6 +88,10 @@ export default function MainPage() {
         <div className={styles.spinner} />
       </div>
     );
+  }
+
+  if (isSmall) {
+    return <ScreenTooSmall minWidth={768} />;
   }
 
   return (

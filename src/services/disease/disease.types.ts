@@ -1,7 +1,7 @@
 export interface IDiseaseCategory {
-    code: string;
-    id: string;
-    title: string;
+  code: string;
+  id: string;
+  title: string;
 }
 
 export type IDiseaseCategoriesResponse = IDiseaseCategory[];
@@ -36,6 +36,11 @@ export interface IDiseaseListItem {
   description: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DiseasesFilterParams {
+  organId?: string;
+  categoryId?: string;
 }
 
 export type IDiseasesResponse = IDiseaseListItem[];

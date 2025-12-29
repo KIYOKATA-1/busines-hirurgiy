@@ -1,0 +1,16 @@
+.wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg, #0b0c10);
+  color: #fff;
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 18px;
+  padding: 18px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}

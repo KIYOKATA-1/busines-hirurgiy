@@ -1,5 +1,6 @@
 import { api } from "@/lib/axios";
 import {
+    DiseasesFilterParams,
   ICreateDiseaseRequest,
   IDisease,
   IDiseaseCategoriesResponse,
@@ -15,8 +16,10 @@ class DiseaseService {
     return res.data;
   }
 
-  async getAll(): Promise<IDiseasesResponse> {
-    const res = await api.get<IDiseasesResponse>("/api/v1/diseases");
+  async getAll(params?: DiseasesFilterParams): Promise<IDiseasesResponse> {
+    const res = await api.get<IDiseasesResponse>("/api/v1/diseases", {
+      params,
+    });
     return res.data;
   }
 
