@@ -46,12 +46,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      // 1) пробуем /me (вдруг accessToken уже стоит в памяти, например после навигации)
       const me = await userService.me();
       set({ user: me, isAuth: true, loading: false, initialized: true });
       return;
     } catch {
-      // 2) если нет — пробуем refresh по cookie refresh_token
       try {
         const refreshed = await authService.refresh();
         if (refreshed?.accessToken) get().setAccessToken(refreshed.accessToken);
