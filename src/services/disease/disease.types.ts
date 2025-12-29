@@ -13,6 +13,8 @@ export interface ICreateDiseaseRequest {
   title: string;
 }
 
+export type IUpdateDiseaseRequest = ICreateDiseaseRequest;
+
 export interface IDisease {
   id: string;
   categoryId: string;
@@ -44,3 +46,32 @@ export interface DiseasesFilterParams {
 }
 
 export type IDiseasesResponse = IDiseaseListItem[];
+
+export interface IDiseaseDetailsResponse {
+  disease: {
+    category: { code: string; id: string; title: string };
+    createdAt: string;
+    description: string;
+    id: string;
+    organId: string;
+    title: string;
+    updatedAt: string;
+  };
+  plan: {
+    createdAt: string;
+    description: string;
+    diseaseId: string;
+    id: string;
+    title: string;
+    updatedAt: string;
+  } | null;
+  steps: Array<{
+    createdAt: string;
+    description: string;
+    id: string;
+    orderNo: number;
+    planId: string;
+    title: string;
+    updatedAt: string;
+  }>;
+}

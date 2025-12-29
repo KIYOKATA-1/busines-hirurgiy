@@ -1,11 +1,13 @@
 import { api } from "@/lib/axios";
 import {
-    DiseasesFilterParams,
+  DiseasesFilterParams,
   ICreateDiseaseRequest,
   IDisease,
   IDiseaseCategoriesResponse,
   IDiseaseCategory,
+  IDiseaseDetailsResponse,
   IDiseasesResponse,
+  IUpdateDiseaseRequest,
 } from "./disease.types";
 
 class DiseaseService {
@@ -35,10 +37,28 @@ class DiseaseService {
     return res.data;
   }
 
+  async update(
+    id: string,
+    payload: IUpdateDiseaseRequest,
+    accessToken: string
+  ): Promise<IDisease> {
+    const res = await api.put<IDisease>(`/api/v1/diseases/${id}`, payload, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    return res.data;
+  }
+
   async remove(id: string, accessToken: string): Promise<void> {
     await api.delete(`/api/v1/diseases/${id}`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
+  }
+
+  async getById(id: string): Promise<IDiseaseDetailsResponse> {
+    const res = await api.get<IDiseaseDetailsResponse>(
+      `/api/v1/diseases/${id}`
+    );
+    return res.data;
   }
 
   toSelectOptions(
