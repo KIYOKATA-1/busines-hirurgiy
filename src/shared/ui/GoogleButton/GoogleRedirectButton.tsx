@@ -16,6 +16,7 @@ export default function GoogleRedirectButton() {
         padding: "10px",
         borderRadius: 6,
         border: "1px solid #ddd",
+        color: "#000",
         background: "#fff",
         cursor: "pointer",
         fontWeight: 500,
