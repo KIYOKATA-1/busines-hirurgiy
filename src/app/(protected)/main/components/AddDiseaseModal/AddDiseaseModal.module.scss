@@ -216,10 +216,9 @@
 }
 
 .select option {
-  background-color: #0b1220; 
+  background-color: #0b1220;
   color: rgba(255, 255, 255, 0.92);
 }
-
 
 .chevron {
   position: absolute;
@@ -339,4 +338,137 @@
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+.dropdownWrap {
+  position: relative;
+  width: 100%;
+}
+
+.dropdownButton {
+  width: 100%;
+  height: 40px;
+
+  border-radius: 12px;
+  padding: 0 44px 0 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    90deg,
+    rgba(63, 63, 70, 0.12),
+    rgba(29, 41, 61, 0.12)
+  );
+
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  font-weight: 500;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  cursor: pointer;
+  outline: none;
+
+  transition:
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.dropdownButton:focus {
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
+
+.dropdownValue {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 10px;
+  text-align: left;
+}
+
+.dropdownDisabled .dropdownButton {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dropdownMenu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 30;
+
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  background:
+    radial-gradient(
+      900px 420px at 40% 10%,
+      rgba(255, 255, 255, 0.06),
+      transparent 60%
+    ),
+    linear-gradient(90deg, rgba(20, 20, 24, 0.9), rgba(8, 15, 30, 0.9));
+
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+.dropdownList {
+  max-height: 220px;
+  overflow: auto;
+  padding: 6px;
+}
+
+.dropdownItem {
+  width: 100%;
+  text-align: left;
+
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+
+  padding: 10px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.dropdownItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dropdownItemActive {
+  background: rgba(59, 130, 246, 0.14);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dropdownAdd {
+  width: 100%;
+  border: 0;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.92);
+
+  padding: 12px 12px;
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.dropdownAdd:hover {
+  background: rgba(255, 255, 255, 0.06);
 }

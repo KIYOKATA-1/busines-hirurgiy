@@ -1,6 +1,7 @@
 import { api } from "@/lib/axios";
 import {
   DiseasesFilterParams,
+  ICreateDiseaseCategoryRequest,
   ICreateDiseaseRequest,
   ICreatePlanStepRequest,
   IDisease,
@@ -68,6 +69,17 @@ class DiseaseService {
     const res = await api.post(`/api/v1/plans/${planId}/steps`, payload);
     return res.data;
   }
+
+  async createCategoryAdmin(
+    payload: ICreateDiseaseCategoryRequest
+  ): Promise<IDiseaseCategory> {
+    const res = await api.post<IDiseaseCategory>(
+      "/api/v1/admin/disease-categories",
+      payload
+    );
+    return res.data;
+  }
+  
   toSelectOptions(
     categories: IDiseaseCategory[]
   ): Array<{ id: string; label: string }> {

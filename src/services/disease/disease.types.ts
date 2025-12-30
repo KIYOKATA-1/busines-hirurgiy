@@ -15,6 +15,10 @@ export interface ICreateDiseaseRequest {
 
 export type IUpdateDiseaseRequest = ICreateDiseaseRequest;
 
+export interface ICreateDiseaseCategoryRequest {
+  code: string;
+  title: string;
+}
 
 export interface IDiseaseApi {
   category: {
@@ -81,15 +85,6 @@ export interface IDisease {
 export interface IUpsertDiseasePlanRequest {
   title: string;
   description: string;
-}
-
-export interface IDiseasePlanApi {
-  createdAt: string;
-  description: string;
-  diseaseId: string;
-  id: string;
-  title: string;
-  updatedAt: string;
 }
 
 export interface ICreatePlanStepRequest {
