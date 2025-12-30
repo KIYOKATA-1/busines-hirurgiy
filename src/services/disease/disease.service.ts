@@ -2,22 +2,29 @@ import { api } from "@/lib/axios";
 import {
   DiseasesFilterParams,
   ICreateDiseaseRequest,
+  ICreatePlanStepRequest,
   IDisease,
   IDiseaseCategoriesResponse,
   IDiseaseCategory,
   IDiseaseDetailsResponse,
+  IDiseasePlanApi,
   IDiseasesResponse,
   IUpdateDiseaseRequest,
+  IUpsertDiseasePlanRequest,
 } from "./disease.types";
 
 class DiseaseService {
   async getCategories(): Promise<IDiseaseCategoriesResponse> {
-    const res = await api.get<IDiseaseCategoriesResponse>("/api/v1/diseases/categories");
+    const res = await api.get<IDiseaseCategoriesResponse>(
+      "/api/v1/diseases/categories"
+    );
     return res.data;
   }
 
   async getAll(params?: DiseasesFilterParams): Promise<IDiseasesResponse> {
-    const res = await api.get<IDiseasesResponse>("/api/v1/diseases", { params });
+    const res = await api.get<IDiseasesResponse>("/api/v1/diseases", {
+      params,
+    });
     return res.data;
   }
 
@@ -36,11 +43,34 @@ class DiseaseService {
   }
 
   async getById(id: string): Promise<IDiseaseDetailsResponse> {
-    const res = await api.get<IDiseaseDetailsResponse>(`/api/v1/diseases/${id}`);
+    const res = await api.get<IDiseaseDetailsResponse>(
+      `/api/v1/diseases/${id}`
+    );
     return res.data;
   }
 
-  toSelectOptions(categories: IDiseaseCategory[]): Array<{ id: string; label: string }> {
+  async upsertPlan(
+    diseaseId: string,
+    payload: IUpsertDiseasePlanRequest
+  ): Promise<IDiseasePlanApi | null> {
+    const res = await api.put<
+      IDiseasePlanApi | { plan: IDiseasePlanApi } | null
+    >(`/api/v1/diseases/${diseaseId}/plan`, payload);
+
+    const data = res.data;
+    if (!data) return null;
+    if (typeof data === "object" && "plan" in (data as any))
+      return (data as any).plan;
+    return data as IDiseasePlanApi;
+  }
+
+  async createPlanStep(planId: string, payload: ICreatePlanStepRequest) {
+    const res = await api.post(`/api/v1/plans/${planId}/steps`, payload);
+    return res.data;
+  }
+  toSelectOptions(
+    categories: IDiseaseCategory[]
+  ): Array<{ id: string; label: string }> {
     return categories.map((c) => ({ id: c.id, label: c.title }));
   }
 }

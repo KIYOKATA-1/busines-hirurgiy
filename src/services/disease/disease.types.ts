@@ -15,6 +15,59 @@ export interface ICreateDiseaseRequest {
 
 export type IUpdateDiseaseRequest = ICreateDiseaseRequest;
 
+
+export interface IDiseaseApi {
+  category: {
+    code: string;
+    id: string;
+    title: string;
+  };
+  createdAt: string;
+  description: string;
+  id: string;
+  organId: string;
+  title: string;
+  updatedAt: string;
+}
+
+export interface IDiseasePlanApi {
+  createdAt: string;
+  description: string;
+  diseaseId: string;
+  id: string;
+  title: string;
+  updatedAt: string;
+}
+
+export interface IDiseaseStepApi {
+  createdAt: string;
+  description: string;
+  id: string;
+  orderNo: number;
+  planId: string;
+  title: string;
+  updatedAt: string;
+}
+
+export interface IDiseaseListEntry {
+  disease: IDiseaseApi;
+  plan: IDiseasePlanApi | null;
+  steps: IDiseaseStepApi[];
+}
+
+export interface DiseasesFilterParams {
+  organId?: string;
+  categoryId?: string;
+}
+
+export type IDiseasesResponse = IDiseaseListEntry[];
+
+export interface IDiseaseDetailsResponse {
+  disease: IDiseaseApi;
+  plan: IDiseasePlanApi | null;
+  steps: IDiseaseStepApi[];
+}
+
 export interface IDisease {
   id: string;
   categoryId: string;
@@ -24,54 +77,23 @@ export interface IDisease {
   createdAt?: string;
   updatedAt?: string;
 }
-export interface IDiseaseListCategory {
-  id: string;
-  code: string;
-  title: string;
-}
 
-export interface IDiseaseListItem {
-  id: string;
-  organId: string;
-  category: IDiseaseListCategory;
+export interface IUpsertDiseasePlanRequest {
   title: string;
   description: string;
+}
+
+export interface IDiseasePlanApi {
   createdAt: string;
+  description: string;
+  diseaseId: string;
+  id: string;
+  title: string;
   updatedAt: string;
 }
 
-export interface DiseasesFilterParams {
-  organId?: string;
-  categoryId?: string;
-}
-
-export type IDiseasesResponse = IDiseaseListItem[];
-
-export interface IDiseaseDetailsResponse {
-  disease: {
-    category: { code: string; id: string; title: string };
-    createdAt: string;
-    description: string;
-    id: string;
-    organId: string;
-    title: string;
-    updatedAt: string;
-  };
-  plan: {
-    createdAt: string;
-    description: string;
-    diseaseId: string;
-    id: string;
-    title: string;
-    updatedAt: string;
-  } | null;
-  steps: Array<{
-    createdAt: string;
-    description: string;
-    id: string;
-    orderNo: number;
-    planId: string;
-    title: string;
-    updatedAt: string;
-  }>;
+export interface ICreatePlanStepRequest {
+  title: string;
+  description: string;
+  orderNo: number;
 }

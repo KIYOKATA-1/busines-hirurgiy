@@ -1,38 +1,52 @@
-@import "./styles/variables.scss";
-
+@use "./styles/variables";
 
 :root {
   color-scheme: dark;
 }
 
+html,
+body {
+  height: 100%;
+}
 
 body {
   margin: 0;
-  font-family:
-    system-ui,
-    -apple-system,
-    Segoe UI,
-    Roboto,
-    sans-serif;
-  background: #fdfdfd;
-  color: #000;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+  background: radial-gradient(
+      1200px 700px at 20% 0%,
+      rgba(255, 255, 255, 0.04),
+      transparent 60%
+    ),
+    linear-gradient(
+      180deg,
+      var(--bg-main-start) 0%,
+      var(--bg-main-mid) 45%,
+      var(--bg-main-end) 100%
+    );
+
+  color: var(--text-primary);
 }
-.container {
-  max-width: 420px;
-  margin: 0 auto;
-  padding: 40px 20px;
-}
+
 a {
   color: #6c8cff;
   text-decoration: none;
 }
+
 h1,
 h2 {
   margin-bottom: 16px;
 }
+
 form {
   display: grid;
   gap: 12px;
+}
+
+.container {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 40px 20px;
 }
 
 @keyframes spin {
@@ -49,4 +63,3 @@ form {
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
-

@@ -182,10 +182,10 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
       <div className={styles.panel} role="dialog" aria-modal="true">
         <div className={styles.head}>
           <div className={styles.headLeft}>
-            <div className={styles.title}>Добавить болезнь</div>
-            <div className={styles.desc}>
+            <h1 className={styles.title}>Добавить болезнь</h1>
+            <p className={styles.desc}>
               Создайте карточку проблемы и привяжите её к органу
-            </div>
+            </p>
           </div>
 
           <button
@@ -208,7 +208,7 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
         <form className={styles.body} onSubmit={handleSubmit(onSubmit)}>
           <div className={styles.grid}>
             <div className={styles.field}>
-              <div className={styles.label}>Название</div>
+              <h1 className={styles.label}>Название</h1>
               <input
                 className={styles.input}
                 placeholder="Например: Negative cash flow"
@@ -219,14 +219,14 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
                 })}
               />
               {errors.title?.message && (
-                <div className={styles.inlineError}>
+                <p className={styles.inlineError}>
                   {errors.title.message}
-                </div>
+                </p>
               )}
             </div>
 
             <div className={styles.field}>
-              <div className={styles.label}>Категория</div>
+              <h1 className={styles.label}>Категория</h1>
               <div className={styles.selectWrap}>
                 <select
                   className={styles.select}
@@ -258,7 +258,7 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
             </div>
 
             <div className={styles.fieldFull}>
-              <div className={styles.label}>Орган</div>
+              <h1 className={styles.label}>Орган</h1>
               <div className={styles.selectWrap}>
                 <select
                   className={styles.select}
@@ -290,7 +290,7 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
             </div>
 
             <div className={styles.fieldFull}>
-              <div className={styles.label}>Описание</div>
+              <h1 className={styles.label}>Описание</h1>
               <textarea
                 className={styles.textarea}
                 placeholder="Опишите симптомы, причины и контекст..."
@@ -301,22 +301,22 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
                   minLength: { value: 5, message: "Минимум 5 символов" },
                 })}
               />
-              <div className={styles.hint}>
+              <p className={styles.hint}>
                 {descriptionValue.trim().length}/2000
-              </div>
+              </p>
 
               {errors.description?.message && (
-                <div className={styles.inlineError}>
+                <p className={styles.inlineError}>
                   {errors.description.message}
-                </div>
+                </p>
               )}
             </div>
           </div>
 
           {submitError && (
-            <div className={styles.alertError}>{submitError}</div>
+            <p className={styles.alertError}>{submitError}</p>
           )}
-          {submitOk && <div className={styles.alertOk}>{submitOk}</div>}
+          {submitOk && <p className={styles.alertOk}>{submitOk}</p>}
 
           <div className={styles.footer}>
             <button

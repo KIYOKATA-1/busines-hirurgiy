@@ -245,7 +245,7 @@ export default function DiseaseEditModal({
               <WarningIcon />
             </span>
             <div className={styles.headText}>
-              <div className={styles.headTitle}>Редактирование болезни</div>
+              <h1 className={styles.headTitle}>Редактирование болезни</h1>
               <div className={styles.headSub}>
                 {data?.disease?.title ? data.disease.title : "—"}
               </div>
@@ -272,8 +272,8 @@ export default function DiseaseEditModal({
         <div className={styles.body}>
           {loading && (
             <div className={styles.stateCard}>
-              <div className={styles.stateTitle}>Загрузка...</div>
-              <div className={styles.stateDesc}>Подтягиваем данные болезни</div>
+              <h1 className={styles.stateTitle}>Загрузка...</h1>
+              <h2 className={styles.stateDesc}>Подтягиваем данные болезни</h2>
               <div className={styles.skeletonGrid}>
                 <div className={styles.skeleton} />
                 <div className={styles.skeleton} />
@@ -284,8 +284,8 @@ export default function DiseaseEditModal({
 
           {!loading && error && (
             <div className={styles.stateCard}>
-              <div className={styles.stateTitle}>Ошибка</div>
-              <div className={styles.stateDesc}>{error}</div>
+              <h1 className={styles.stateTitle}>Ошибка</h1>
+              <p className={styles.stateDesc}>{error}</p>
 
               <div className={styles.stateActions}>
                 <button
@@ -311,7 +311,9 @@ export default function DiseaseEditModal({
               <div className={styles.cardTop}>
                 {!editCategory ? (
                   <div className={styles.topLine}>
-                    <span className={styles.badge}>{selectedCategoryTitle}</span>
+                    <span className={styles.badge}>
+                      {selectedCategoryTitle}
+                    </span>
                     <button
                       type="button"
                       className={styles.linkBtn}
@@ -351,7 +353,7 @@ export default function DiseaseEditModal({
 
               <div className={styles.kv}>
                 <div className={styles.kvRow}>
-                  <div className={styles.kvLabel}>Название</div>
+                  <h1 className={styles.kvLabel}>Название</h1>
 
                   {!editTitle ? (
                     <div className={styles.rowLine}>
@@ -387,11 +389,11 @@ export default function DiseaseEditModal({
                 </div>
 
                 <div className={styles.kvRow}>
-                  <div className={styles.kvLabel}>Орган</div>
+                  <h1 className={styles.kvLabel}>Орган</h1>
 
                   {!editOrgan ? (
                     <div className={styles.rowLine}>
-                      <div className={styles.rowValue}>{organTitle}</div>
+                      <h2 className={styles.rowValue}>{organTitle}</h2>
                       <button
                         type="button"
                         className={styles.linkBtn}
@@ -431,7 +433,7 @@ export default function DiseaseEditModal({
 
                 <div className={styles.kvCol}>
                   <div className={styles.kvColHead}>
-                    <div className={styles.kvLabel}>Описание</div>
+                    <h2 className={styles.kvLabel}>Описание</h2>
 
                     {!editDesc ? (
                       <button
@@ -470,6 +472,56 @@ export default function DiseaseEditModal({
               </div>
 
               <div className={styles.divider} />
+              {/* PLAN */}
+              <div className={styles.block}>
+                <div className={styles.blockHead}>
+                  <h1 className={styles.blockTitle}>План</h1>
+                  <p className={styles.blockHint}>
+                    {data.plan ? "Есть" : "Нет"}
+                  </p>
+                </div>
+
+                {data.plan ? (
+                  <div className={styles.planBox}>
+                    <h1 className={styles.planTitle}>{data.plan.title}</h1>
+                    <p className={styles.planDesc}>
+                      {data.plan.description}
+                    </p>
+                  </div>
+                ) : (
+                  <p className={styles.muted}>—</p>
+                )}
+              </div>
+
+              {/* STEPS */}
+              <div className={styles.block}>
+                <div className={styles.blockHead}>
+                  <h1 className={styles.blockTitle}>Шаги</h1>
+                  <p className={styles.blockHint}>
+                    {data.steps?.length
+                      ? `Кол-во: ${data.steps.length}`
+                      : "Нет"}
+                  </p>
+                </div>
+
+                {data.steps?.length ? (
+                  <div className={styles.steps}>
+                    {[...data.steps]
+                      .sort((a, b) => (a.orderNo ?? 0) - (b.orderNo ?? 0))
+                      .map((s) => (
+                        <div key={s.id} className={styles.step}>
+                          <div className={styles.stepTop}>
+                            <span className={styles.stepNo}>#{s.orderNo}</span>
+                            <h1 className={styles.stepTitle}>{s.title}</h1>
+                          </div>
+                          <p className={styles.stepDesc}>{s.description}</p>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className={styles.muted}>—</p>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -490,7 +542,11 @@ export default function DiseaseEditModal({
             onClick={onSave}
             disabled={saving || loading || !data?.disease || !isDirty}
             title={
-              !isDirty ? "Нет изменений" : saving ? "Сохранение..." : "Сохранить"
+              !isDirty
+                ? "Нет изменений"
+                : saving
+                  ? "Сохранение..."
+                  : "Сохранить"
             }
           >
             {saving ? "Сохранение..." : "Сохранить"}
