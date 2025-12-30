@@ -191,7 +191,10 @@
     rgba(63, 63, 70, 0.12),
     rgba(29, 41, 61, 0.12)
   );
+
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  color-scheme: dark;
 }
 
 .select {
@@ -209,7 +212,14 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  color-scheme: dark;
 }
+
+.select option {
+  background-color: #0b1220; 
+  color: rgba(255, 255, 255, 0.92);
+}
+
 
 .chevron {
   position: absolute;

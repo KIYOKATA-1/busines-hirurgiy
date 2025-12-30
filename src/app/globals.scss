@@ -1,5 +1,11 @@
 @import "./styles/variables.scss";
 
+
+:root {
+  color-scheme: dark;
+}
+
+
 body {
   margin: 0;
   font-family:
@@ -43,3 +49,4 @@ form {
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+
