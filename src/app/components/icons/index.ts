@@ -6,3 +6,7 @@ export { ParticipantsIcon } from "./ParticipantsIcon";
 export { WarningIcon } from "./WarningIcon";
 export { EditIcon } from "./EditIcon";
 export { DeleteIcon } from "./DeleteIcon";
+export { BurgerIcon } from "./BurgerIcon";
+export { UserIcon } from "./UserIcon";
+export { ShieldIcon } from "./ShieldIcon";
+export { ArrowLeftIcon } from "./ArrowLeftIcon";

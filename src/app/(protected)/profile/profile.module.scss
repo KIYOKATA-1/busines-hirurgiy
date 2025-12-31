@@ -1,0 +1,385 @@
+$pageMax: 1120px;
+
+@mixin glass($alpha: 0.045, $blur: 18px) {
+  background: rgba(255, 255, 255, $alpha);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid var(--border-soft);
+}
+
+@mixin softShadow {
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+%textClamp1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ фон как у блока ЛК (не общий main градиент) */
+.main {
+  flex: 1;
+  padding: clamp(18px, 2.2vw, 28px);
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+
+  background:
+    radial-gradient(1200px 520px at 35% 5%, rgba(96, 165, 250, 0.14), transparent 60%),
+    radial-gradient(900px 520px at 70% 20%, rgba(255, 255, 255, 0.06), transparent 65%),
+    linear-gradient(150deg, var(--bg-main-start) -100%, var(--bg-main-mid) 60%, var(--bg-main-end) 120%);
+}
+
+.container {
+  width: 100%;
+  max-width: $pageMax;
+}
+
+/* Единый “hero” как основная поверхность */
+.hero {
+  border-radius: 26px;
+
+  /* чуть плотнее, “как у блока” */
+  @include glass(0.04, 18px);
+
+  background:
+    radial-gradient(1200px 520px at 35% 5%, rgba(96, 165, 250, 0.16), transparent 60%),
+    radial-gradient(1000px 520px at 65% 15%, rgba(255, 255, 255, 0.05), transparent 60%),
+    rgba(255, 255, 255, 0.03);
+
+  @include softShadow;
+}
+
+.heroInner {
+  padding: clamp(18px, 2.4vw, 26px);
+}
+
+.heroTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.heroLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.avatar {
+  width: 62px;
+  height: 62px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+
+  background:
+    radial-gradient(90px 80px at 30% 20%, rgba(96, 165, 250, 0.30), transparent 55%),
+    rgba(255, 255, 255, 0.05);
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+
+  box-shadow:
+    0 22px 55px rgba(0, 0, 0, 0.50),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.avatarText {
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.heroMeta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title {
+  font-size: clamp(18px, 1.6vw, 22px);
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+  @extend %textClamp1;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.4;
+  @extend %textClamp1;
+}
+
+.pills {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pill {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  color: rgba(191, 219, 254, 0.95);
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+}
+
+.pillMuted {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+
+  font-size: 12px;
+  font-weight: 750;
+
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  max-width: 520px;
+  @extend %textClamp1;
+}
+
+/* статус теперь строкой (не bento) */
+.statusLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.95);
+  box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.10);
+}
+
+.statusText {
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.90);
+}
+
+.divider {
+  margin-top: 18px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.00),
+    rgba(255, 255, 255, 0.10),
+    rgba(255, 255, 255, 0.00)
+  );
+}
+
+.blocks {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.block {
+  border-radius: 22px;
+  padding: 16px;
+
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    0 18px 55px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.blockHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.blockTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.blockHint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.gridTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.item {
+  border-radius: 18px;
+  padding: 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+
+  box-shadow:
+    0 16px 45px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  transition: border-color 160ms ease, background 160ms ease;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.045);
+  }
+}
+
+.itemTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.2px;
+}
+
+.value {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.92);
+  word-break: break-word;
+}
+
+.editBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.82);
+
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 160ms ease, background 160ms ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.35);
+  }
+}
+
+.heroFooter {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.footerHint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* responsive */
+@media (max-width: 920px) {
+  .heroTop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .grid,
+  .gridTwo {
+    grid-template-columns: 1fr;
+  }
+
+  .pillMuted {
+    max-width: 100%;
+  }
+}
+
+/* loader */
+.loader {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tablet-end);
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--text-primary);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

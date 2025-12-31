@@ -24,6 +24,7 @@ import {
 import styles from "./main.module.scss";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ScreenTooSmall from "@/app/components/ScreenTooSmall/ScreenTooSmall";
+import FloatingBurgerMenu from "@/app/components/FloatingBurgerMenu/FloatingBurgerMenu";
 
 export default function MainPage() {
   const router = useRouter();
@@ -116,6 +117,16 @@ export default function MainPage() {
           </section>
         </div>
       </main>
+
+      <FloatingBurgerMenu
+        role={role}
+        position="left"
+        showBack={false}
+        showPersonal={true}
+        showAdmin={true}
+        onPersonal={() => router.push("/profile")}
+        onAdmin={() => router.push("/admin")}
+      />
     </div>
   );
 }

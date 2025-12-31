@@ -1,0 +1,118 @@
+.root {
+  position: fixed;
+  bottom: 18px;
+  z-index: 50;
+}
+
+.left {
+  left: 18px;
+}
+
+.right {
+  right: 18px;
+}
+
+.stack {
+  position: absolute;
+  bottom: 56px;
+  left: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.stackOpen {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.fab {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+
+  transition: transform 120ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.fab:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.fab:active {
+  transform: translateY(1px);
+}
+
+.fabOpen {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.actionBtn {
+  min-width: 210px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 14px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(2, 6, 24, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+
+  transition: transform 120ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.actionBtn:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(2, 6, 24, 0.86);
+}
+
+.actionBtn:active {
+  transform: translateY(1px);
+}
+
+.actionIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 12px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.actionText {
+  font-size: 13px;
+  font-weight: 750;
+}
