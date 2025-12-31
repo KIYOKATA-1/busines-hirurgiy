@@ -1,27 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+function getMql(query: string): MediaQueryList | null {
+  if (typeof window === "undefined") return null;
+  return window.matchMedia(query);
+}
+
+function subscribe(query: string, callback: () => void) {
+  const mql = getMql(query);
+  if (!mql) return () => {};
+
+  const handler = () => callback();
+
+  mql.addEventListener("change", handler);
+  return () => mql.removeEventListener("change", handler);
+}
+
+function getSnapshot(query: string) {
+  const mql = getMql(query);
+  return mql ? mql.matches : false;
+}
 
 export function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const mql = window.matchMedia(query);
-
-    setMatches(mql.matches);
-
-    const handler = (e: MediaQueryListEvent) => setMatches(e.matches);
-
-    if (mql.addEventListener) mql.addEventListener("change", handler);
-    else mql.addListener(handler);
-
-    return () => {
-      if (mql.removeEventListener) mql.removeEventListener("change", handler);
-      else mql.removeListener(handler);
-    };
-  }, [query]);
-
-  return matches;
+  return useSyncExternalStore(
+    (cb) => subscribe(query, cb),
+    () => getSnapshot(query),
+    () => false
+  );
 }

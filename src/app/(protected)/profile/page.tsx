@@ -61,7 +61,6 @@ export default function ProfilePage() {
 
       <main className={styles.main}>
         <div className={styles.container}>
-          {/* один цельный блок (фон страницы = как у него) */}
           <section className={styles.hero}>
             <div className={styles.heroInner}>
               <div className={styles.heroTop}>
@@ -87,7 +86,7 @@ export default function ProfilePage() {
 
                 <div className={styles.statusLine}>
                   <div className={styles.statusDot} aria-hidden="true" />
-                  <div className={styles.statusText}>Активен</div>
+                  <p className={styles.statusText}>Активен</p>
                 </div>
               </div>
 
@@ -103,7 +102,7 @@ export default function ProfilePage() {
                   <div className={styles.grid}>
                     <div className={styles.item}>
                       <div className={styles.itemTop}>
-                        <div className={styles.label}>Email</div>
+                        <h1 className={styles.label}>Email</h1>
                         <button
                           type="button"
                           className={styles.editBtn}
@@ -113,12 +112,12 @@ export default function ProfilePage() {
                           <EditIcon />
                         </button>
                       </div>
-                      <div className={styles.value}>{user?.email ?? "—"}</div>
+                      <p className={styles.value}>{user?.email ?? "—"}</p>
                     </div>
 
                     <div className={styles.item}>
                       <div className={styles.itemTop}>
-                        <div className={styles.label}>Имя</div>
+                        <h1 className={styles.label}>Имя</h1>
                         <button
                           type="button"
                           className={styles.editBtn}
@@ -128,12 +127,12 @@ export default function ProfilePage() {
                           <EditIcon />
                         </button>
                       </div>
-                      <div className={styles.value}>{user?.name ?? "—"}</div>
+                      <p className={styles.value}>{user?.name ?? "—"}</p>
                     </div>
 
                     <div className={styles.item}>
                       <div className={styles.itemTop}>
-                        <div className={styles.label}>Фамилия</div>
+                        <h1 className={styles.label}>Фамилия</h1>
                         <button
                           type="button"
                           className={styles.editBtn}
@@ -143,12 +142,12 @@ export default function ProfilePage() {
                           <EditIcon />
                         </button>
                       </div>
-                      <div className={styles.value}>{user?.surname ?? "—"}</div>
+                      <p className={styles.value}>{user?.surname ?? "—"}</p>
                     </div>
 
                     <div className={styles.item}>
                       <div className={styles.itemTop}>
-                        <div className={styles.label}>Роль</div>
+                        <h1 className={styles.label}>Роль</h1>
                         <button
                           type="button"
                           className={styles.editBtn}
@@ -158,7 +157,7 @@ export default function ProfilePage() {
                           <EditIcon />
                         </button>
                       </div>
-                      <div className={styles.value}>{user?.role ?? "participant"}</div>
+                      <p className={styles.value}>{user?.role ?? "participant"}</p>
                     </div>
                   </div>
                 </div>
@@ -171,13 +170,13 @@ export default function ProfilePage() {
 
                   <div className={styles.gridTwo}>
                     <div className={styles.item}>
-                      <div className={styles.label}>Создан</div>
-                      <div className={styles.value}>{fmtDate(user?.createdAt)}</div>
+                      <h1 className={styles.label}>Создан</h1>
+                      <p className={styles.value}>{fmtDate(user?.createdAt)}</p>
                     </div>
 
                     <div className={styles.item}>
-                      <div className={styles.label}>Обновлён</div>
-                      <div className={styles.value}>{fmtDate(user?.updatedAt)}</div>
+                      <h1 className={styles.label}>Обновлён</h1>
+                      <p className={styles.value}>{fmtDate(user?.updatedAt)}</p>
                     </div>
                   </div>
                 </div>

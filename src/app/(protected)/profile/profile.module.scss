@@ -25,7 +25,6 @@ $pageMax: 1120px;
   flex-direction: column;
 }
 
-/* ✅ фон как у блока ЛК (не общий main градиент) */
 .main {
   flex: 1;
   padding: clamp(18px, 2.2vw, 28px);
@@ -44,11 +43,9 @@ $pageMax: 1120px;
   max-width: $pageMax;
 }
 
-/* Единый “hero” как основная поверхность */
 .hero {
   border-radius: 26px;
 
-  /* чуть плотнее, “как у блока” */
   @include glass(0.04, 18px);
 
   background:
@@ -166,7 +163,6 @@ $pageMax: 1120px;
   @extend %textClamp1;
 }
 
-/* статус теперь строкой (не bento) */
 .statusLine {
   display: inline-flex;
   align-items: center;
@@ -343,7 +339,6 @@ $pageMax: 1120px;
   color: rgba(255, 255, 255, 0.45);
 }
 
-/* responsive */
 @media (max-width: 920px) {
   .heroTop {
     flex-direction: column;
@@ -360,7 +355,6 @@ $pageMax: 1120px;
   }
 }
 
-/* loader */
 .loader {
   height: 100vh;
   display: flex;

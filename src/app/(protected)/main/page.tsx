@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/hooks/useSession";
 
@@ -22,14 +22,11 @@ import {
 } from "@/app/components/icons";
 
 import styles from "./main.module.scss";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import ScreenTooSmall from "@/app/components/ScreenTooSmall/ScreenTooSmall";
 import FloatingBurgerMenu from "@/app/components/FloatingBurgerMenu/FloatingBurgerMenu";
 
 export default function MainPage() {
   const router = useRouter();
   const { initialized, loading, isAuth, logout, user } = useSession();
-  const isSmall = useMediaQuery("(max-width: 767px)");
 
   const role: Role =
     user?.role === "admin" || user?.role === "moderator"
@@ -89,10 +86,6 @@ export default function MainPage() {
         <div className={styles.spinner} />
       </div>
     );
-  }
-
-  if (isSmall) {
-    return <ScreenTooSmall minWidth={768} />;
   }
 
   return (
