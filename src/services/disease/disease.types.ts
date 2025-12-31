@@ -16,7 +16,6 @@ export interface ICreateDiseaseRequest {
 export type IUpdateDiseaseRequest = ICreateDiseaseRequest;
 
 export interface ICreateDiseaseCategoryRequest {
-  code: string;
   title: string;
 }
 

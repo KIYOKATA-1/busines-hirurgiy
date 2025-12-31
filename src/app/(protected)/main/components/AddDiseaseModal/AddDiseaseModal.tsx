@@ -247,7 +247,6 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
                 )}
               </div>
 
-              {/* ✅ Категория: DROPDOWN */}
               <div className={styles.field} ref={catRef}>
                 <h1 className={styles.label}>Категория</h1>
 

@@ -11,7 +11,6 @@ type Props = {
 };
 
 export default function AddDiseaseCategoryModal({ open, onClose, onCreated }: Props) {
-  const [code, setCode] = useState("");
   const [title, setTitle] = useState("");
 
   const [saving, setSaving] = useState(false);
@@ -20,7 +19,6 @@ export default function AddDiseaseCategoryModal({ open, onClose, onCreated }: Pr
 
   useEffect(() => {
     if (!open) return;
-    setCode("");
     setTitle("");
     setError(null);
     setOk(null);
@@ -31,7 +29,7 @@ export default function AddDiseaseCategoryModal({ open, onClose, onCreated }: Pr
     if (e.target === e.currentTarget) onClose();
   };
 
-  const disabled = saving || code.trim().length < 1 || title.trim().length < 2;
+  const disabled = saving || title.trim().length < 2;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -44,7 +42,6 @@ export default function AddDiseaseCategoryModal({ open, onClose, onCreated }: Pr
       setSaving(true);
 
       await diseaseService.createCategoryAdmin({
-        code: code.trim(),
         title: title.trim(),
       });
 
@@ -88,17 +85,6 @@ export default function AddDiseaseCategoryModal({ open, onClose, onCreated }: Pr
 
         <form className={styles.body} onSubmit={onSubmit}>
           <div className={styles.grid}>
-            <div className={styles.field}>
-              <h1 className={styles.label}>Code</h1>
-              <input
-                className={styles.input}
-                placeholder="Например: finance"
-                maxLength={40}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              />
-            </div>
-
             <div className={styles.field}>
               <h1 className={styles.label}>Title</h1>
               <input

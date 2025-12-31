@@ -79,7 +79,7 @@ class DiseaseService {
     );
     return res.data;
   }
-  
+
   toSelectOptions(
     categories: IDiseaseCategory[]
   ): Array<{ id: string; label: string }> {
