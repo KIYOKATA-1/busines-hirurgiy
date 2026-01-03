@@ -9,8 +9,11 @@ import {
   IDiseaseCategory,
   IDiseaseDetailsResponse,
   IDiseasePlanApi,
+  IDiseasePlanWithStepsResponse,
+  IDiseaseStepApi,
   IDiseasesResponse,
   IUpdateDiseaseRequest,
+  IUpdatePlanStepRequest,
   IUpsertDiseasePlanRequest,
 } from "./disease.types";
 
@@ -53,20 +56,22 @@ class DiseaseService {
   async upsertPlan(
     diseaseId: string,
     payload: IUpsertDiseasePlanRequest
-  ): Promise<IDiseasePlanApi | null> {
-    const res = await api.put<
-      IDiseasePlanApi | { plan: IDiseasePlanApi } | null
-    >(`/api/v1/diseases/${diseaseId}/plan`, payload);
-
-    const data = res.data;
-    if (!data) return null;
-    if (typeof data === "object" && "plan" in (data as any))
-      return (data as any).plan;
-    return data as IDiseasePlanApi;
+  ): Promise<IDiseasePlanApi> {
+    const res = await api.put<IDiseasePlanApi>(
+      `/api/v1/diseases/${diseaseId}/plan`,
+      payload
+    );
+    return res.data;
   }
 
-  async createPlanStep(planId: string, payload: ICreatePlanStepRequest) {
-    const res = await api.post(`/api/v1/plans/${planId}/steps`, payload);
+  async createPlanStep(
+    planId: string,
+    payload: ICreatePlanStepRequest
+  ): Promise<IDiseaseStepApi> {
+    const res = await api.post<IDiseaseStepApi>(
+      `/api/v1/plans/${planId}/steps`,
+      payload
+    );
     return res.data;
   }
 
@@ -75,6 +80,31 @@ class DiseaseService {
   ): Promise<IDiseaseCategory> {
     const res = await api.post<IDiseaseCategory>(
       "/api/v1/admin/disease-categories",
+      payload
+    );
+    return res.data;
+  }
+
+  async getPlanWithStepsByDiseaseId(
+    diseaseId: string
+  ): Promise<IDiseasePlanWithStepsResponse> {
+    const res = await api.get<IDiseasePlanWithStepsResponse>(
+      `/api/v1/diseases/${diseaseId}/plan`
+    );
+    return res.data;
+  }
+
+  async deletePlanStep(planId: string, stepId: string): Promise<void> {
+    await api.delete(`/api/v1/plans/${planId}/steps/${stepId}`);
+  }
+
+  async updatePlanStep(
+    planId: string,
+    stepId: string,
+    payload: IUpdatePlanStepRequest
+  ): Promise<IDiseaseStepApi> {
+    const res = await api.put<IDiseaseStepApi>(
+      `/api/v1/plans/${planId}/steps/${stepId}`,
       payload
     );
     return res.data;

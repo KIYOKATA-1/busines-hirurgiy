@@ -25,7 +25,11 @@
 
   border: 1px solid var(--border-soft);
   background:
-    radial-gradient(900px 420px at 40% 10%, rgba(255, 255, 255, 0.05), transparent 60%),
+    radial-gradient(
+      900px 420px at 40% 10%,
+      rgba(255, 255, 255, 0.05),
+      transparent 60%
+    ),
     linear-gradient(90deg, rgba(63, 63, 70, 0.18), rgba(29, 41, 61, 0.18));
 
   box-shadow: var(--shadow-strong);
@@ -77,7 +81,7 @@
   height: 38px;
   border-radius: 12px;
 
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.88);
 
@@ -86,7 +90,10 @@
   justify-content: center;
 
   cursor: pointer;
-  transition: transform 120ms ease, border-color 160ms ease, background 160ms ease;
+  transition:
+    transform 120ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
 }
 
 .closeBtn:hover {
@@ -130,21 +137,32 @@
   border-radius: 12px;
   padding: 0 14px;
 
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: linear-gradient(90deg, rgba(63, 63, 70, 0.12), rgba(29, 41, 61, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    90deg,
+    rgba(63, 63, 70, 0.12),
+    rgba(29, 41, 61, 0.12)
+  );
 
   color: rgba(255, 255, 255, 0.92);
   font-size: 13px;
   font-weight: 520;
   outline: none;
 
-  transition: box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+  transition:
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
 }
 
 .input:focus {
   border-color: rgba(96, 165, 250, 0.55);
   box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18);
-  background: linear-gradient(90deg, rgba(63, 63, 70, 0.16), rgba(29, 41, 61, 0.16));
+  background: linear-gradient(
+    90deg,
+    rgba(63, 63, 70, 0.16),
+    rgba(29, 41, 61, 0.16)
+  );
 }
 
 .textarea {
@@ -152,8 +170,12 @@
   border-radius: 12px;
   padding: 12px 14px;
 
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: linear-gradient(90deg, rgba(63, 63, 70, 0.10), rgba(29, 41, 61, 0.10));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    90deg,
+    rgba(63, 63, 70, 0.1),
+    rgba(29, 41, 61, 0.1)
+  );
 
   color: rgba(255, 255, 255, 0.92);
   font-size: 13px;
@@ -164,13 +186,20 @@
 
   min-height: 120px;
 
-  transition: box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+  transition:
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
 }
 
 .textarea:focus {
   border-color: rgba(96, 165, 250, 0.55);
   box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18);
-  background: linear-gradient(90deg, rgba(63, 63, 70, 0.14), rgba(29, 41, 61, 0.14));
+  background: linear-gradient(
+    90deg,
+    rgba(63, 63, 70, 0.14),
+    rgba(29, 41, 61, 0.14)
+  );
 }
 
 .selectWrap {
@@ -179,8 +208,12 @@
   height: 42px;
 
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: linear-gradient(90deg, rgba(63, 63, 70, 0.12), rgba(29, 41, 61, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    90deg,
+    rgba(63, 63, 70, 0.12),
+    rgba(29, 41, 61, 0.12)
+  );
 
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   color-scheme: dark;
@@ -278,7 +311,7 @@
 
 .stepCard {
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
   padding: 12px;
 }
@@ -345,12 +378,16 @@
   cursor: pointer;
   user-select: none;
 
-  transition: transform 120ms ease, border-color 160ms ease, background 160ms ease,
-    box-shadow 160ms ease, opacity 160ms ease;
+  transition:
+    transform 120ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
 }
 
 .secondary {
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.92);
 }
@@ -368,7 +405,7 @@
 }
 
 .primary:hover {
-  border-color: rgba(96, 165, 250, 0.50);
+  border-color: rgba(96, 165, 250, 0.5);
   background: rgba(96, 165, 250, 0.28);
 }
 
@@ -393,15 +430,247 @@
 }
 
 .alertError {
-  background: rgba(239, 68, 68, 0.10);
+  background: rgba(239, 68, 68, 0.1);
   color: rgba(255, 255, 255, 0.92);
   border-color: rgba(239, 68, 68, 0.22);
 }
 
 .alertOk {
-  background: rgba(34, 197, 94, 0.10);
+  background: rgba(34, 197, 94, 0.1);
   color: rgba(255, 255, 255, 0.92);
   border-color: rgba(34, 197, 94, 0.22);
+}
+
+.slider {
+  display: flex;
+  width: 300%;
+  transition: transform 320ms ease;
+  will-change: transform;
+}
+
+.page {
+  width: 100%;
+  flex: 0 0 100%;
+}
+
+.pageNext {
+  animation: slideInNext 260ms ease;
+}
+.pagePrev {
+  animation: slideInPrev 260ms ease;
+}
+
+.toastWrap {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 10001;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  border-radius: 14px;
+  padding: 10px 12px;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+
+  animation: toastIn 220ms ease;
+}
+
+.toastSuccess {
+  border-color: rgba(34, 197, 94, 0.28);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.toastError {
+  border-color: rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.toastInfo {
+  border-color: rgba(96, 165, 250, 0.28);
+  background: rgba(96, 165, 250, 0.12);
+}
+
+.toastClose {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.toastClose:hover {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stepDelete {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  background: rgba(239, 68, 68, 0.1);
+  color: rgba(255, 255, 255, 0.92);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition:
+    transform 120ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.stepDelete:hover {
+  border-color: rgba(239, 68, 68, 0.32);
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.stepDelete:active {
+  transform: translateY(1px);
+}
+
+.stepDelete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.stepTopActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepSave {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  background: rgba(96, 165, 250, 0.18);
+  color: rgba(255, 255, 255, 0.96);
+
+  font-size: 12px;
+  font-weight: 750;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition:
+    transform 120ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    opacity 160ms ease;
+}
+
+.stepSave:hover {
+  border-color: rgba(96, 165, 250, 0.5);
+  background: rgba(96, 165, 250, 0.24);
+}
+
+.stepSave:active {
+  transform: translateY(1px);
+}
+
+.stepSave:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.stepGhost {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.9);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+  user-select: none;
+
+  transition:
+    transform 120ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    opacity 160ms ease;
+}
+
+.stepGhost:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.stepGhost:active {
+  transform: translateY(1px);
+}
+
+.stepGhost:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@keyframes slideInNext {
+  from {
+    opacity: 0.8;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInPrev {
+  from {
+    opacity: 0.8;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @media (max-width: 720px) {

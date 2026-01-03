@@ -110,8 +110,8 @@ export default function DiseaseLibrary() {
     await fetchDiseases();
   };
 
+
   const onPlanUpdated = async () => {
-    setOpenPlan(false);
     await fetchDiseases();
   };
 

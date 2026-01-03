@@ -472,7 +472,6 @@ export default function DiseaseEditModal({
               </div>
 
               <div className={styles.divider} />
-              {/* PLAN */}
               <div className={styles.block}>
                 <div className={styles.blockHead}>
                   <h1 className={styles.blockTitle}>План</h1>
@@ -493,7 +492,6 @@ export default function DiseaseEditModal({
                 )}
               </div>
 
-              {/* STEPS */}
               <div className={styles.block}>
                 <div className={styles.blockHead}>
                   <h1 className={styles.blockTitle}>Шаги</h1>

@@ -91,3 +91,13 @@ export interface ICreatePlanStepRequest {
   description: string;
   orderNo: number;
 }
+export interface IDiseasePlanWithStepsResponse {
+  plan: IDiseasePlanApi;
+  steps: IDiseaseStepApi[];
+}
+
+export interface IUpdatePlanStepRequest {
+  title: string;
+  description: string;
+  orderNo: number;
+}
