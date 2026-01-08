@@ -89,7 +89,7 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
     toastTimerRef.current = window.setTimeout(() => {
       setToast(null);
       toastTimerRef.current = null;
-    }, 2600);
+    }, 4500);
   };
 
   const isBusy =
@@ -599,7 +599,7 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
                       {loadingPlan ? (
                         <p className={styles.muted}>Загрузка...</p>
                       ) : planId ? (
-                        <p className={styles.muted}>planId: {planId}</p>
+                        <p className={styles.muted}>Готово &#40; Можете дальше добавить шаги &#41;</p>
                       ) : (
                         <p className={styles.muted}>План ещё не создан</p>
                       )}

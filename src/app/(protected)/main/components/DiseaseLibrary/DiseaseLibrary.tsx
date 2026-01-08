@@ -264,6 +264,7 @@ export default function DiseaseLibrary() {
           <div className={styles.cards}>
             {items.map((entry) => {
               const d = entry.disease;
+              const p = entry.plan
               const isDeleting = deletingId === d.id;
 
               const stepsSorted = [...(entry.steps ?? [])].sort(
@@ -332,7 +333,7 @@ export default function DiseaseLibrary() {
                     )}
 
                     <div className={styles.section}>
-                      <h1 className={styles.sectionTitle}>План лечения:</h1>
+                      <h1 className={styles.sectionTitle}>План лечения: {p?.title || "План не указан"}</h1>
 
                       {stepsSorted.length > 0 ? (
                         <div className={styles.planList}>

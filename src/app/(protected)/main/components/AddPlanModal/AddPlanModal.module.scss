@@ -462,24 +462,21 @@
 
 .toastWrap {
   position: fixed;
-  top: 18px;
-  right: 18px;
+  align-self: center;
+  top: 10rem;
   z-index: 10001;
   pointer-events: none;
 }
 
 .toast {
   pointer-events: auto;
-
   display: inline-flex;
   align-items: center;
   gap: 10px;
-
   border-radius: 14px;
-  padding: 10px 12px;
-
-  font-size: 12px;
-  font-weight: 650;
+  padding: 15px 17px;
+  font-size: 0.95rem;
+  font-weight:400;
 
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);

@@ -11,7 +11,6 @@ import { diseaseService } from "@/services/disease/disease.service";
 import { organService } from "@/services/organs/organs.service";
 import AddDiseaseCategoryModal from "@/app/components/AddDiseaseCategoryModal/AddDiseaseCategoryModal";
 
-
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -46,6 +45,9 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
   const [catOpen, setCatOpen] = useState(false);
   const catRef = useRef<HTMLDivElement | null>(null);
 
+  const [organOpen, setOrganOpen] = useState(false);
+  const organRef = useRef<HTMLDivElement | null>(null);
+
   const [openAddCategory, setOpenAddCategory] = useState(false);
 
   const {
@@ -68,31 +70,41 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
     () => diseaseService.toSelectOptions(categories),
     [categories]
   );
-  const organOptions = useMemo(
-    () => organService.toSelectOptions(organs),
-    [organs]
-  );
+  const organOptions = useMemo(() => organService.toSelectOptions(organs), [organs]);
 
   const selectedCategoryLabel = useMemo(() => {
     const found = categoryOptions.find((x) => x.id === selectedCategoryId);
     return found?.label ?? (catLoading ? "Загрузка..." : "Выберите категорию");
   }, [categoryOptions, selectedCategoryId, catLoading]);
 
+  const selectedOrganLabel = useMemo(() => {
+    const found = organOptions.find((x) => x.id === selectedOrganId);
+    return found?.label ?? (orgLoading ? "Загрузка..." : "Выберите орган");
+  }, [organOptions, selectedOrganId, orgLoading]);
+
   const disableCategoryDropdown = catLoading || categoryOptions.length === 0;
-  const disableOrganSelect = orgLoading || organOptions.length <= 1;
+  const disableOrganDropdown = orgLoading || organOptions.length === 0;
 
   useEffect(() => {
-    if (!catOpen) return;
+    if (!catOpen && !organOpen) return;
 
     const onDocDown = (e: MouseEvent) => {
-      const el = catRef.current;
-      if (!el) return;
-      if (!el.contains(e.target as Node)) setCatOpen(false);
+      const target = e.target as Node;
+
+      if (catOpen) {
+        const el = catRef.current;
+        if (el && !el.contains(target)) setCatOpen(false);
+      }
+
+      if (organOpen) {
+        const el = organRef.current;
+        if (el && !el.contains(target)) setOrganOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", onDocDown);
     return () => document.removeEventListener("mousedown", onDocDown);
-  }, [catOpen]);
+  }, [catOpen, organOpen]);
 
   const refreshCategories = async () => {
     try {
@@ -143,7 +155,9 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
     setSubmitError(null);
     setSubmitOk(null);
     setSaving(false);
+
     setCatOpen(false);
+    setOrganOpen(false);
     setOpenAddCategory(false);
 
     refreshCategories();
@@ -189,6 +203,11 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
     setOpenAddCategory(true);
   };
 
+  const onPickOrgan = (id: string) => {
+    setValue("organId", id, { shouldValidate: true, shouldDirty: true });
+    setOrganOpen(false);
+  };
+
   const onCategoryCreated = async () => {
     await refreshCategories();
   };
@@ -207,9 +226,7 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
           <div className={styles.head}>
             <div className={styles.headLeft}>
               <h1 className={styles.title}>Добавить болезнь</h1>
-              <p className={styles.desc}>
-                Создайте карточку проблемы и привяжите её к органу
-              </p>
+              <p className={styles.desc}>Создайте карточку проблемы и привяжите её к органу</p>
             </div>
 
             <button
@@ -259,11 +276,12 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
                     type="button"
                     className={styles.dropdownButton}
                     disabled={disableCategoryDropdown}
-                    onClick={() => setCatOpen((v) => !v)}
+                    onClick={() => {
+                      setOrganOpen(false);
+                      setCatOpen((v) => !v);
+                    }}
                   >
-                    <span className={styles.dropdownValue}>
-                      {selectedCategoryLabel}
-                    </span>
+                    <span className={styles.dropdownValue}>{selectedCategoryLabel}</span>
 
                     <span className={styles.chevron} aria-hidden="true">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -311,36 +329,62 @@ export default function AddDiseaseModal({ open, onClose, onCreated }: Props) {
                 <input type="hidden" {...register("categoryId", { required: true })} />
               </div>
 
-              <div className={styles.fieldFull}>
+              <div className={styles.fieldFull} ref={organRef}>
                 <h1 className={styles.label}>Орган</h1>
-                <div className={styles.selectWrap}>
-                  <select
-                    className={styles.select}
-                    disabled={disableOrganSelect}
-                    {...register("organId")}
+
+                <div
+                  className={`${styles.dropdownWrap} ${
+                    disableOrganDropdown ? styles.dropdownDisabled : ""
+                  }`}
+                >
+                  <button
+                    type="button"
+                    className={styles.dropdownButton}
+                    disabled={disableOrganDropdown}
+                    onClick={() => {
+                      setCatOpen(false);
+                      setOrganOpen((v) => !v);
+                    }}
                   >
-                    {orgLoading && <option value="">Загрузка...</option>}
+                    <span className={styles.dropdownValue}>{selectedOrganLabel}</span>
 
-                    {!orgLoading &&
-                      organOptions.map((o) => (
-                        <option key={o.id} value={o.id}>
-                          {o.label}
-                        </option>
-                      ))}
-                  </select>
+                    <span className={styles.chevron} aria-hidden="true">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M6 9l6 6 6-6"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  </button>
 
-                  <span className={styles.chevron} aria-hidden="true">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M6 9l6 6 6-6"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
+                  {organOpen && !disableOrganDropdown && (
+                    <div className={styles.dropdownMenu}>
+                      <div className={styles.dropdownList}>
+                        {organOptions.map((o) => (
+                          <button
+                            key={o.id}
+                            type="button"
+                            className={`${styles.dropdownItem} ${
+                              o.id === selectedOrganId ? styles.dropdownItemActive : ""
+                            }`}
+                            onClick={() => onPickOrgan(o.id)}
+                          >
+                            {o.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                <input type="hidden" {...register("organId", { required: true })} />
+                {errors.organId && (
+                  <p className={styles.inlineError}>Выберите орган</p>
+                )}
               </div>
 
               <div className={styles.fieldFull}>
