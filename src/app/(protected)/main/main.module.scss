@@ -9,7 +9,6 @@
 .main {
   flex: 1;
   padding: 28px;
-
   padding-bottom: calc(28px + var(--fab-reserve));
 
   display: flex;
@@ -18,12 +17,22 @@
 
   overflow: hidden;
 
-  background: linear-gradient(
-    150deg,
-    var(--bg-main-start) -100%,
-    var(--bg-main-mid) 60%,
-    var(--bg-main-end) 120%
-  );
+  background: radial-gradient(
+      1100px 520px at 18% 6%,
+      rgba(147, 197, 253, 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 520px at 88% 18%,
+      rgba(59, 130, 246, 0.06),
+      transparent 62%
+    ),
+    linear-gradient(
+      150deg,
+      var(--bg-main-start) -100%,
+      var(--bg-main-mid) 60%,
+      var(--bg-main-end) 120%
+    );
 }
 
 .container {
@@ -58,12 +67,16 @@
 
   padding: 22px;
   border-radius: 20px;
-  background: linear-gradient(
-    180deg,
-    var(--bg-tablet-start),
-    var(--bg-tablet-end)
-  );
+
+  background: radial-gradient(
+      900px 420px at 32% 8%,
+      rgba(255, 255, 255, 0.05),
+      transparent 60%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+
   border: 1px solid var(--border-strong);
+
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02), var(--shadow-strong);
 
   overflow: auto;
@@ -75,14 +88,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-tablet-end);
+
+  background: linear-gradient(180deg, var(--bg-main-mid), var(--bg-main-end));
 }
 
 .spinner {
   width: 36px;
   height: 36px;
   border-radius: 999px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.16);
   border-top-color: var(--text-primary);
   animation: spin 0.8s linear infinite;
 }
