@@ -35,8 +35,7 @@ const isAuthEndpoint = (url?: string) => {
     url.includes("/api/v1/auth/login") ||
     url.includes("/api/v1/auth/logout") ||
     url.includes("/api/v1/auth/register") ||
-    url.includes("/api/v1/auth/oauth") ||
-    url.includes("/api/v1/me") 
+    url.includes("/api/v1/auth/oauth")
   );
 };
 

@@ -7,3 +7,9 @@ export interface IUserMe {
   createdAt: string;
   updatedAt: string;
 }
+
+export type UpdateMePayload = {
+  name: string;
+  surname: string;
+};
+

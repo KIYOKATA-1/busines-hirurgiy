@@ -33,9 +33,22 @@ $pageMax: 1120px;
   box-sizing: border-box;
 
   background:
-    radial-gradient(1200px 520px at 35% 5%, rgba(96, 165, 250, 0.14), transparent 60%),
-    radial-gradient(900px 520px at 70% 20%, rgba(255, 255, 255, 0.06), transparent 65%),
-    linear-gradient(150deg, var(--bg-main-start) -100%, var(--bg-main-mid) 60%, var(--bg-main-end) 120%);
+    radial-gradient(
+      1200px 520px at 35% 5%,
+      rgba(96, 165, 250, 0.14),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 520px at 70% 20%,
+      rgba(255, 255, 255, 0.06),
+      transparent 65%
+    ),
+    linear-gradient(
+      150deg,
+      var(--bg-main-start) -100%,
+      var(--bg-main-mid) 60%,
+      var(--bg-main-end) 120%
+    );
 }
 
 .container {
@@ -49,8 +62,16 @@ $pageMax: 1120px;
   @include glass(0.04, 18px);
 
   background:
-    radial-gradient(1200px 520px at 35% 5%, rgba(96, 165, 250, 0.16), transparent 60%),
-    radial-gradient(1000px 520px at 65% 15%, rgba(255, 255, 255, 0.05), transparent 60%),
+    radial-gradient(
+      1200px 520px at 35% 5%,
+      rgba(96, 165, 250, 0.16),
+      transparent 60%
+    ),
+    radial-gradient(
+      1000px 520px at 65% 15%,
+      rgba(255, 255, 255, 0.05),
+      transparent 60%
+    ),
     rgba(255, 255, 255, 0.03);
 
   @include softShadow;
@@ -82,13 +103,17 @@ $pageMax: 1120px;
   place-items: center;
 
   background:
-    radial-gradient(90px 80px at 30% 20%, rgba(96, 165, 250, 0.30), transparent 55%),
+    radial-gradient(
+      90px 80px at 30% 20%,
+      rgba(96, 165, 250, 0.3),
+      transparent 55%
+    ),
     rgba(255, 255, 255, 0.05);
 
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 
   box-shadow:
-    0 22px 55px rgba(0, 0, 0, 0.50),
+    0 22px 55px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -181,13 +206,13 @@ $pageMax: 1120px;
   height: 8px;
   border-radius: 999px;
   background: rgba(34, 197, 94, 0.95);
-  box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.10);
+  box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.1);
 }
 
 .statusText {
   font-size: 12px;
   font-weight: 850;
-  color: rgba(255, 255, 255, 0.90);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .divider {
@@ -195,9 +220,9 @@ $pageMax: 1120px;
   height: 1px;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.00),
-    rgba(255, 255, 255, 0.10),
-    rgba(255, 255, 255, 0.00)
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0)
   );
 }
 
@@ -261,7 +286,9 @@ $pageMax: 1120px;
     0 16px 45px rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
-  transition: border-color 160ms ease, background 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
 
   &:hover {
     border-color: rgba(255, 255, 255, 0.12);
@@ -300,12 +327,15 @@ $pageMax: 1120px;
   align-items: center;
   justify-content: center;
 
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.82);
 
   cursor: pointer;
-  transition: transform 120ms ease, border-color 160ms ease, background 160ms ease;
+  transition:
+    transform 120ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
 
   svg {
     width: 16px;
@@ -370,6 +400,222 @@ $pageMax: 1120px;
   border: 3px solid rgba(255, 255, 255, 0.2);
   border-top-color: var(--text-primary);
   animation: spin 0.8s linear infinite;
+}
+
+.inputWrap {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input {
+  height: 40px;
+  border-radius: 14px;
+  padding: 0 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.92);
+
+  font-size: 14px;
+  font-weight: 850;
+
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.35);
+  }
+}
+
+.inlineActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancelBtn,
+.saveBtn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+
+  font-size: 12px;
+  font-weight: 900;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.9);
+
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.saveBtn {
+  color: rgba(191, 219, 254, 0.95);
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.22);
+
+  &:hover {
+    background: rgba(59, 130, 246, 0.16);
+    border-color: rgba(59, 130, 246, 0.28);
+  }
+}
+
+.errorText {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(248, 113, 113, 0.95);
+}
+
+.actionRow {
+  margin-top: 14px;
+  display: flex;
+}
+
+.stepsCard {
+  width: 100%;
+  border-radius: 18px;
+  padding: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(
+      900px 260px at 25% 10%,
+      rgba(59, 130, 246, 0.16),
+      transparent 60%
+    ),
+    rgba(255, 255, 255, 0.03);
+
+  box-shadow:
+    0 16px 45px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+    background:
+      radial-gradient(
+        900px 260px at 25% 10%,
+        rgba(59, 130, 246, 0.2),
+        transparent 60%
+      ),
+      rgba(255, 255, 255, 0.04);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.35);
+  }
+}
+
+.stepsIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  flex: 0 0 auto;
+
+  background:
+    radial-gradient(
+      90px 80px at 30% 20%,
+      rgba(96, 165, 250, 0.35),
+      transparent 55%
+    ),
+    rgba(255, 255, 255, 0.05);
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.stepsMeta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 auto;
+}
+
+.stepsTitle {
+  font-size: 13px;
+  font-weight: 950;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stepsDesc {
+  font-size: 12px;
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.stepsBtn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+
+  font-size: 12px;
+  font-weight: 950;
+
+  color: rgba(191, 219, 254, 0.95);
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+
+  .stepsCard:hover & {
+    background: rgba(59, 130, 246, 0.16);
+    border-color: rgba(59, 130, 246, 0.28);
+  }
 }
 
 @keyframes spin {
