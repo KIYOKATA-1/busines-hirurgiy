@@ -104,6 +104,9 @@ export default function Participants() {
         onPrev={() => setOffset((v) => Math.max(0, v - limit))}
         onNext={() => setOffset((v) => (v + limit < total ? v + limit : v))}
         onRetry={() => fetchDashboard(offset)}
+        limit={limit}
+        offset={offset}
+        onSetOffset={setOffset}
       />
     </section>
   );

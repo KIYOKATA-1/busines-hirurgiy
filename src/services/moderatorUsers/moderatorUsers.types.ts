@@ -49,3 +49,14 @@ export interface IAssignDiseaseResponse {
   totalSteps: number;
   userDiseaseId: string;
 }
+
+export interface IUpdateModeratorUserRequest {
+  name: string;
+  surname: string;
+}
+
+export interface IUpdateModeratorUserResponse {
+  id: string;
+  name: string;
+  surname: string;
+}
