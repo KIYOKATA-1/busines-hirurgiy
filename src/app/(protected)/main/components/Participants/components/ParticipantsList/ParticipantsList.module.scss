@@ -17,7 +17,6 @@
   }
 }
 
-
 .head {
   margin: 0 0 12px;
   padding: 0;
@@ -384,7 +383,6 @@
   }
 }
 
-
 .cardSkeleton {
   position: relative;
 }
@@ -486,6 +484,31 @@
   height: 22px;
 }
 
+.iconBtnPrimary {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.92);
+  color: #0c1020;
+
+  cursor: pointer;
+
+  display: grid;
+  place-items: center;
+
+  &:hover {
+    filter: brightness(0.98);
+  }
+}
+
+.plusIcon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  color: currentColor;
+}
 
 @media (max-width: 980px) {
   .cardTop {

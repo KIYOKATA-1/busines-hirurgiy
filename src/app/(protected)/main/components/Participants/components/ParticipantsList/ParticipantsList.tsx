@@ -2,11 +2,16 @@
 
 import { useState } from "react";
 import styles from "./ParticipantsList.module.scss";
+
 import type { IModeratorDashboardUser } from "@/services/moderatorUsers/moderatorUsers.types";
-import { DeleteIcon, EditIcon, EyeIcon } from "./ParticipantsList.icons";
+import { DeleteIcon, EditIcon, EyeIcon, PlusIcon } from "./ParticipantsList.icons";
+
+
+
 import { moderatorUsersService } from "@/services/moderatorUsers/moderatorUsers.service";
 import EditParticipantModal from "@/app/components/EditParticipantModal/EditParticipantModal";
 import DeleteParticipantModal from "@/app/components/DeleteParticipantModal/DeleteParticipantModal";
+import AssignDiseaseModal from "@/app/components/AssignDiseaseModal/AssignDiseaseModal";
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
@@ -88,6 +93,7 @@ function SkeletonCard({ idx }: { idx: number }) {
             <span className={`${styles.skelBtn} ${styles.skel}`} />
             <span className={`${styles.skelIconBtn} ${styles.skel}`} />
             <span className={`${styles.skelIconBtn} ${styles.skel}`} />
+            <span className={`${styles.skelIconBtn} ${styles.skel}`} />
           </section>
         </header>
 
@@ -161,6 +167,11 @@ export default function ParticipantsList({
   const [deleting, setDeleting] = useState(false);
   const [delError, setDelError] = useState<string | null>(null);
 
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignUser, setAssignUser] = useState<IModeratorDashboardUser | null>(null);
+  const [assigning, setAssigning] = useState(false);
+  const [assignError, setAssignError] = useState<string | null>(null);
+
   const openEdit = (u: IModeratorDashboardUser) => {
     setEditUser(u);
     setSaveError(null);
@@ -231,6 +242,41 @@ export default function ParticipantsList({
     }
   };
 
+  const openAssign = (u: IModeratorDashboardUser) => {
+    setAssignUser(u);
+    setAssignError(null);
+    setAssignOpen(true);
+  };
+
+  const closeAssign = () => {
+    if (assigning) return;
+    setAssignOpen(false);
+  };
+
+  const confirmAssign = async (diseaseId: string) => {
+    if (!assignUser) return;
+
+    setAssigning(true);
+    setAssignError(null);
+
+    try {
+      await moderatorUsersService.assignDisease({
+        diseaseId,
+        userId: assignUser.id,
+      });
+
+      setAssignOpen(false);
+      setAssignUser(null);
+
+      onRetry();
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || "Не удалось привязать болезнь";
+      setAssignError(String(msg));
+    } finally {
+      setAssigning(false);
+    }
+  };
+
   return (
     <>
       <section className={styles.block} aria-label="Список участников">
@@ -290,6 +336,15 @@ export default function ParticipantsList({
                               <EyeIcon className={styles.svgIcon} />
                             </span>
                             <span className={styles.viewText}>Просмотр</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            className={styles.iconBtnPrimary}
+                            aria-label="Привязать болезнь"
+                            onClick={() => openAssign(u)}
+                          >
+                            <PlusIcon className={styles.plusIcon} />
                           </button>
 
                           <button
@@ -399,6 +454,18 @@ export default function ParticipantsList({
         error={delError}
         onClose={closeDelete}
         onConfirm={confirmDelete}
+      />
+
+      <AssignDiseaseModal
+        open={assignOpen}
+        userId={assignUser?.id ?? ""}
+        userLabel={
+          assignUser ? `${assignUser.name} ${assignUser.surname}` : "—"
+        }
+        loading={assigning}
+        error={assignError}
+        onClose={closeAssign}
+        onAssign={confirmAssign}
       />
     </>
   );
