@@ -13,19 +13,14 @@ import {
 } from "@/services/disease/disease.types";
 import { diseaseService } from "@/services/disease/disease.service";
 
-import type {
-  Props,
-  StepDraft,
-  WizardStep,
-  ToastKind,
-  ToastState,
-  ExistingStepDraft,
-} from "./AddPlanModal.types";
+import type { Props, StepDraft, WizardStep, ExistingStepDraft } from "./AddPlanModal.types";
 
 import { uid } from "@/shared/utils/uid";
 import { DiseaseDropdownOption } from "@/app/components/DiseaseDropdown/DiseaseDropdown.types";
 import DiseaseDropdown from "@/app/components/DiseaseDropdown/DiseaseDropdown";
 import { DeleteIcon } from "@/app/components/icons";
+
+import { useToast } from "@/app/components/Toast/ToastProvider";
 
 const getMaxOrder = (steps: { orderNo: number }[]): number => {
   return steps.reduce((m, s) => Math.max(m, Number(s.orderNo) || 0), 0);
@@ -51,6 +46,8 @@ const isDirtyExisting = (s: ExistingStepDraft) => {
 };
 
 export default function AddPlanModal({ open, onClose, onUpdated, entries }: Props) {
+  const toast = useToast();
+
   const [step, setStep] = useState<WizardStep>(1);
   const [animDir, setAnimDir] = useState<"next" | "prev">("next");
 
@@ -71,26 +68,10 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
   const [savingSteps, setSavingSteps] = useState(false);
 
   const [deletingStepId, setDeletingStepId] = useState<string | null>(null);
-  const [savingExistingStepId, setSavingExistingStepId] = useState<string | null>(
-    null
-  );
+  const [savingExistingStepId, setSavingExistingStepId] = useState<string | null>(null);
 
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
-
-  const [toast, setToast] = useState<ToastState>(null);
-  const toastTimerRef = useRef<number | null>(null);
-
-  const showToast = (kind: ToastKind, message: string) => {
-    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
-
-    setToast({ id: uid(), kind, message });
-
-    toastTimerRef.current = window.setTimeout(() => {
-      setToast(null);
-      toastTimerRef.current = null;
-    }, 4500);
-  };
 
   const isBusy =
     savingPlan || savingSteps || loadingPlan || !!deletingStepId || !!savingExistingStepId;
@@ -119,12 +100,6 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
 
     setError(null);
     setOk(null);
-    setToast(null);
-
-    if (toastTimerRef.current) {
-      window.clearTimeout(toastTimerRef.current);
-      toastTimerRef.current = null;
-    }
   }, [open]);
 
   const diseaseOptions: DiseaseDropdownOption[] = useMemo(() => {
@@ -195,8 +170,7 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
 
   const canGoNextFromDisease = !!diseaseId && !isBusy;
 
-  const canSavePlan =
-    !!diseaseId && !!planTitle.trim() && !!planDescription.trim() && !isBusy;
+  const canSavePlan = !!diseaseId && !!planTitle.trim() && !!planDescription.trim() && !isBusy;
 
   const canGoNextFromPlan = !!planId && !isBusy;
 
@@ -262,13 +236,13 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
       setPlanId(plan.id);
 
       setOk("План сохранён.");
-      showToast("success", "План сохранён");
+      toast.success("План сохранён");
 
       await loadPlanAndSteps(diseaseId);
       await onUpdated?.();
     } catch {
       setError("Не удалось сохранить план");
-      showToast("error", "Не удалось сохранить план");
+      toast.error("Не удалось сохранить план");
     } finally {
       setSavingPlan(false);
     }
@@ -307,9 +281,7 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
   };
 
   const updateExistingDraft = (id: string, patch: Partial<ExistingStepDraft>) => {
-    setExistingDrafts((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...patch } : s))
-    );
+    setExistingDrafts((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
   };
 
   const resetExistingDraft = (id: string) => {
@@ -340,13 +312,13 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
     };
 
     if (!prepared.title || !prepared.description) {
-      showToast("error", "Заполните заголовок и описание");
+      toast.error("Заполните заголовок и описание");
       setError("Заполните заголовок и описание у шага");
       return;
     }
 
     if (!isDirtyExisting(draft)) {
-      showToast("info", "Нет изменений");
+      toast.info("Нет изменений");
       return;
     }
 
@@ -363,12 +335,12 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
 
       await diseaseService.updatePlanStep(planId, stepId, payload);
 
-      showToast("success", "Шаг обновлён");
+      toast.success("Шаг обновлён");
 
       await loadPlanAndSteps(diseaseId);
       await onUpdated?.();
     } catch {
-      showToast("error", "Не удалось обновить шаг");
+      toast.error("Не удалось обновить шаг");
       setError("Не удалось обновить шаг");
     } finally {
       setSavingExistingStepId(null);
@@ -393,7 +365,7 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
     if (prepared.length === 0) {
       setOk(null);
       setError("Добавьте хотя бы один шаг: заполните «Заголовок» и «Описание»");
-      showToast("error", "Заполните заголовок и описание хотя бы у одного шага");
+      toast.error("Заполните заголовок и описание хотя бы у одного шага");
       return false;
     }
 
@@ -413,7 +385,7 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
       }
 
       setOk("Шаги сохранены.");
-      showToast("success", "Шаги сохранены");
+      toast.success("Шаги сохранены");
 
       await loadPlanAndSteps(diseaseId);
       await onUpdated?.();
@@ -421,7 +393,7 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
       return true;
     } catch {
       setError("Не удалось сохранить шаги");
-      showToast("error", "Не удалось сохранить шаги");
+      toast.error("Не удалось сохранить шаги");
       return false;
     } finally {
       setSavingSteps(false);
@@ -434,7 +406,7 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
     const prepared = getPreparedNewSteps();
 
     if (prepared.length === 0) {
-      showToast("info", "Ничего не добавлено");
+      toast.info("Ничего не добавлено");
       onClose();
       return;
     }
@@ -456,12 +428,12 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
 
       await diseaseService.deletePlanStep(planId, stepId);
 
-      showToast("success", "Шаг удалён");
+      toast.success("Шаг удалён");
 
       await loadPlanAndSteps(diseaseId);
       await onUpdated?.();
     } catch {
-      showToast("error", "Не удалось удалить шаг");
+      toast.error("Не удалось удалить шаг");
       setError("Не удалось удалить шаг");
     } finally {
       setDeletingStepId(null);
@@ -472,31 +444,6 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
 
   return (
     <div className={styles.backdrop} onMouseDown={onBackdrop}>
-      {toast && (
-        <div className={styles.toastWrap} key={toast.id}>
-          <div
-            className={[
-              styles.toast,
-              toast.kind === "success" ? styles.toastSuccess : "",
-              toast.kind === "error" ? styles.toastError : "",
-              toast.kind === "info" ? styles.toastInfo : "",
-            ].join(" ")}
-            role="status"
-            aria-live="polite"
-          >
-            {toast.message}
-            <button
-              type="button"
-              className={styles.toastClose}
-              onClick={() => setToast(null)}
-              aria-label="Закрыть уведомление"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
-
       <div
         className={styles.panel}
         role="dialog"

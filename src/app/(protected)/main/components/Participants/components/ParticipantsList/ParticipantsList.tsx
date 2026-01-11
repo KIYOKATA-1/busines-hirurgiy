@@ -6,12 +6,12 @@ import styles from "./ParticipantsList.module.scss";
 import type { IModeratorDashboardUser } from "@/services/moderatorUsers/moderatorUsers.types";
 import { DeleteIcon, EditIcon, EyeIcon, PlusIcon } from "./ParticipantsList.icons";
 
-
-
 import { moderatorUsersService } from "@/services/moderatorUsers/moderatorUsers.service";
 import EditParticipantModal from "@/app/components/EditParticipantModal/EditParticipantModal";
 import DeleteParticipantModal from "@/app/components/DeleteParticipantModal/DeleteParticipantModal";
 import AssignDiseaseModal from "@/app/components/AssignDiseaseModal/AssignDiseaseModal";
+
+import { useToast } from "@/app/components/Toast/ToastProvider";
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
@@ -144,6 +144,8 @@ export default function ParticipantsList({
   offset,
   onSetOffset,
 }: Props) {
+  const toast = useToast();
+
   const isLoading = loadState === "loading";
   const isError = loadState === "error";
   const isSuccess = loadState === "success";
@@ -191,12 +193,17 @@ export default function ParticipantsList({
 
     try {
       await moderatorUsersService.updateUser(editUser.id, payload);
+
+      toast.success("Пользователь обновлён");
+
       setEditOpen(false);
       setEditUser(null);
       onRetry();
     } catch (e: any) {
       const msg = e?.response?.data?.message || e?.message || "Не удалось обновить пользователя";
-      setSaveError(String(msg));
+      const text = String(msg);
+      setSaveError(text);
+      toast.error(text);
     } finally {
       setSaving(false);
     }
@@ -222,6 +229,8 @@ export default function ParticipantsList({
     try {
       await moderatorUsersService.deleteUser(delUser.id);
 
+      toast.success("Пользователь удалён");
+
       const totalAfter = Math.max(0, safeNum(total) - 1);
       const maxOffsetAfter = safeMaxOffset(totalAfter, limit);
 
@@ -236,7 +245,9 @@ export default function ParticipantsList({
       onRetry();
     } catch (e: any) {
       const msg = e?.response?.data?.message || e?.message || "Не удалось удалить пользователя";
-      setDelError(String(msg));
+      const text = String(msg);
+      setDelError(text);
+      toast.error(text);
     } finally {
       setDeleting(false);
     }
@@ -265,13 +276,17 @@ export default function ParticipantsList({
         userId: assignUser.id,
       });
 
+      toast.success("Болезнь привязана");
+
       setAssignOpen(false);
       setAssignUser(null);
 
       onRetry();
     } catch (e: any) {
       const msg = e?.response?.data?.message || e?.message || "Не удалось привязать болезнь";
-      setAssignError(String(msg));
+      const text = String(msg);
+      setAssignError(text);
+      toast.error(text);
     } finally {
       setAssigning(false);
     }
@@ -459,9 +474,7 @@ export default function ParticipantsList({
       <AssignDiseaseModal
         open={assignOpen}
         userId={assignUser?.id ?? ""}
-        userLabel={
-          assignUser ? `${assignUser.name} ${assignUser.surname}` : "—"
-        }
+        userLabel={assignUser ? `${assignUser.name} ${assignUser.surname}` : "—"}
         loading={assigning}
         error={assignError}
         onClose={closeAssign}

@@ -15,6 +15,8 @@ import {
 import { IOrgan } from "@/services/organs/organ.types";
 import { WarningIcon } from "@/app/components/icons/WarningIcon";
 
+import { useToast } from "@/app/components/Toast/ToastProvider";
+
 type Props = {
   open: boolean;
   diseaseId: string | null;
@@ -22,12 +24,9 @@ type Props = {
   onUpdated?: () => Promise<void> | void;
 };
 
-export default function DiseaseEditModal({
-  open,
-  diseaseId,
-  onClose,
-  onUpdated,
-}: Props) {
+export default function DiseaseEditModal({ open, diseaseId, onClose, onUpdated }: Props) {
+  const toast = useToast();
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,11 +38,6 @@ export default function DiseaseEditModal({
 
   const [organs, setOrgans] = useState<IOrgan[]>([]);
   const [organsLoading, setOrgansLoading] = useState(false);
-
-  const [toast, setToast] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
 
   const [editTitle, setEditTitle] = useState(false);
   const [editDesc, setEditDesc] = useState(false);
@@ -75,11 +69,6 @@ export default function DiseaseEditModal({
     );
   }, [data, title, description, categoryId, organId]);
 
-  const showToast = useCallback((type: "success" | "error", text: string) => {
-    setToast({ type, text });
-    window.setTimeout(() => setToast(null), 2500);
-  }, []);
-
   const resetLocal = useCallback(() => {
     setLoading(false);
     setSaving(false);
@@ -101,8 +90,6 @@ export default function DiseaseEditModal({
     setDescription("");
     setCategoryId("");
     setOrganId("");
-
-    setToast(null);
   }, []);
 
   const fillFormFromData = useCallback((d: IDiseaseDetailsResponse) => {
@@ -202,7 +189,6 @@ export default function DiseaseEditModal({
       setSaving(true);
 
       await diseaseService.update(diseaseId, payload);
-
       await fetchDetails(diseaseId);
 
       setEditTitle(false);
@@ -212,10 +198,10 @@ export default function DiseaseEditModal({
 
       if (onUpdated) await onUpdated();
 
-      showToast("success", "Изменения сохранены");
+      toast.success("Изменения сохранены");
     } catch {
       setError("Не удалось сохранить изменения");
-      showToast("error", "Ошибка сохранения");
+      toast.error("Ошибка сохранения");
     } finally {
       setSaving(false);
     }
@@ -225,19 +211,6 @@ export default function DiseaseEditModal({
 
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true">
-      {toast && (
-        <div className={styles.toastWrap} aria-live="polite">
-          <div
-            className={`${styles.toast} ${
-              toast.type === "success" ? styles.toastSuccess : styles.toastError
-            }`}
-          >
-            <div className={styles.toastDot} />
-            <div className={styles.toastText}>{toast.text}</div>
-          </div>
-        </div>
-      )}
-
       <div className={styles.modal}>
         <div className={styles.head}>
           <div className={styles.headLeft}>
@@ -246,9 +219,7 @@ export default function DiseaseEditModal({
             </span>
             <div className={styles.headText}>
               <h1 className={styles.headTitle}>Редактирование болезни</h1>
-              <div className={styles.headSub}>
-                {data?.disease?.title ? data.disease.title : "—"}
-              </div>
+              <div className={styles.headSub}>{data?.disease?.title ? data.disease.title : "—"}</div>
             </div>
           </div>
 
@@ -288,18 +259,10 @@ export default function DiseaseEditModal({
               <p className={styles.stateDesc}>{error}</p>
 
               <div className={styles.stateActions}>
-                <button
-                  type="button"
-                  className={styles.primaryBtn}
-                  onClick={onRetry}
-                >
+                <button type="button" className={styles.primaryBtn} onClick={onRetry}>
                   Повторить
                 </button>
-                <button
-                  type="button"
-                  className={styles.secondaryBtn}
-                  onClick={closeAndReset}
-                >
+                <button type="button" className={styles.secondaryBtn} onClick={closeAndReset}>
                   Закрыть
                 </button>
               </div>
@@ -311,9 +274,7 @@ export default function DiseaseEditModal({
               <div className={styles.cardTop}>
                 {!editCategory ? (
                   <div className={styles.topLine}>
-                    <span className={styles.badge}>
-                      {selectedCategoryTitle}
-                    </span>
+                    <span className={styles.badge}>{selectedCategoryTitle}</span>
                     <button
                       type="button"
                       className={styles.linkBtn}
@@ -475,17 +436,13 @@ export default function DiseaseEditModal({
               <div className={styles.block}>
                 <div className={styles.blockHead}>
                   <h1 className={styles.blockTitle}>План</h1>
-                  <p className={styles.blockHint}>
-                    {data.plan ? "Есть" : "Нет"}
-                  </p>
+                  <p className={styles.blockHint}>{data.plan ? "Есть" : "Нет"}</p>
                 </div>
 
                 {data.plan ? (
                   <div className={styles.planBox}>
                     <h1 className={styles.planTitle}>{data.plan.title}</h1>
-                    <p className={styles.planDesc}>
-                      {data.plan.description}
-                    </p>
+                    <p className={styles.planDesc}>{data.plan.description}</p>
                   </div>
                 ) : (
                   <p className={styles.muted}>—</p>
@@ -496,9 +453,7 @@ export default function DiseaseEditModal({
                 <div className={styles.blockHead}>
                   <h1 className={styles.blockTitle}>Шаги</h1>
                   <p className={styles.blockHint}>
-                    {data.steps?.length
-                      ? `Кол-во: ${data.steps.length}`
-                      : "Нет"}
+                    {data.steps?.length ? `Кол-во: ${data.steps.length}` : "Нет"}
                   </p>
                 </div>
 
@@ -539,13 +494,7 @@ export default function DiseaseEditModal({
             className={styles.primaryBtn}
             onClick={onSave}
             disabled={saving || loading || !data?.disease || !isDirty}
-            title={
-              !isDirty
-                ? "Нет изменений"
-                : saving
-                  ? "Сохранение..."
-                  : "Сохранить"
-            }
+            title={!isDirty ? "Нет изменений" : saving ? "Сохранение..." : "Сохранить"}
           >
             {saving ? "Сохранение..." : "Сохранить"}
           </button>

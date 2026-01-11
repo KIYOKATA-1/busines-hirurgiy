@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useState } from "react";
+import type { FormEvent, MouseEvent as ReactMouseEvent } from "react";
 import styles from "./AddDiseaseCategoryModal.module.scss";
+
 import { diseaseService } from "@/services/disease/disease.service";
+import { useToast } from "@/app/components/Toast/ToastProvider";
 
 type Props = {
   open: boolean;
@@ -11,21 +14,22 @@ type Props = {
 };
 
 export default function AddDiseaseCategoryModal({ open, onClose, onCreated }: Props) {
+  const toast = useToast();
+
   const [title, setTitle] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ok, setOk] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setTitle("");
     setError(null);
-    setOk(null);
     setSaving(false);
   }, [open]);
 
-  const onBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onBackdrop = (e: ReactMouseEvent<HTMLDivElement>) => {
+    if (saving) return;
     if (e.target === e.currentTarget) onClose();
   };
 
@@ -36,7 +40,6 @@ export default function AddDiseaseCategoryModal({ open, onClose, onCreated }: Pr
     if (disabled) return;
 
     setError(null);
-    setOk(null);
 
     try {
       setSaving(true);
@@ -45,11 +48,14 @@ export default function AddDiseaseCategoryModal({ open, onClose, onCreated }: Pr
         title: title.trim(),
       });
 
-      setOk("Категория добавлена");
+      toast.success("Категория добавлена");
       onCreated?.();
-      setTimeout(() => onClose(), 350);
-    } catch {
-      setError("Ошибка при добавлении категории");
+      window.setTimeout(() => onClose(), 250);
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || e?.message || "Ошибка при добавлении категории";
+      const text = String(msg);
+      setError(text);
+      toast.error(text);
     } finally {
       setSaving(false);
     }
@@ -71,6 +77,7 @@ export default function AddDiseaseCategoryModal({ open, onClose, onCreated }: Pr
             className={styles.closeBtn}
             onClick={onClose}
             aria-label="Закрыть"
+            disabled={saving}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path
@@ -93,20 +100,15 @@ export default function AddDiseaseCategoryModal({ open, onClose, onCreated }: Pr
                 maxLength={80}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                disabled={saving}
               />
             </div>
           </div>
 
           {error && <p className={styles.alertError}>{error}</p>}
-          {ok && <p className={styles.alertOk}>{ok}</p>}
 
           <div className={styles.footer}>
-            <button
-              type="button"
-              className={styles.secondary}
-              onClick={onClose}
-              disabled={saving}
-            >
+            <button type="button" className={styles.secondary} onClick={onClose} disabled={saving}>
               Отмена
             </button>
 

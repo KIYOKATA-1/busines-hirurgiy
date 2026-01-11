@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import styles from "./AssignDiseaseModal.module.scss";
 
 import { diseaseService } from "@/services/disease/disease.service";
 import type { IDiseaseListEntry } from "@/services/disease/disease.types";
+
+import { useToast } from "@/app/components/Toast/ToastProvider";
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
@@ -40,6 +43,8 @@ export default function AssignDiseaseModal({
   onClose,
   onAssign,
 }: Props) {
+  const toast = useToast();
+
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [listError, setListError] = useState<string | null>(null);
   const [items, setItems] = useState<IDiseaseListEntry[]>([]);
@@ -68,8 +73,10 @@ export default function AssignDiseaseModal({
     } catch (e: any) {
       if (!mountedRef.current) return;
       const msg = e?.response?.data?.message || e?.message || "Не удалось загрузить болезни";
-      setListError(String(msg));
+      const text = String(msg);
+      setListError(text);
       setLoadState("error");
+      toast.error(text);
     }
   };
 
@@ -118,7 +125,7 @@ export default function AssignDiseaseModal({
     onClose();
   };
 
-  const onOverlayMouseDown = (e: React.MouseEvent) => {
+  const onOverlayMouseDown = (e: ReactMouseEvent<HTMLElement>) => {
     if (e.target === e.currentTarget) closeSafe();
   };
 
