@@ -29,9 +29,7 @@ export default function MainPage() {
   const { initialized, loading, isAuth, logout, user } = useSession();
 
   const role: Role =
-    user?.role === "admin" || user?.role === "moderator"
-      ? user.role
-      : "participant";
+    user?.role === "admin" || user?.role === "moderator" ? user.role : "participant";
 
   const tabsByRole: Record<
     Role,
@@ -81,10 +79,7 @@ export default function MainPage() {
     );
   }
 
-  const contentClassName =
-    tab === "participants"
-      ? `${styles.content} ${styles.contentPlain}`
-      : styles.content;
+  const contentClassName = tab === "participants" ? styles.contentPlain : styles.content;
 
   return (
     <div className={styles.page}>
@@ -92,12 +87,9 @@ export default function MainPage() {
 
       <main className={styles.main}>
         <div className={styles.container}>
-          <Tablet
-            role={role}
-            tabsByRole={tabsByRole}
-            value={tab}
-            onChange={setTab}
-          />
+          <div className={styles.tabletWrap}>
+            <Tablet role={role} tabsByRole={tabsByRole} value={tab} onChange={setTab} />
+          </div>
 
           <section className={contentClassName}>
             {tab === "anatomy" && <BusinessAnatomy />}

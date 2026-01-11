@@ -17,8 +17,9 @@
 
   overflow: hidden;
 
-  background: #000;
+  background: #000; 
 }
+
 
 .container {
   width: 100%;
@@ -33,17 +34,9 @@
 }
 
 .tabletWrap {
-  width: 40%;
-  min-width: 420px;
-  max-width: 560px;
-}
-
-@media (max-width: 900px) {
-  .tabletWrap {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-  }
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .content {
@@ -53,12 +46,7 @@
   padding: 22px;
   border-radius: 20px;
 
-  background: radial-gradient(
-      900px 420px at 32% 8%,
-      rgba(255, 255, 255, 0.05),
-      transparent 60%
-    ),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  background: rgba(0, 0, 0, 0.5);
 
   border: 1px solid var(--border-strong);
 
@@ -69,9 +57,16 @@
 }
 
 .contentPlain {
+  flex: 1;
+  min-height: 0;
+
   padding: 0;
-  background: #000;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
+
+  overflow: visible;
 }
 
 .loader {

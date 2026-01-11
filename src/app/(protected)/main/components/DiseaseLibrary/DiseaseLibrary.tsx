@@ -279,7 +279,7 @@ export default function DiseaseLibrary() {
                 <div key={d.id} className={styles.card}>
                   <div className={styles.cardTop}>
                     <div className={styles.cardTitleRow}>
-                      <WarningIcon />
+                      <WarningIcon className={styles.warnIcon}/>
                       <h1 className={styles.cardTitle}>{d.title}</h1>
                     </div>
 

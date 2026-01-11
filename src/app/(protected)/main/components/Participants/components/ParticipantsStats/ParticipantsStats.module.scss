@@ -1,88 +1,136 @@
+.statsWrap {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .statsGrid {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
-  width: 100%;
+
+  box-sizing: border-box;
+}
+
+.statCard {
+  border-radius: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(49, 65, 88, 0.5);
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 0 0 1px rgba(10, 18, 36, 0.35) inset;
+  min-height: 108px;
   min-width: 0;
+}
 
-  .statCard {
-    border-radius: 16px;
-    padding: 16px 18px;
-    border: 1px solid rgba(49, 65, 88, 0.5);
-    background: rgba(0, 0, 0, 0.18);
-    box-shadow: 0 0 0 1px rgba(10, 18, 36, 0.35) inset;
-    min-height: 108px;
-    min-width: 0;
+.statHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 
-    .statHead {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+.statTitle {
+  font-size: 14px;
+  opacity: 0.82;
+  font-weight: 400;
+  line-height: 20px;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
 
-      .statTitle {
-        font-size: 14px;
-        opacity: 0.82;
-        font-weight: 400;
-        line-height: 20px;
-        margin: 0;
-        font-family: Arial, sans-serif;
-      }
+.statIcon,
+.statIconDanger {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
 
-      .statIcon,
-      .statIconDanger {
-        width: 18px;
-        height: 18px;
-        flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        svg {
-          width: 100%;
-          height: 100%;
-          display: block;
-        }
-      }
-
-      .statIcon {
-        color: rgba(202, 213, 226, 1);
-      }
-
-      .iconUsers {
-        color: rgba(202, 213, 226, 1);
-      }
-
-      .iconProgress {
-        color: rgba(255, 255, 255, 1);
-      }
-
-      .statIconDanger {
-        color: rgba(255, 100, 103, 1);
-        border-color: rgba(255, 90, 90, 0.25);
-      }
-    }
-
-    .statValue {
-      margin: 20px 0 0;
-      font-family: Arial, sans-serif;
-      font-size: 30px;
-      font-weight: 400;
-      line-height: 36px;
-    }
-
-    .statSub {
-      margin: 6px 0 0;
-      font-size: 12px;
-      font-family: Arial, sans-serif;
-      font-weight: 400;
-      line-height: 16px;
-      opacity: 0.62;
-    }
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
+}
 
-  @media (max-width: 980px) {
+.statIcon {
+  color: rgba(202, 213, 226, 1);
+}
+
+.iconUsers {
+  color: rgba(202, 213, 226, 1);
+}
+
+.iconProgress {
+  color: rgba(255, 255, 255, 1);
+}
+
+.statIconDanger {
+  color: rgba(255, 100, 103, 1);
+  border-color: rgba(255, 90, 90, 0.25);
+}
+
+.statValue {
+  margin: 20px 0 0;
+  font-family: Arial, sans-serif;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 36px;
+}
+
+.statSub {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-family: Arial, sans-serif;
+  font-weight: 400;
+  line-height: 16px;
+  opacity: 0.62;
+}
+
+.errorBox {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 90, 90, 0.25);
+  background: rgba(255, 80, 80, 0.06);
+}
+
+.errorTitle {
+  margin: 0 0 6px;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.errorText {
+  margin: 0 0 12px;
+  opacity: 0.85;
+}
+
+.retryBtn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(140, 180, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+@media (max-width: 980px) {
+  .statsGrid {
     grid-template-columns: 1fr;
   }
 }

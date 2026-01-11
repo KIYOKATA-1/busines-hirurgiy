@@ -1,7 +1,11 @@
 .wrap {
   width: 100%;
   min-width: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }

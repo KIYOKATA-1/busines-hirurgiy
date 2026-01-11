@@ -261,12 +261,23 @@
 
 .cardTitleRow {
   display: flex;
-  align-items: center;
+  align-items: center; 
   gap: 10px;
   min-width: 0;
+
+  .warnIcon {
+    width: 18px;
+    height: 18px;
+    display: block; 
+    color: rgba(255, 138, 122, 0.95);
+    filter: drop-shadow(0 6px 18px rgba(255, 138, 122, 0.18));
+    flex: 0 0 auto;
+  }
 }
 
 .cardTitle {
+  margin: 0; 
+  line-height: 1.1; 
   font-size: 15px;
   font-weight: 650;
   color: rgba(255, 255, 255, 0.92);

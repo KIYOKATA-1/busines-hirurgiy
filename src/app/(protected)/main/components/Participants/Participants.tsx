@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./Participants.module.scss";
 
 import { moderatorUsersService } from "@/services/moderatorUsers/moderatorUsers.service";
-import type { IModeratorDashboardResponse } from "@/services/moderatorUsers/moderatorUsers.types";
-import ParticipantsStats from "./components/ParticipantsStats/ParticipantsStats";
+import type {
+  IModeratorDashboardResponse,
+  IModeratorDashboardUser,
+} from "@/services/moderatorUsers/moderatorUsers.types";
 
+import ParticipantsStats from "./components/ParticipantsStats/ParticipantsStats";
+import ParticipantsList from "./components/ParticipantsList/ParticipantsList";
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
@@ -27,14 +31,27 @@ export default function Participants() {
 
   const abortRef = useRef({ aborted: false });
 
-  const fetchDashboard = async () => {
+  const limit = 3;
+  const [offset, setOffset] = useState(0);
+
+  const total = safeNum(dashboard?.users?.total);
+  const totalPages = Math.max(1, Math.ceil(Math.max(0, total) / limit));
+  const currentPage = Math.min(totalPages, Math.max(1, Math.floor(offset / limit) + 1));
+
+  const canPrev = offset > 0;
+  const canNext = offset + limit < total;
+
+  const fetchDashboard = async (nextOffset: number) => {
     setLoadState("loading");
     setError(null);
     abortRef.current.aborted = false;
 
     try {
-      // Нам нужны только stats — ограничим отдачу пользователей
-      const res = await moderatorUsersService.getDashboard({ limit: 1, offset: 0 });
+      const res = await moderatorUsersService.getDashboard({
+        limit,
+        offset: Math.max(0, nextOffset),
+      });
+
       if (abortRef.current.aborted) return;
 
       setDashboard(res);
@@ -48,15 +65,18 @@ export default function Participants() {
   };
 
   useEffect(() => {
-    fetchDashboard();
+    fetchDashboard(offset);
     return () => {
       abortRef.current.aborted = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [offset]);
+
+  const users: IModeratorDashboardUser[] = useMemo(() => {
+    return dashboard?.users?.items ?? [];
+  }, [dashboard]);
 
   const stats = dashboard?.stats;
-
   const totalParticipants = safeNum(stats?.totalParticipants);
   const avgProgressPercent = clampPct(safeNum(stats?.avgProgressPercent));
   const activeProblems = safeNum(stats?.activeProblems);
@@ -66,10 +86,24 @@ export default function Participants() {
       <ParticipantsStats
         loadState={loadState}
         error={error}
-        onRetry={fetchDashboard}
+        onRetry={() => fetchDashboard(offset)}
         totalParticipants={totalParticipants}
         avgProgressPercent={avgProgressPercent}
         activeProblems={activeProblems}
+      />
+
+      <ParticipantsList
+        loadState={loadState}
+        error={error}
+        users={users}
+        total={total}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        canPrev={canPrev}
+        canNext={canNext}
+        onPrev={() => setOffset((v) => Math.max(0, v - limit))}
+        onNext={() => setOffset((v) => (v + limit < total ? v + limit : v))}
+        onRetry={() => fetchDashboard(offset)}
       />
     </section>
   );

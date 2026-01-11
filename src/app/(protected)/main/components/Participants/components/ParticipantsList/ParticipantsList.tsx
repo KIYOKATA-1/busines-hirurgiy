@@ -1,16 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import styles from "./ParticipantsList.module.scss";
-
 import type { IModeratorDashboardUser } from "@/services/moderatorUsers/moderatorUsers.types";
-import { moderatorUsersService } from "@/services/moderatorUsers/moderatorUsers.service";
-
-import { diseaseService } from "@/services/disease/disease.service";
-import type { IDiseaseListEntry } from "@/services/disease/disease.types";
+import { DeleteIcon, EditIcon, EyeIcon } from "./ParticipantsList.icons";
 
 type LoadState = "idle" | "loading" | "success" | "error";
-type ModalState = "idle" | "loading" | "success" | "error";
 
 function clampPct(v: number) {
   if (!Number.isFinite(v)) return 0;
@@ -34,13 +28,6 @@ function formatLastActivityHuman(iso?: string) {
   if (h < 24) return `${h} ч назад`;
   const days = Math.floor(h / 24);
   return `${days} дн назад`;
-}
-
-function isActiveWithin24h(iso?: string) {
-  if (!iso) return false;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return false;
-  return Date.now() - d.getTime() <= 24 * 60 * 60 * 1000;
 }
 
 function getInitials(name?: string, surname?: string) {
@@ -67,9 +54,59 @@ type Props = {
   onPrev: () => void;
   onNext: () => void;
   onRetry: () => void;
-
-  onAfterAssign: () => void;
 };
+
+function SkeletonCard({ idx }: { idx: number }) {
+  return (
+    <li className={styles.item} key={`sk_${idx}`}>
+      <article className={`${styles.card} ${styles.cardSkeleton}`} aria-hidden="true">
+        <header className={styles.cardTop}>
+          <section className={styles.userLeft}>
+            <span className={`${styles.avatar} ${styles.skel}`} />
+            <section className={styles.meta}>
+              <span className={`${styles.skelLine} ${styles.skelLineLg}`} />
+              <span className={`${styles.skelLine} ${styles.skelLineMd}`} />
+              <span className={`${styles.skelLine} ${styles.skelLineSm}`} />
+            </section>
+          </section>
+
+          <section className={styles.actions}>
+            <span className={`${styles.skelBtn} ${styles.skel}`} />
+            <span className={`${styles.skelIconBtn} ${styles.skel}`} />
+            <span className={`${styles.skelIconBtn} ${styles.skel}`} />
+          </section>
+        </header>
+
+        <section className={styles.metrics} aria-label="Метрики (скелетон)">
+          <article className={`${styles.metric} ${styles.metricSkeleton}`}>
+            <span className={`${styles.skelLine} ${styles.skelLineSm}`} />
+            <span className={`${styles.skelLine} ${styles.skelLineMd}`} />
+          </article>
+
+          <article className={`${styles.metric} ${styles.metricSkeleton}`}>
+            <span className={`${styles.skelLine} ${styles.skelLineSm}`} />
+            <span className={`${styles.skelLine} ${styles.skelLineMd}`} />
+          </article>
+
+          <article className={`${styles.metric} ${styles.metricSkeleton}`}>
+            <span className={`${styles.skelLine} ${styles.skelLineSm}`} />
+            <span className={`${styles.skelLine} ${styles.skelLineMd}`} />
+          </article>
+        </section>
+
+        <section className={styles.progress} aria-label="Прогресс (скелетон)">
+          <span className={`${styles.skelLine} ${styles.skelLineSm}`} />
+          <section className={styles.progressRow}>
+            <span className={`${styles.track} ${styles.trackSkeleton}`}>
+              <span className={`${styles.fill} ${styles.fillSkeleton}`} />
+            </span>
+            <span className={`${styles.badge} ${styles.badgeSkeleton}`} />
+          </section>
+        </section>
+      </article>
+    </li>
+  );
+}
 
 export default function ParticipantsList({
   loadState,
@@ -83,131 +120,46 @@ export default function ParticipantsList({
   onPrev,
   onNext,
   onRetry,
-  onAfterAssign,
 }: Props) {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<IModeratorDashboardUser | null>(null);
+  const isLoading = loadState === "loading";
+  const isError = loadState === "error";
+  const isSuccess = loadState === "success";
 
-  const [diseaseState, setDiseaseState] = useState<ModalState>("idle");
-  const [diseaseError, setDiseaseError] = useState<string | null>(null);
-  const [diseases, setDiseases] = useState<IDiseaseListEntry[]>([]);
-  const [diseaseSearch, setDiseaseSearch] = useState("");
-  const [selectedDiseaseId, setSelectedDiseaseId] = useState<string | null>(null);
+  const totalText = isSuccess ? String(total) : "—";
+  const pageText = isSuccess ? String(currentPage) : "—";
+  const pagesText = isSuccess ? String(totalPages) : "—";
 
-  const [assignLoading, setAssignLoading] = useState(false);
-  const [assignError, setAssignError] = useState<string | null>(null);
+  const pagerDisabled = !isSuccess || isLoading || isError;
 
-  const openModalForUser = (u: IModeratorDashboardUser) => {
-    setSelectedUser(u);
-    setSelectedDiseaseId(null);
-    setAssignError(null);
-    setDiseaseSearch("");
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setModalOpen(false);
-    setSelectedUser(null);
-    setSelectedDiseaseId(null);
-    setAssignError(null);
-  };
-
-  const loadDiseases = async () => {
-    setDiseaseState("loading");
-    setDiseaseError(null);
-
-    try {
-      const res = await diseaseService.getAll();
-      setDiseases(res);
-      setDiseaseState("success");
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || "Ошибка загрузки болезней";
-      setDiseaseError(String(msg));
-      setDiseaseState("error");
-    }
-  };
-
-  useEffect(() => {
-    if (!modalOpen) return;
-
-    if (diseases.length > 0) {
-      setDiseaseState("success");
-      return;
-    }
-
-    loadDiseases();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modalOpen]);
-
-  useEffect(() => {
-    if (!modalOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeModal();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modalOpen]);
-
-  const filteredDiseases = useMemo(() => {
-    const q = diseaseSearch.trim().toLowerCase();
-    if (!q) return diseases;
-    return diseases.filter((d) => {
-      const title = d.disease?.title?.toLowerCase() ?? "";
-      const cat = d.disease?.category?.title?.toLowerCase() ?? "";
-      const desc = d.disease?.description?.toLowerCase() ?? "";
-      return title.includes(q) || cat.includes(q) || desc.includes(q);
-    });
-  }, [diseases, diseaseSearch]);
-
-  const canAssign = Boolean(selectedUser?.id) && Boolean(selectedDiseaseId) && !assignLoading;
-
-  const onAssign = async () => {
-    if (!selectedUser?.id || !selectedDiseaseId) return;
-
-    setAssignLoading(true);
-    setAssignError(null);
-
-    try {
-      await moderatorUsersService.assignDisease({
-        userId: selectedUser.id,
-        diseaseId: selectedDiseaseId,
-      });
-
-      onAfterAssign();
-      closeModal();
-    } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || "Ошибка привязки болезни";
-      setAssignError(String(msg));
-    } finally {
-      setAssignLoading(false);
-    }
-  };
+  const showSkeleton = isLoading || loadState === "idle";
+  const showEmpty = isSuccess && users.length === 0;
 
   return (
-    <section className={styles.block} aria-labelledby="participants_list_title">
-      <header className={styles.blockHead}>
-        <h2 className={styles.blockTitle} id="participants_list_title">
-          Список участников
-        </h2>
-        <p className={styles.blockDesc}>Отслеживание прогресса и активности участников</p>
+    <section className={styles.block} aria-label="Список участников">
+      <header className={styles.head}>
+        <h2 className={styles.title}>Список участников</h2>
+        <p className={styles.desc}>Отслеживание прогресса и активности участников</p>
       </header>
 
-      {loadState === "loading" ? (
-        <p className={styles.placeholder}>Загрузка...</p>
-      ) : loadState === "error" ? (
-        <section className={styles.errorBox} role="alert">
-          <h3 className={styles.errorTitle}>Не удалось загрузить</h3>
-          <p className={styles.errorText}>{error}</p>
-          <button className={styles.retryBtn} type="button" onClick={onRetry}>
-            Повторить
-          </button>
-        </section>
-      ) : users.length === 0 ? (
-        <p className={styles.placeholder}>Пользователи не найдены</p>
-      ) : (
-        <>
-          <ul className={styles.list} aria-label="Список пользователей">
+      <section className={styles.body}>
+        {showSkeleton ? (
+          <ul className={styles.list} aria-label="Загрузка участников">
+            <SkeletonCard idx={1} />
+            <SkeletonCard idx={2} />
+            <SkeletonCard idx={3} />
+          </ul>
+        ) : isError ? (
+          <section className={styles.errorBox} role="alert">
+            <h3 className={styles.errorTitle}>Не удалось загрузить</h3>
+            <p className={styles.errorText}>{error}</p>
+            <button className={styles.retryBtn} type="button" onClick={onRetry}>
+              Повторить
+            </button>
+          </section>
+        ) : showEmpty ? (
+          <p className={styles.placeholder}>Пользователи не найдены</p>
+        ) : (
+          <ul className={styles.list} aria-label="Участники">
             {users.map((u) => {
               const pct = clampPct(safeNum(u.overallProgressPct));
               const completed = safeNum(u.completedSteps);
@@ -215,72 +167,81 @@ export default function ParticipantsList({
               const initials = getInitials(u.name, u.surname);
 
               return (
-                <li key={u.id} className={styles.listItem}>
-                  <article className={styles.userCard}>
-                    <header className={styles.userTop}>
-                      <section className={styles.userLeft} aria-label="Пользователь">
+                <li key={u.id} className={styles.item}>
+                  <article className={styles.card}>
+                    <header className={styles.cardTop}>
+                      <section className={styles.userLeft}>
                         <span className={styles.avatar} aria-hidden="true">
                           {initials}
                         </span>
 
-                        <section className={styles.userMeta}>
-                          <section className={styles.userNameRow}>
-                            <h3 className={styles.userName}>
-                              {u.name} {u.surname}
-                            </h3>
-
-                            {isActiveWithin24h(u.lastActivityAt) ? (
-                              <span className={styles.activeDot} title="Активен" />
-                            ) : null}
-                          </section>
-
-                          <p className={styles.userEmail}>{u.email}</p>
-                          <p className={styles.userActivity}>
+                        <section className={styles.meta}>
+                          <h3 className={styles.userName}>
+                            {u.name} {u.surname}
+                          </h3>
+                          <p className={styles.email}>{u.email}</p>
+                          <p className={styles.activity}>
                             Последняя активность: {formatLastActivityHuman(u.lastActivityAt)}
                           </p>
                         </section>
                       </section>
 
-                      <menu className={styles.userActions} aria-label="Действия">
+                      <section className={styles.actions} aria-label="Действия">
+                        <button type="button" className={styles.viewBtn} onClick={() => {}}>
+                          <span className={styles.viewIcon} aria-hidden="true">
+                            <EyeIcon className={styles.svgIcon} />
+                          </span>
+                          <span className={styles.viewText}>Просмотр</span>
+                        </button>
+
                         <button
                           type="button"
-                          className={styles.bindBtn}
-                          data-tip="Привязать болезнь"
-                          aria-label="Привязать болезнь"
-                          onClick={() => openModalForUser(u)}
+                          className={styles.iconBtn}
+                          aria-label="Редактировать"
+                          onClick={() => {}}
                         >
-                          +
+                          <EditIcon className={styles.svgIcon} />
                         </button>
-                      </menu>
+
+                        <button
+                          type="button"
+                          className={styles.iconBtnDanger}
+                          aria-label="Удалить"
+                          onClick={() => {}}
+                        >
+                          <DeleteIcon className={styles.svgIcon} />
+                        </button>
+                      </section>
                     </header>
 
-                    <section className={styles.metricsRow} aria-label="Показатели">
-                      <article className={styles.metricBox}>
+                    <section className={styles.metrics} aria-label="Метрики">
+                      <article className={styles.metric}>
                         <p className={styles.metricLabel}>Активные проблемы</p>
                         <p className={styles.metricValue}>{safeNum(u.activeDiseases)}</p>
                       </article>
 
-                      <article className={styles.metricBox}>
+                      <article className={styles.metric}>
                         <p className={styles.metricLabel}>Выполнено шагов</p>
                         <p className={styles.metricValue}>
                           {completed}/{totalSteps}
                         </p>
                       </article>
 
-                      <article className={styles.metricBox}>
+                      <article className={styles.metric}>
                         <p className={styles.metricLabel}>Общий прогресс</p>
                         <p className={styles.metricValue}>{pct}%</p>
                       </article>
                     </section>
 
-                    <section className={styles.progressArea} aria-label="Прогресс лечения">
+                    <section className={styles.progress} aria-label="Прогресс лечения">
                       <p className={styles.progressLabel}>Прогресс лечения</p>
 
-                      <section className={styles.progressLine}>
-                        <span className={styles.progressTrack} aria-hidden="true">
-                          <span className={styles.progressFill} style={{ width: `${pct}%` }} />
+                      <section className={styles.progressRow}>
+                        <span className={styles.track} aria-hidden="true">
+                          <span className={styles.fill} style={{ width: `${pct}%` }} />
                         </span>
-                        <span className={styles.progressBadge}>{pct}%</span>
+
+                        <span className={styles.badge}>{pct}%</span>
                       </section>
                     </section>
                   </article>
@@ -288,148 +249,34 @@ export default function ParticipantsList({
               );
             })}
           </ul>
+        )}
+      </section>
 
-          <footer className={styles.footer}>
-            <p className={styles.meta}>
-              Всего: <b>{total}</b> • Страница: <b>{currentPage}</b>/<b>{totalPages}</b>
-            </p>
+      <footer className={styles.footer}>
+        <p className={styles.footerMeta}>
+          Всего: <b>{totalText}</b> · Страница: <b>{pageText}</b>/<b>{pagesText}</b>
+        </p>
 
-            <nav className={styles.pager} aria-label="Пагинация">
-              <button
-                type="button"
-                className={styles.pagerBtn}
-                onClick={onPrev}
-                disabled={!canPrev}
-              >
-                ← Назад
-              </button>
+        <section className={styles.pager} aria-label="Пагинация">
+          <button
+            type="button"
+            className={styles.pagerBtn}
+            onClick={onPrev}
+            disabled={pagerDisabled || !canPrev}
+          >
+            ← Назад
+          </button>
 
-              <button
-                type="button"
-                className={styles.pagerBtn}
-                onClick={onNext}
-                disabled={!canNext}
-              >
-                Вперёд →
-              </button>
-            </nav>
-          </footer>
-        </>
-      )}
-
-      {modalOpen ? (
-        <section
-          className={styles.modalOverlay}
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) closeModal();
-          }}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Привязать болезнь"
-        >
-          <article className={styles.modal}>
-            <header className={styles.modalHead}>
-              <section>
-                <h3 className={styles.modalTitle}>Привязать болезнь</h3>
-                <p className={styles.modalSub}>
-                  Пользователь:{" "}
-                  <b>
-                    {selectedUser?.name} {selectedUser?.surname}
-                  </b>
-                </p>
-              </section>
-
-              <button className={styles.modalClose} type="button" onClick={closeModal}>
-                ✕
-              </button>
-            </header>
-
-            <section className={styles.modalBody}>
-              <section className={styles.modalSearch}>
-                <input
-                  className={styles.modalSearchInput}
-                  value={diseaseSearch}
-                  onChange={(e) => setDiseaseSearch(e.target.value)}
-                  placeholder="Найти болезнь..."
-                />
-              </section>
-
-              {diseaseState === "loading" ? (
-                <p className={styles.modalPlaceholder}>Загрузка списка болезней...</p>
-              ) : diseaseState === "error" ? (
-                <section className={styles.modalErrorBox} role="alert">
-                  <h4 className={styles.modalErrorTitle}>Не удалось загрузить болезни</h4>
-                  <p className={styles.modalErrorText}>{diseaseError}</p>
-                  <button type="button" className={styles.modalRetryBtn} onClick={loadDiseases}>
-                    Повторить
-                  </button>
-                </section>
-              ) : filteredDiseases.length === 0 ? (
-                <p className={styles.modalPlaceholder}>Болезни не найдены</p>
-              ) : (
-                <ul className={styles.diseaseList} aria-label="Список болезней">
-                  {filteredDiseases.map((entry) => {
-                    const id = entry.disease.id;
-                    const title = entry.disease.title;
-                    const cat = entry.disease.category?.title ?? "";
-                    const hasPlan = Boolean(entry.plan);
-                    const stepsCount = entry.steps?.length ?? 0;
-                    const selected = selectedDiseaseId === id;
-
-                    return (
-                      <li key={id} className={styles.diseaseListItem}>
-                        <button
-                          type="button"
-                          className={`${styles.diseaseItem} ${
-                            selected ? styles.diseaseItemActive : ""
-                          }`}
-                          onClick={() => setSelectedDiseaseId(id)}
-                        >
-                          <section className={styles.diseaseMain}>
-                            <h4 className={styles.diseaseTitle}>{title}</h4>
-                            <section className={styles.diseaseMeta}>
-                              {cat ? <span className={styles.diseaseTag}>{cat}</span> : null}
-                              <span className={styles.diseaseTag}>
-                                План: {hasPlan ? "есть" : "нет"}
-                              </span>
-                              <span className={styles.diseaseTag}>Шагов: {stepsCount}</span>
-                            </section>
-                          </section>
-
-                          <span className={styles.diseasePick} aria-hidden="true">
-                            <span
-                              className={`${styles.pickDot} ${
-                                selected ? styles.pickDotActive : ""
-                              }`}
-                            />
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-
-              {assignError ? <p className={styles.assignError}>{assignError}</p> : null}
-            </section>
-
-            <footer className={styles.modalFooter}>
-              <button type="button" className={styles.modalGhostBtn} onClick={closeModal}>
-                Отмена
-              </button>
-
-              <button
-                type="button"
-                className={styles.modalPrimaryBtn}
-                disabled={!canAssign}
-                onClick={onAssign}
-              >
-                {assignLoading ? "Привязка..." : "Привязать"}
-              </button>
-            </footer>
-          </article>
+          <button
+            type="button"
+            className={styles.pagerBtn}
+            onClick={onNext}
+            disabled={pagerDisabled || !canNext}
+          >
+            Вперёд →
+          </button>
         </section>
-      ) : null}
+      </footer>
     </section>
   );
 }
