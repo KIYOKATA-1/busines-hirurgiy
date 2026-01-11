@@ -48,20 +48,12 @@ export default function MainPage() {
     ],
     moderator: [
       { key: "anatomy", label: "Анатомия Бизнеса", icon: BusinesAnatomyIcon },
-      {
-        key: "library",
-        label: "Библиотека Болезней",
-        icon: DiseaseLibraryIcon,
-      },
+      { key: "library", label: "Библиотека Болезней", icon: DiseaseLibraryIcon },
       { key: "participants", label: "Участники", icon: ParticipantsIcon },
     ],
     admin: [
       { key: "anatomy", label: "Анатомия Бизнеса", icon: BusinesAnatomyIcon },
-      {
-        key: "library",
-        label: "Библиотека Болезней",
-        icon: DiseaseLibraryIcon,
-      },
+      { key: "library", label: "Библиотека Болезней", icon: DiseaseLibraryIcon },
       { key: "participants", label: "Участники", icon: ParticipantsIcon },
     ],
   };
@@ -73,6 +65,7 @@ export default function MainPage() {
     if (!availableTabs.some((t) => t.key === tab)) {
       setTab(availableTabs[0].key);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role]);
 
   useEffect(() => {
@@ -88,6 +81,11 @@ export default function MainPage() {
     );
   }
 
+  const contentClassName =
+    tab === "participants"
+      ? `${styles.content} ${styles.contentPlain}`
+      : styles.content;
+
   return (
     <div className={styles.page}>
       <Header user={user ?? null} onLogout={logout} />
@@ -101,7 +99,7 @@ export default function MainPage() {
             onChange={setTab}
           />
 
-          <section className={styles.content}>
+          <section className={contentClassName}>
             {tab === "anatomy" && <BusinessAnatomy />}
             {tab === "progress" && <MyProgress />}
             {tab === "diary" && <ActivityDiary />}
