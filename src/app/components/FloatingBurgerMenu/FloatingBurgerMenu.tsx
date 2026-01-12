@@ -4,16 +4,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./FloatingBurgerMenu.module.scss";
 
 import type { Role } from "@/app/components/Tablet/Tablet";
-import { ArrowLeftIcon, BurgerIcon, ShieldIcon, UserIcon } from "@/app/components/icons";
+import { ArrowLeftIcon, BurgerIcon, ShieldIcon, UserIcon } from "@/shared/ui/icons";
 
 type Props = {
   role: Role;
 
   position?: "left" | "right";
 
-  showBack?: boolean;       
-  showPersonal?: boolean;  
-  showAdmin?: boolean;      
+  showBack?: boolean;
+  showPersonal?: boolean;
+  showAdmin?: boolean;
   backLabel?: string;
   personalLabel?: string;
   adminLabel?: string;
@@ -51,28 +51,28 @@ export default function FloatingBurgerMenu({
       onClick?: () => void;
       hidden?: boolean;
     }> = [
-      {
-        key: "back",
-        label: backLabel,
-        icon: ArrowLeftIcon,
-        onClick: onBack,
-        hidden: !showBack,
-      },
-      {
-        key: "personal",
-        label: personalLabel,
-        icon: UserIcon,
-        onClick: onPersonal,
-        hidden: !showPersonal,
-      },
-      {
-        key: "admin",
-        label: adminLabel,
-        icon: ShieldIcon,
-        onClick: onAdmin,
-        hidden: !showAdmin || !canSeeAdmin,
-      },
-    ];
+        {
+          key: "back",
+          label: backLabel,
+          icon: ArrowLeftIcon,
+          onClick: onBack,
+          hidden: !showBack,
+        },
+        {
+          key: "personal",
+          label: personalLabel,
+          icon: UserIcon,
+          onClick: onPersonal,
+          hidden: !showPersonal,
+        },
+        {
+          key: "admin",
+          label: adminLabel,
+          icon: ShieldIcon,
+          onClick: onAdmin,
+          hidden: !showAdmin || !canSeeAdmin,
+        },
+      ];
 
     return a.filter((x) => !x.hidden && typeof x.onClick === "function");
   }, [

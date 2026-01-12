@@ -10,8 +10,8 @@ import AddPlanModal from "../AddPlanModal/AddPlanModal";
 import { IDiseaseCategory, IDiseaseListEntry } from "@/services/disease/disease.types";
 import { diseaseService } from "@/services/disease/disease.service";
 
-import { WarningIcon } from "@/app/components/icons/WarningIcon";
-import { DeleteIcon, EditIcon } from "@/app/components/icons";
+import { WarningIcon } from "@/shared/ui/icons/WarningIcon";
+import { DeleteIcon, EditIcon } from "@/shared/ui/icons";
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
@@ -279,7 +279,7 @@ export default function DiseaseLibrary() {
                 <div key={d.id} className={styles.card}>
                   <div className={styles.cardTop}>
                     <div className={styles.cardTitleRow}>
-                      <WarningIcon className={styles.warnIcon}/>
+                      <WarningIcon className={styles.warnIcon} />
                       <h1 className={styles.cardTitle}>{d.title}</h1>
                     </div>
 

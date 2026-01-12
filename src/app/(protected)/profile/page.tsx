@@ -8,7 +8,7 @@ import Header from "@/app/components/Header/Header";
 import FloatingBurgerMenu from "@/app/components/FloatingBurgerMenu/FloatingBurgerMenu";
 import type { Role } from "@/app/components/Tablet/Tablet";
 
-import { EditIcon } from "@/app/components/icons";
+import { EditIcon } from "@/shared/ui/icons";
 import styles from "./profile.module.scss";
 
 import { userService } from "@/services/user/user.service";

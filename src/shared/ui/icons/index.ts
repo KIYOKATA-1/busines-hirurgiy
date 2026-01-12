@@ -10,5 +10,7 @@ export { BurgerIcon } from "./BurgerIcon";
 export { UserIcon } from "./UserIcon";
 export { ShieldIcon } from "./ShieldIcon";
 export { ArrowLeftIcon } from "./ArrowLeftIcon";
-export { UsersIcon } from './UsersIcon'
-export { ProgressIcon } from './ProgressIcon'
+export { UsersIcon } from './UsersIcon';
+export { ProgressIcon } from './ProgressIcon';
+export { MailIcon } from './MailIcon';
+export { PasswordIcon } from './PasswordIcon';

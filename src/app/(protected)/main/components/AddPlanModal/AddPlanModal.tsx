@@ -18,7 +18,7 @@ import type { Props, StepDraft, WizardStep, ExistingStepDraft } from "./AddPlanM
 import { uid } from "@/shared/utils/uid";
 import { DiseaseDropdownOption } from "@/app/components/DiseaseDropdown/DiseaseDropdown.types";
 import DiseaseDropdown from "@/app/components/DiseaseDropdown/DiseaseDropdown";
-import { DeleteIcon } from "@/app/components/icons";
+import { DeleteIcon } from "@/shared/ui/icons";
 
 import { useToast } from "@/app/components/Toast/ToastProvider";
 
@@ -289,11 +289,11 @@ export default function AddPlanModal({ open, onClose, onUpdated, entries }: Prop
       prev.map((s) =>
         s.id === id
           ? {
-              ...s,
-              orderNo: s.initial.orderNo,
-              title: s.initial.title,
-              description: s.initial.description,
-            }
+            ...s,
+            orderNo: s.initial.orderNo,
+            title: s.initial.title,
+            description: s.initial.description,
+          }
           : s
       )
     );

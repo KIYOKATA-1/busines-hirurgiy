@@ -4,10 +4,14 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { useAuthStore } from "@/store/auth.store";
 import GoogleRedirectButton from "@/shared/ui/GoogleButton/GoogleRedirectButton";
+
+import { MailIcon } from "@/shared/ui/icons/MailIcon";
+import { PasswordIcon } from "@/shared/ui/icons/PasswordIcon";
+import { UserIcon } from "@/shared/ui/icons/UserIcon";
 
 import type { ILoginRequest, IRegistRequest } from "@/services/auth/auth.types";
 import styles from "../styles/auth.module.scss";
@@ -206,24 +210,31 @@ export default function AuthScreen({ initialMode = "login", syncUrl = true }: Pr
                 >
                   <label className={styles.label}>
                     <span>Email</span>
-                    <input
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      placeholder="name@example.com"
-                      disabled={loading}
-                      aria-invalid={!!loginForm.formState.errors.email}
-                      {...loginForm.register("email", {
-                        required: "Введите email",
-                        pattern: {
-                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                          message: "Некорректный email",
-                        },
-                      })}
-                      className={`${styles.input} ${
-                        loginForm.formState.errors.email ? styles.inputError : ""
-                      }`}
-                    />
+
+                    <div className={styles.inputWrap}>
+                      <input
+                        type="email"
+                        inputMode="email"
+                        autoComplete="email"
+                        placeholder="name@example.com"
+                        disabled={loading}
+                        aria-invalid={!!loginForm.formState.errors.email}
+                        {...loginForm.register("email", {
+                          required: "Введите email",
+                          pattern: {
+                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                            message: "Некорректный email",
+                          },
+                        })}
+                        className={`${styles.input} ${
+                          loginForm.formState.errors.email ? styles.inputError : ""
+                        }`}
+                      />
+                      <span className={styles.inputIcon} aria-hidden="true">
+                        <MailIcon />
+                      </span>
+                    </div>
+
                     {loginForm.formState.errors.email?.message && (
                       <p className={styles.fieldError}>{loginForm.formState.errors.email.message}</p>
                     )}
@@ -231,20 +242,27 @@ export default function AuthScreen({ initialMode = "login", syncUrl = true }: Pr
 
                   <label className={styles.label}>
                     <span>Пароль</span>
-                    <input
-                      type="password"
-                      autoComplete="current-password"
-                      placeholder="••••••••"
-                      disabled={loading}
-                      aria-invalid={!!loginForm.formState.errors.password}
-                      {...loginForm.register("password", {
-                        required: "Введите пароль",
-                        minLength: { value: 6, message: "Минимум 6 символов" },
-                      })}
-                      className={`${styles.input} ${
-                        loginForm.formState.errors.password ? styles.inputError : ""
-                      }`}
-                    />
+
+                    <div className={styles.inputWrap}>
+                      <input
+                        type="password"
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                        disabled={loading}
+                        aria-invalid={!!loginForm.formState.errors.password}
+                        {...loginForm.register("password", {
+                          required: "Введите пароль",
+                          minLength: { value: 6, message: "Минимум 6 символов" },
+                        })}
+                        className={`${styles.input} ${
+                          loginForm.formState.errors.password ? styles.inputError : ""
+                        }`}
+                      />
+                      <span className={styles.inputIcon} aria-hidden="true">
+                        <PasswordIcon />
+                      </span>
+                    </div>
+
                     {loginForm.formState.errors.password?.message && (
                       <p className={styles.fieldError}>
                         {loginForm.formState.errors.password.message}
@@ -285,24 +303,31 @@ export default function AuthScreen({ initialMode = "login", syncUrl = true }: Pr
                 >
                   <label className={styles.label}>
                     <span>Email</span>
-                    <input
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      placeholder="name@example.com"
-                      disabled={loading}
-                      aria-invalid={!!registerForm.formState.errors.email}
-                      {...registerForm.register("email", {
-                        required: "Введите email",
-                        pattern: {
-                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                          message: "Некорректный email",
-                        },
-                      })}
-                      className={`${styles.input} ${
-                        registerForm.formState.errors.email ? styles.inputError : ""
-                      }`}
-                    />
+
+                    <div className={styles.inputWrap}>
+                      <input
+                        type="email"
+                        inputMode="email"
+                        autoComplete="email"
+                        placeholder="name@example.com"
+                        disabled={loading}
+                        aria-invalid={!!registerForm.formState.errors.email}
+                        {...registerForm.register("email", {
+                          required: "Введите email",
+                          pattern: {
+                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                            message: "Некорректный email",
+                          },
+                        })}
+                        className={`${styles.input} ${
+                          registerForm.formState.errors.email ? styles.inputError : ""
+                        }`}
+                      />
+                      <span className={styles.inputIcon} aria-hidden="true">
+                        <MailIcon />
+                      </span>
+                    </div>
+
                     {registerForm.formState.errors.email?.message && (
                       <p className={styles.fieldError}>
                         {registerForm.formState.errors.email.message}
@@ -313,20 +338,27 @@ export default function AuthScreen({ initialMode = "login", syncUrl = true }: Pr
                   <div className={styles.row2}>
                     <label className={styles.label}>
                       <span>Имя</span>
-                      <input
-                        type="text"
-                        autoComplete="given-name"
-                        placeholder="Ваше имя"
-                        disabled={loading}
-                        aria-invalid={!!registerForm.formState.errors.name}
-                        {...registerForm.register("name", {
-                          required: "Введите имя",
-                          minLength: { value: 2, message: "Минимум 2 символа" },
-                        })}
-                        className={`${styles.input} ${
-                          registerForm.formState.errors.name ? styles.inputError : ""
-                        }`}
-                      />
+
+                      <div className={styles.inputWrap}>
+                        <input
+                          type="text"
+                          autoComplete="given-name"
+                          placeholder="Ваше имя"
+                          disabled={loading}
+                          aria-invalid={!!registerForm.formState.errors.name}
+                          {...registerForm.register("name", {
+                            required: "Введите имя",
+                            minLength: { value: 2, message: "Минимум 2 символа" },
+                          })}
+                          className={`${styles.input} ${
+                            registerForm.formState.errors.name ? styles.inputError : ""
+                          }`}
+                        />
+                        <span className={styles.inputIcon} aria-hidden="true">
+                          <UserIcon />
+                        </span>
+                      </div>
+
                       {registerForm.formState.errors.name?.message && (
                         <p className={styles.fieldError}>
                           {registerForm.formState.errors.name.message}
@@ -336,20 +368,27 @@ export default function AuthScreen({ initialMode = "login", syncUrl = true }: Pr
 
                     <label className={styles.label}>
                       <span>Фамилия</span>
-                      <input
-                        type="text"
-                        autoComplete="family-name"
-                        placeholder="Ваша фамилия"
-                        disabled={loading}
-                        aria-invalid={!!registerForm.formState.errors.surname}
-                        {...registerForm.register("surname", {
-                          required: "Введите фамилию",
-                          minLength: { value: 2, message: "Минимум 2 символа" },
-                        })}
-                        className={`${styles.input} ${
-                          registerForm.formState.errors.surname ? styles.inputError : ""
-                        }`}
-                      />
+
+                      <div className={styles.inputWrap}>
+                        <input
+                          type="text"
+                          autoComplete="family-name"
+                          placeholder="Ваша фамилия"
+                          disabled={loading}
+                          aria-invalid={!!registerForm.formState.errors.surname}
+                          {...registerForm.register("surname", {
+                            required: "Введите фамилию",
+                            minLength: { value: 2, message: "Минимум 2 символа" },
+                          })}
+                          className={`${styles.input} ${
+                            registerForm.formState.errors.surname ? styles.inputError : ""
+                          }`}
+                        />
+                        <span className={styles.inputIcon} aria-hidden="true">
+                          <UserIcon />
+                        </span>
+                      </div>
+
                       {registerForm.formState.errors.surname?.message && (
                         <p className={styles.fieldError}>
                           {registerForm.formState.errors.surname.message}
@@ -360,20 +399,27 @@ export default function AuthScreen({ initialMode = "login", syncUrl = true }: Pr
 
                   <label className={styles.label}>
                     <span>Пароль</span>
-                    <input
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="••••••••"
-                      disabled={loading}
-                      aria-invalid={!!registerForm.formState.errors.password}
-                      {...registerForm.register("password", {
-                        required: "Введите пароль",
-                        minLength: { value: 6, message: "Минимум 6 символов" },
-                      })}
-                      className={`${styles.input} ${
-                        registerForm.formState.errors.password ? styles.inputError : ""
-                      }`}
-                    />
+
+                    <div className={styles.inputWrap}>
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="••••••••"
+                        disabled={loading}
+                        aria-invalid={!!registerForm.formState.errors.password}
+                        {...registerForm.register("password", {
+                          required: "Введите пароль",
+                          minLength: { value: 6, message: "Минимум 6 символов" },
+                        })}
+                        className={`${styles.input} ${
+                          registerForm.formState.errors.password ? styles.inputError : ""
+                        }`}
+                      />
+                      <span className={styles.inputIcon} aria-hidden="true">
+                        <PasswordIcon />
+                      </span>
+                    </div>
+
                     {registerForm.formState.errors.password?.message && (
                       <p className={styles.fieldError}>
                         {registerForm.formState.errors.password.message}
@@ -383,20 +429,27 @@ export default function AuthScreen({ initialMode = "login", syncUrl = true }: Pr
 
                   <label className={styles.label}>
                     <span>Повторите пароль</span>
-                    <input
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="••••••••"
-                      disabled={loading}
-                      aria-invalid={!!registerForm.formState.errors.confirm}
-                      {...registerForm.register("confirm", {
-                        required: "Повторите пароль",
-                        validate: (value) => value === passwordValue || "Пароли не совпадают",
-                      })}
-                      className={`${styles.input} ${
-                        registerForm.formState.errors.confirm ? styles.inputError : ""
-                      }`}
-                    />
+
+                    <div className={styles.inputWrap}>
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="••••••••"
+                        disabled={loading}
+                        aria-invalid={!!registerForm.formState.errors.confirm}
+                        {...registerForm.register("confirm", {
+                          required: "Повторите пароль",
+                          validate: (value) => value === passwordValue || "Пароли не совпадают",
+                        })}
+                        className={`${styles.input} ${
+                          registerForm.formState.errors.confirm ? styles.inputError : ""
+                        }`}
+                      />
+                      <span className={styles.inputIcon} aria-hidden="true">
+                        <PasswordIcon />
+                      </span>
+                    </div>
+
                     {registerForm.formState.errors.confirm?.message && (
                       <p className={styles.fieldError}>
                         {registerForm.formState.errors.confirm.message}

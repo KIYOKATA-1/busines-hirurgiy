@@ -19,7 +19,7 @@ import {
   ActivityDiaryIcon,
   DiseaseLibraryIcon,
   ParticipantsIcon,
-} from "@/app/components/icons";
+} from "@/shared/ui/icons";
 
 import styles from "./main.module.scss";
 import FloatingBurgerMenu from "@/app/components/FloatingBurgerMenu/FloatingBurgerMenu";

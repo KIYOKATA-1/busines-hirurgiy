@@ -1,5 +1,3 @@
-/* auth.module.scss */
-
 .container {
   position: relative;
   display: grid;
@@ -9,6 +7,10 @@
   background: #000;
   color: #fff;
   padding: 24px;
+}
+.container,
+.container * {
+  box-sizing: border-box;
 }
 
 .shell {
@@ -20,7 +22,9 @@
 .form {
   position: relative;
   z-index: 1;
-  width: 468px;
+  width: min(468px, 100%);
+  max-width: 468px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -75,6 +79,7 @@
   height: 44px;
   border-radius: 999px;
   padding: 4px;
+
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center;
@@ -146,13 +151,15 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
 }
 
 .row2 {
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
+  min-width: 0;
 }
 
 .label {
@@ -160,6 +167,7 @@
   flex-direction: column;
   width: 100%;
   gap: 6px;
+  min-width: 0;
 
   span {
     font-size: 0.9rem;
@@ -167,12 +175,44 @@
   }
 }
 
+.inputWrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+
+  display: grid;
+  place-items: center;
+
+  font-size: 16px; 
+  color: rgba(255, 255, 255, 0.55);
+
+  svg {
+    width: 1em;
+    height: 1em;
+    display: block;
+  }
+}
+
 .input {
+  width: 100%;
+  min-width: 0;
+
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: rgba(255, 255, 255, 0.92);
   border-radius: 10px;
+
   padding: 10px 12px;
+  padding-left: 38px;
+
   font-size: 0.92rem;
   outline: none;
 
@@ -197,19 +237,29 @@
     cursor: not-allowed;
   }
 
-  /* ✅ Если инпут заполнен */
   &:not(:placeholder-shown) {
     background: #fff;
     color: #000;
     border-color: rgba(255, 255, 255, 0.35);
   }
 
-  /* ✅ Заполнен + фокус */
   &:not(:placeholder-shown):focus {
     background: #fff;
     color: #000;
     box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.18);
   }
+}
+
+.input:focus ~ .inputIcon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.input:not(:placeholder-shown) ~ .inputIcon {
+  color: #000;
+}
+
+.input:disabled ~ .inputIcon {
+  opacity: 0.72;
 }
 
 .input:-webkit-autofill,
@@ -223,7 +273,6 @@
   box-shadow: 0 0 0 1000px #fff inset !important;
 
   border-color: rgba(255, 255, 255, 0.35) !important;
-
   transition: background-color 9999s ease-out 0s;
 }
 
@@ -235,6 +284,10 @@
 .inputError {
   border-color: rgba(255, 255, 255, 0.55) !important;
   box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12) !important;
+}
+
+.inputError ~ .inputIcon {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .fieldError {
@@ -301,14 +354,16 @@
 
 @media (max-width: 1024px) {
   .form {
-    width: 400px;
+    width: min(420px, 100%);
+    max-width: 420px;
     padding: 30px 32px;
   }
 }
 
 @media (max-width: 768px) {
   .form {
-    width: 92%;
+    width: min(520px, 100%);
+    max-width: 520px;
     padding: 26px 22px;
     border-radius: 14px;
   }
@@ -319,9 +374,13 @@
 }
 
 @media (max-width: 480px) {
+  .container {
+    padding: 16px;
+  }
+
   .form {
-    width: 96%;
-    padding: 22px 18px;
+    width: 100%;
+    padding: 20px 16px;
     gap: 14px;
   }
 
@@ -336,5 +395,13 @@
 
   .subtitle {
     font-size: 0.82rem;
+  }
+
+  .inputIcon {
+    font-size: 15px;
+  }
+
+  .input {
+    padding-left: 36px;
   }
 }

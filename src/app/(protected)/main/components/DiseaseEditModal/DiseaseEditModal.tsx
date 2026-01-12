@@ -13,7 +13,7 @@ import {
 } from "@/services/disease/disease.types";
 
 import { IOrgan } from "@/services/organs/organ.types";
-import { WarningIcon } from "@/app/components/icons/WarningIcon";
+import { WarningIcon } from "@/shared/ui/icons/WarningIcon";
 
 import { useToast } from "@/app/components/Toast/ToastProvider";
 
