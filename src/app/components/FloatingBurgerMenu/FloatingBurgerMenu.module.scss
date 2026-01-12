@@ -10,7 +10,18 @@
   --fab-gap: 18px;
   --stack-gap: 10px;
 
+  --bw-bg: #000;
+  --bw-fg: #fff;
+  --bw-border: rgba(255, 255, 255, 0.18);
+  --bw-border-strong: rgba(255, 255, 255, 0.38);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
   bottom: calc(var(--fab-gap) + var(--safe-bottom));
+
+  -webkit-font-smoothing: antialiased;
+  transform: translateZ(0);
 }
 
 .left {
@@ -23,7 +34,6 @@
 
 .stack {
   position: absolute;
-
   bottom: calc(var(--fab-size) + 12px);
   left: 0;
 
@@ -32,15 +42,21 @@
   gap: var(--stack-gap);
 
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(12px) scale(0.98);
+  filter: blur(6px);
   pointer-events: none;
 
-  transition: opacity 160ms ease, transform 160ms ease;
+  will-change: transform, opacity, filter;
+  transition:
+    opacity 260ms var(--ease-out),
+    transform 320ms var(--ease-out),
+    filter 320ms var(--ease-out);
 }
 
 .stackOpen {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  filter: blur(0);
   pointer-events: auto;
 }
 
@@ -53,28 +69,43 @@
   align-items: center;
   justify-content: center;
 
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--bw-border);
+  background: var(--bw-bg);
+  color: var(--bw-fg);
 
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 16px 42px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+
   cursor: pointer;
 
-  transition: transform 120ms ease, background 160ms ease, border-color 160ms ease;
+  will-change: transform transform, background, color, box-shadow;
+  transition:
+    transform 220ms var(--ease-out),
+    background 220ms var(--ease-out),
+    color 220ms var(--ease-out),
+    border-color 220ms var(--ease-out),
+    box-shadow 220ms var(--ease-out);
 }
 
 .fab:hover {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--bw-border-strong);
+  background: var(--bw-fg);
+  color: var(--bw-bg);
+  transform: translateY(-1px);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
 }
 
 .fab:active {
-  transform: translateY(1px);
+  transform: translateY(0);
 }
 
 .fabOpen {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.14);
+  background: var(--bw-fg);
+  color: var(--bw-bg);
+  border-color: var(--bw-border-strong);
 }
 
 .actionBtn {
@@ -87,26 +118,35 @@
   align-items: center;
   gap: 10px;
 
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(2, 6, 24, 0.78);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.86);
+  border: 1px solid var(--bw-border);
+  color: var(--bw-fg);
 
-  color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
   cursor: pointer;
 
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
 
-  transition: transform 120ms ease, background 160ms ease, border-color 160ms ease;
+  will-change: transform, background;
+  transition:
+    transform 220ms var(--ease-out),
+    background 220ms var(--ease-out),
+    border-color 220ms var(--ease-out),
+    box-shadow 220ms var(--ease-out);
 }
 
 .actionBtn:hover {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(2, 6, 24, 0.86);
+  border-color: var(--bw-border-strong);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
 }
 
 .actionBtn:active {
-  transform: translateY(1px);
+  transform: translateY(0);
 }
 
 .actionIcon {
@@ -119,14 +159,33 @@
   justify-content: center;
 
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+
+  color: rgba(255, 255, 255, 0.92);
+
+  transition:
+    background 220ms var(--ease-out),
+    border-color 220ms var(--ease-out),
+    color 220ms var(--ease-out);
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+    display: block;
+  }
+}
+
+.actionBtn:hover .actionIcon {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #fff;
 }
 
 .actionText {
   font-size: 13px;
   font-weight: 750;
+  letter-spacing: 0.2px;
 }
-
 
 @media (max-height: 760px) {
   .root {
@@ -153,5 +212,14 @@
 
   .actionText {
     font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack,
+  .fab,
+  .actionBtn,
+  .actionIcon {
+    transition: none !important;
   }
 }

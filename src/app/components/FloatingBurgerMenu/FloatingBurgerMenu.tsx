@@ -4,7 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./FloatingBurgerMenu.module.scss";
 
 import type { Role } from "@/app/components/Tablet/Tablet";
-import { ArrowLeftIcon, BurgerIcon, ShieldIcon, UserIcon } from "@/shared/ui/icons";
+import {
+  ArrowLeftIcon,
+  BurgerIcon,
+  ShieldIcon,
+  UserIcon,
+} from "@/shared/ui/icons";
 
 type Props = {
   role: Role;
@@ -51,28 +56,28 @@ export default function FloatingBurgerMenu({
       onClick?: () => void;
       hidden?: boolean;
     }> = [
-        {
-          key: "back",
-          label: backLabel,
-          icon: ArrowLeftIcon,
-          onClick: onBack,
-          hidden: !showBack,
-        },
-        {
-          key: "personal",
-          label: personalLabel,
-          icon: UserIcon,
-          onClick: onPersonal,
-          hidden: !showPersonal,
-        },
-        {
-          key: "admin",
-          label: adminLabel,
-          icon: ShieldIcon,
-          onClick: onAdmin,
-          hidden: !showAdmin || !canSeeAdmin,
-        },
-      ];
+      {
+        key: "back",
+        label: backLabel,
+        icon: ArrowLeftIcon,
+        onClick: onBack,
+        hidden: !showBack,
+      },
+      {
+        key: "personal",
+        label: personalLabel,
+        icon: UserIcon,
+        onClick: onPersonal,
+        hidden: !showPersonal,
+      },
+      {
+        key: "admin",
+        label: adminLabel,
+        icon: ShieldIcon,
+        onClick: onAdmin,
+        hidden: !showAdmin || !canSeeAdmin,
+      },
+    ];
 
     return a.filter((x) => !x.hidden && typeof x.onClick === "function");
   }, [
@@ -91,7 +96,11 @@ export default function FloatingBurgerMenu({
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
       if (!open) return;
-      if (rootRef.current && e.target instanceof Node && !rootRef.current.contains(e.target)) {
+      if (
+        rootRef.current &&
+        e.target instanceof Node &&
+        !rootRef.current.contains(e.target)
+      ) {
         setOpen(false);
       }
     };
@@ -131,8 +140,9 @@ export default function FloatingBurgerMenu({
               }}
             >
               <span className={styles.actionIcon}>
-                <Icon width={16} height={16} />
+                <Icon />
               </span>
+
               <span className={styles.actionText}>{a.label}</span>
             </button>
           );
