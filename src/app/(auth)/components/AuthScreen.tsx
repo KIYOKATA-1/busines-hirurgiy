@@ -143,7 +143,7 @@ export default function AuthScreen({ initialMode = "login", syncUrl = true }: Pr
           <div className={styles.logoContainer}>
             <div className={styles.logo}>
               <Image
-                src="/assets/logo.svg"
+                src="/assets/logo.png"
                 alt="Logo"
                 fill
                 priority

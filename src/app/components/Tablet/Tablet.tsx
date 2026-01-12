@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import styles from "./Tablet.module.scss";
 
 export type Role = "participant" | "moderator" | "admin";
@@ -91,7 +91,9 @@ export function Tablet({ role, tabsByRole, value, onChange }: Props) {
             className={`${styles.tab} ${isActive ? styles.active : ""}`}
             onClick={() => onChange(tab.key)}
           >
-            <Icon className={styles.icon} width={16} height={16} />
+            <span className={styles.icon} aria-hidden="true">
+              <Icon />
+            </span>
             <span className={styles.label}>{tab.label}</span>
           </button>
         );
