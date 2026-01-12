@@ -1,3 +1,5 @@
+/* auth.module.scss */
+
 .container {
   position: relative;
   display: grid;
@@ -43,7 +45,7 @@
 
 .logo {
   position: relative;
-  width: 40px;  
+  width: 40px;
   height: 40px;
 }
 
@@ -174,7 +176,12 @@
   font-size: 0.92rem;
   outline: none;
 
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s ease,
+    background 0.25s ease,
+    color 0.25s ease;
 
   &::placeholder {
     color: rgba(255, 255, 255, 0.35);
@@ -189,6 +196,40 @@
     opacity: 0.72;
     cursor: not-allowed;
   }
+
+  /* ✅ Если инпут заполнен */
+  &:not(:placeholder-shown) {
+    background: #fff;
+    color: #000;
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
+  /* ✅ Заполнен + фокус */
+  &:not(:placeholder-shown):focus {
+    background: #fff;
+    color: #000;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.18);
+  }
+}
+
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+.input:-webkit-autofill:active {
+  -webkit-text-fill-color: #000 !important;
+  caret-color: #000 !important;
+
+  -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+
+  border-color: rgba(255, 255, 255, 0.35) !important;
+
+  transition: background-color 9999s ease-out 0s;
+}
+
+.input:autofill {
+  color: #000 !important;
+  background: #fff !important;
 }
 
 .inputError {
