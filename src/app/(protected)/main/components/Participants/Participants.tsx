@@ -24,6 +24,12 @@ function safeNum(v: any) {
   return Number.isFinite(n) ? n : 0;
 }
 
+function calcLimitByHeight(h: number) {
+  if (h <= 640) return 1;
+  if (h <= 780) return 2;
+  return 3;
+}
+
 export default function Participants() {
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +37,23 @@ export default function Participants() {
 
   const abortRef = useRef({ aborted: false });
 
-  const limit = 3;
+  const [limit, setLimit] = useState(3);
   const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    const apply = () => {
+      const next = calcLimitByHeight(window.innerHeight);
+      setLimit((prev) => (prev === next ? prev : next));
+    };
+
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, []);
+
+  useEffect(() => {
+    setOffset(0);
+  }, [limit]);
 
   const total = safeNum(dashboard?.users?.total);
   const totalPages = Math.max(1, Math.ceil(Math.max(0, total) / limit));
@@ -70,7 +91,7 @@ export default function Participants() {
       abortRef.current.aborted = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [offset]);
+  }, [offset, limit]);
 
   const users: IModeratorDashboardUser[] = useMemo(() => {
     return dashboard?.users?.items ?? [];
@@ -83,31 +104,35 @@ export default function Participants() {
 
   return (
     <section className={styles.wrap} aria-label="Участники">
-      <ParticipantsStats
-        loadState={loadState}
-        error={error}
-        onRetry={() => fetchDashboard(offset)}
-        totalParticipants={totalParticipants}
-        avgProgressPercent={avgProgressPercent}
-        activeProblems={activeProblems}
-      />
+      <div className={styles.statsSlot}>
+        <ParticipantsStats
+          loadState={loadState}
+          error={error}
+          onRetry={() => fetchDashboard(offset)}
+          totalParticipants={totalParticipants}
+          avgProgressPercent={avgProgressPercent}
+          activeProblems={activeProblems}
+        />
+      </div>
 
-      <ParticipantsList
-        loadState={loadState}
-        error={error}
-        users={users}
-        total={total}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        canPrev={canPrev}
-        canNext={canNext}
-        onPrev={() => setOffset((v) => Math.max(0, v - limit))}
-        onNext={() => setOffset((v) => (v + limit < total ? v + limit : v))}
-        onRetry={() => fetchDashboard(offset)}
-        limit={limit}
-        offset={offset}
-        onSetOffset={setOffset}
-      />
+      <div className={styles.listSlot}>
+        <ParticipantsList
+          loadState={loadState}
+          error={error}
+          users={users}
+          total={total}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          canPrev={canPrev}
+          canNext={canNext}
+          onPrev={() => setOffset((v) => Math.max(0, v - limit))}
+          onNext={() => setOffset((v) => (v + limit < total ? v + limit : v))}
+          onRetry={() => fetchDashboard(offset)}
+          limit={limit}
+          offset={offset}
+          onSetOffset={setOffset}
+        />
+      </div>
     </section>
   );
 }

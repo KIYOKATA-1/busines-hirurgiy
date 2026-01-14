@@ -43,12 +43,11 @@
 
   display: flex;
   align-items: center;
-  justify-content: flex-start; 
+  justify-content: flex-start;
   overflow: hidden;
 
   padding: 2px 0;
 }
-
 
 .content {
   flex: 1;
@@ -69,28 +68,26 @@
 
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
-}
 
-.content::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
 
-.content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  border: 3px solid rgba(0, 0, 0, 0);
-  background-clip: padding-box;
-}
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    border: 3px solid rgba(0, 0, 0, 0);
+    background-clip: padding-box;
 
-.content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.26);
-  border: 3px solid rgba(0, 0, 0, 0);
-  background-clip: padding-box;
-}
+    &:hover {
+      background: rgba(255, 255, 255, 0.26);
+    }
+  }
 
-.content::-webkit-scrollbar-track {
-  background: transparent;
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 .contentPlain {
@@ -103,7 +100,10 @@
   background: transparent;
   box-shadow: none;
 
-  overflow: hidden; 
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
 }
 
 .loader {

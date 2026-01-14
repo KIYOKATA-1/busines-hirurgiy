@@ -193,9 +193,7 @@ export default function ParticipantsList({
 
     try {
       await moderatorUsersService.updateUser(editUser.id, payload);
-
       toast.success("Пользователь обновлён");
-
       setEditOpen(false);
       setEditUser(null);
       onRetry();
@@ -228,7 +226,6 @@ export default function ParticipantsList({
 
     try {
       await moderatorUsersService.deleteUser(delUser.id);
-
       toast.success("Пользователь удалён");
 
       const totalAfter = Math.max(0, safeNum(total) - 1);
@@ -277,10 +274,8 @@ export default function ParticipantsList({
       });
 
       toast.success("Болезнь привязана");
-
       setAssignOpen(false);
       setAssignUser(null);
-
       onRetry();
     } catch (e: any) {
       const msg = e?.response?.data?.message || e?.message || "Не удалось привязать болезнь";
@@ -296,16 +291,29 @@ export default function ParticipantsList({
     <>
       <section className={styles.block} aria-label="Список участников">
         <header className={styles.head}>
-          <h2 className={styles.title}>Список участников</h2>
+          <div className={styles.headTop}>
+            <h2 className={styles.title}>Список участников</h2>
+            <p className={styles.counter}>
+              {isSuccess ? (
+                <>
+                  <span>Показано:</span> <b>{users.length}</b>/<b>{totalText}</b>
+                </>
+              ) : (
+                <>
+                  <span>Показано:</span> <b>—</b>/<b>—</b>
+                </>
+              )}
+            </p>
+          </div>
           <p className={styles.desc}>Отслеживание прогресса и активности участников</p>
         </header>
 
         <section className={styles.body}>
           {showSkeleton ? (
             <ul className={styles.list} aria-label="Загрузка участников">
-              <SkeletonCard idx={1} />
-              <SkeletonCard idx={2} />
-              <SkeletonCard idx={3} />
+              {Array.from({ length: Math.max(1, limit) }).map((_, i) => (
+                <SkeletonCard key={i} idx={i + 1} />
+              ))}
             </ul>
           ) : isError ? (
             <section className={styles.errorBox} role="alert">
@@ -402,14 +410,15 @@ export default function ParticipantsList({
                       </section>
 
                       <section className={styles.progress} aria-label="Прогресс лечения">
-                        <p className={styles.progressLabel}>Прогресс лечения</p>
+                        <div className={styles.progressTop}>
+                          <p className={styles.progressLabel}>Прогресс лечения</p>
+                          <span className={styles.badge}>{pct}%</span>
+                        </div>
 
                         <section className={styles.progressRow}>
                           <span className={styles.track} aria-hidden="true">
                             <span className={styles.fill} style={{ width: `${pct}%` }} />
                           </span>
-
-                          <span className={styles.badge}>{pct}%</span>
                         </section>
                       </section>
                     </article>

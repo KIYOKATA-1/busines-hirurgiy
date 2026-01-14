@@ -3,9 +3,37 @@
   min-width: 0;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 
   display: flex;
   flex-direction: column;
-  gap: 16px;
+
+  flex: 1;
+  min-height: 0;
+
+  gap: clamp(10px, 1.4vh, 16px);
+
+  .statsSlot {
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  .listSlot {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+
+    display: flex;
+  }
+}
+
+@media (max-height: 780px) {
+  .wrap {
+    gap: 10px;
+  }
+}
+
+@media (max-height: 640px) {
+  .wrap {
+    gap: 8px;
+  }
 }
