@@ -4,12 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./FloatingBurgerMenu.module.scss";
 
 import type { Role } from "@/app/components/Tablet/Tablet";
-import {
-  ArrowLeftIcon,
-  BurgerIcon,
-  ShieldIcon,
-  UserIcon,
-} from "@/shared/ui/icons";
+import { ArrowLeftIcon, BurgerIcon, ShieldIcon, UserIcon } from "@/shared/ui/icons";
 
 type Props = {
   role: Role;
@@ -46,7 +41,7 @@ export default function FloatingBurgerMenu({
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
-  const canSeeAdmin = role === "admin" || role === "moderator";
+  const canSeeAdmin = role === "admin";
 
   const actions = useMemo(() => {
     const a: Array<{
@@ -96,11 +91,7 @@ export default function FloatingBurgerMenu({
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
       if (!open) return;
-      if (
-        rootRef.current &&
-        e.target instanceof Node &&
-        !rootRef.current.contains(e.target)
-      ) {
+      if (rootRef.current && e.target instanceof Node && !rootRef.current.contains(e.target)) {
         setOpen(false);
       }
     };
