@@ -14,3 +14,4 @@ export { UsersIcon } from './UsersIcon';
 export { ProgressIcon } from './ProgressIcon';
 export { MailIcon } from './MailIcon';
 export { PasswordIcon } from './PasswordIcon';
+export { ChevronIcon } from './ChevronIcon';

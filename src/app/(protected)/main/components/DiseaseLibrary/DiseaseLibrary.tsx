@@ -1,21 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./DiseaseLibrary.module.scss";
 
 import AddDiseaseModal from "../AddDiseaseModal/AddDiseaseModal";
 import DiseaseEditModal from "../DiseaseEditModal/DiseaseEditModal";
 import AddPlanModal from "../AddPlanModal/AddPlanModal";
 
-import { IDiseaseCategory, IDiseaseListEntry } from "@/services/disease/disease.types";
+import {
+  IDiseaseCategory,
+  IDiseaseListEntry,
+} from "@/services/disease/disease.types";
 import { diseaseService } from "@/services/disease/disease.service";
 
 import { WarningIcon } from "@/shared/ui/icons/WarningIcon";
-import { DeleteIcon, EditIcon } from "@/shared/ui/icons";
+import { ChevronIcon, DeleteIcon, EditIcon } from "@/shared/ui/icons";
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
-function parseDescription(raw: string): { summary: string; symptoms: string[] } {
+function parseDescription(raw: string): {
+  summary: string;
+  symptoms: string[];
+} {
   const text = (raw ?? "").trim();
   if (!text) return { summary: "", symptoms: [] };
 
@@ -24,8 +30,8 @@ function parseDescription(raw: string): { summary: string; symptoms: string[] } 
     .map((l) => l.trim())
     .filter(Boolean);
 
-  const symptomsIdx = lines.findIndex((l) =>
-    /^симптомы\s*:$/i.test(l) || /^симптомы\s*:/i.test(l)
+  const symptomsIdx = lines.findIndex(
+    (l) => /^симптомы\s*:$/i.test(l) || /^симптомы\s*:/i.test(l)
   );
 
   if (symptomsIdx === -1) {
@@ -35,8 +41,8 @@ function parseDescription(raw: string): { summary: string; symptoms: string[] } 
   const before = lines.slice(0, symptomsIdx);
   const after = lines.slice(symptomsIdx + 1);
 
-  const stopIdx = after.findIndex((l) =>
-    /^план/i.test(l) || /^лечение/i.test(l) || /^план лечения/i.test(l)
+  const stopIdx = after.findIndex(
+    (l) => /^план/i.test(l) || /^лечение/i.test(l) || /^план лечения/i.test(l)
   );
 
   const symptomsLines = (stopIdx === -1 ? after : after.slice(0, stopIdx))
@@ -66,6 +72,122 @@ export default function DiseaseLibrary() {
 
   const [openEdit, setOpenEdit] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+
+  const [catOpen, setCatOpen] = useState(false);
+  const [catActiveIndex, setCatActiveIndex] = useState<number>(-1);
+  const catRootRef = useRef<HTMLDivElement | null>(null);
+
+  const catOptions = useMemo(() => {
+    return [{ id: "", title: "Все категории" }, ...categories];
+  }, [categories]);
+
+  const selectedCategoryTitle = useMemo(() => {
+    const found = catOptions.find((x) => x.id === categoryId);
+    return found?.title ?? "Все категории";
+  }, [catOptions, categoryId]);
+
+  const closeCat = useCallback(() => {
+    setCatOpen(false);
+    setCatActiveIndex(-1);
+  }, []);
+
+  const openCat = useCallback(() => {
+    if (metaLoading) return;
+    setCatOpen(true);
+
+    const idx = catOptions.findIndex((x) => x.id === categoryId);
+    setCatActiveIndex(idx >= 0 ? idx : 0);
+  }, [metaLoading, catOptions, categoryId]);
+
+  const toggleCat = useCallback(() => {
+    if (metaLoading) return;
+    setCatOpen((v) => {
+      const next = !v;
+      if (next) {
+        const idx = catOptions.findIndex((x) => x.id === categoryId);
+        setCatActiveIndex(idx >= 0 ? idx : 0);
+      } else {
+        setCatActiveIndex(-1);
+      }
+      return next;
+    });
+  }, [metaLoading, catOptions, categoryId]);
+
+  const selectCategory = useCallback(
+    (id: string) => {
+      setCategoryId(id);
+      closeCat();
+    },
+    [closeCat]
+  );
+
+  useEffect(() => {
+    if (!catOpen) return;
+
+    const onDocDown = (e: MouseEvent) => {
+      const root = catRootRef.current;
+      if (!root) return;
+      if (!root.contains(e.target as Node)) closeCat();
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeCat();
+      }
+    };
+
+    document.addEventListener("mousedown", onDocDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [catOpen, closeCat]);
+
+  const onCatKeyDown = (e: React.KeyboardEvent) => {
+    if (metaLoading) return;
+
+    if (!catOpen) {
+      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+        e.preventDefault();
+        openCat();
+      }
+      return;
+    }
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setCatActiveIndex((prev) => {
+        const next = prev + 1;
+        return next >= catOptions.length ? catOptions.length - 1 : next;
+      });
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setCatActiveIndex((prev) => {
+        const next = prev - 1;
+        return next <= 0 ? 0 : next;
+      });
+    }
+
+    if (e.key === "Home") {
+      e.preventDefault();
+      setCatActiveIndex(0);
+    }
+
+    if (e.key === "End") {
+      e.preventDefault();
+      setCatActiveIndex(catOptions.length - 1);
+    }
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const opt = catOptions[catActiveIndex] ?? catOptions[0];
+      if (opt) selectCategory(opt.id);
+    }
+  };
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -109,7 +231,6 @@ export default function DiseaseLibrary() {
     setOpenAdd(false);
     await fetchDiseases();
   };
-
 
   const onPlanUpdated = async () => {
     await fetchDiseases();
@@ -199,32 +320,57 @@ export default function DiseaseLibrary() {
       <div className={styles.filterBlock}>
         <h1 className={styles.filterLabel}>Фильтр по категории</h1>
 
-        <div className={styles.selectWrap}>
-          <select
-            className={styles.select}
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
+        <div
+          className={`${styles.dropdown} ${metaLoading ? styles.disabled : ""}`}
+          ref={catRootRef}
+        >
+          <button
+            type="button"
+            className={`${styles.dropdownBtn} ${catOpen ? styles.open : ""}`}
+            onClick={toggleCat}
+            onKeyDown={onCatKeyDown}
             disabled={metaLoading}
+            aria-haspopup="listbox"
+            aria-expanded={catOpen}
           >
-            <option value="">Все категории</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.title}
-              </option>
-            ))}
-          </select>
+            <span className={styles.dropdownValue}>
+              {selectedCategoryTitle}
+            </span>
 
-          <span className={styles.chevron} aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M7 10l5 5 5-5"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <span className={styles.chevron} aria-hidden="true">
+              <ChevronIcon
+                className={styles.chevronIcon}
+                direction={catOpen ? "up" : "down"}
               />
-            </svg>
-          </span>
+            </span>
+          </button>
+
+          {catOpen && (
+            <div className={styles.dropdownMenu} role="listbox">
+              <div className={styles.dropdownList}>
+                {catOptions.map((opt, idx) => {
+                  const selected = opt.id === categoryId;
+                  const active = idx === catActiveIndex;
+
+                  return (
+                    <button
+                      key={opt.id || "all"}
+                      type="button"
+                      className={`${styles.dropdownItem} ${
+                        selected ? styles.selected : ""
+                      } ${active ? styles.active : ""}`}
+                      onMouseEnter={() => setCatActiveIndex(idx)}
+                      onClick={() => selectCategory(opt.id)}
+                      role="option"
+                      aria-selected={selected}
+                    >
+                      <span className={styles.itemText}>{opt.title}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -264,7 +410,7 @@ export default function DiseaseLibrary() {
           <div className={styles.cards}>
             {items.map((entry) => {
               const d = entry.disease;
-              const p = entry.plan
+              const p = entry.plan;
               const isDeleting = deletingId === d.id;
 
               const stepsSorted = [...(entry.steps ?? [])].sort(
@@ -333,7 +479,9 @@ export default function DiseaseLibrary() {
                     )}
 
                     <div className={styles.section}>
-                      <h1 className={styles.sectionTitle}>План лечения: {p?.title || "План не указан"}</h1>
+                      <h1 className={styles.sectionTitle}>
+                        План лечения: {p?.title || "План не указан"}
+                      </h1>
 
                       {stepsSorted.length > 0 ? (
                         <div className={styles.planList}>
