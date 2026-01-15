@@ -60,3 +60,54 @@ export interface IUpdateModeratorUserResponse {
   name: string;
   surname: string;
 }
+
+export type ModeratorUserActivityType =
+  | "assignment"
+  | "step_completed"
+  | "status_change";
+
+export type ModeratorActivityAssignmentPayload = {
+  diseaseId: string;
+  title: string;
+  totalSteps: number;
+  userDiseaseId: string;
+};
+
+export type ModeratorActivityStepCompletedPayload = {
+  stepId: string;
+  userDiseaseId: string;
+  userStepId: string;
+};
+
+export type ModeratorActivityStatusChangePayload = {
+  reason: string;
+  to: string;
+  userDiseaseId: string;
+};
+
+export type IModeratorUserActivityItem =
+  | {
+      createdAt: string;
+      id: string;
+      type: "assignment";
+      payload: ModeratorActivityAssignmentPayload;
+    }
+  | {
+      createdAt: string;
+      id: string;
+      type: "step_completed";
+      payload: ModeratorActivityStepCompletedPayload;
+    }
+  | {
+      createdAt: string;
+      id: string;
+      type: "status_change";
+      payload: ModeratorActivityStatusChangePayload;
+    };
+
+export interface IModeratorUserActivityResponse {
+  items: IModeratorUserActivityItem[];
+  limit: number;
+  offset: number;
+  total: number;
+}

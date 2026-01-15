@@ -4,7 +4,12 @@ import { useState } from "react";
 import styles from "./ParticipantsList.module.scss";
 
 import type { IModeratorDashboardUser } from "@/services/moderatorUsers/moderatorUsers.types";
-import { DeleteIcon, EditIcon, EyeIcon, PlusIcon } from "./ParticipantsList.icons";
+import {
+  DeleteIcon,
+  EditIcon,
+  EyeIcon,
+  PlusIcon,
+} from "./ParticipantsList.icons";
 
 import { moderatorUsersService } from "@/services/moderatorUsers/moderatorUsers.service";
 import EditParticipantModal from "@/app/components/EditParticipantModal/EditParticipantModal";
@@ -12,6 +17,7 @@ import DeleteParticipantModal from "@/app/components/DeleteParticipantModal/Dele
 import AssignDiseaseModal from "@/app/components/AssignDiseaseModal/AssignDiseaseModal";
 
 import { useToast } from "@/app/components/Toast/ToastProvider";
+import UserActivityModal from "@/app/components/UserActivityModal/UserActivityModal";
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
@@ -78,7 +84,10 @@ type Props = {
 function SkeletonCard({ idx }: { idx: number }) {
   return (
     <li className={styles.item} key={`sk_${idx}`}>
-      <article className={`${styles.card} ${styles.cardSkeleton}`} aria-hidden="true">
+      <article
+        className={`${styles.card} ${styles.cardSkeleton}`}
+        aria-hidden="true"
+      >
         <header className={styles.cardTop}>
           <section className={styles.userLeft}>
             <span className={`${styles.avatar} ${styles.skel}`} />
@@ -160,7 +169,9 @@ export default function ParticipantsList({
   const showEmpty = isSuccess && users.length === 0;
 
   const [editOpen, setEditOpen] = useState(false);
-  const [editUser, setEditUser] = useState<IModeratorDashboardUser | null>(null);
+  const [editUser, setEditUser] = useState<IModeratorDashboardUser | null>(
+    null
+  );
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -170,9 +181,24 @@ export default function ParticipantsList({
   const [delError, setDelError] = useState<string | null>(null);
 
   const [assignOpen, setAssignOpen] = useState(false);
-  const [assignUser, setAssignUser] = useState<IModeratorDashboardUser | null>(null);
+  const [assignUser, setAssignUser] = useState<IModeratorDashboardUser | null>(
+    null
+  );
   const [assigning, setAssigning] = useState(false);
   const [assignError, setAssignError] = useState<string | null>(null);
+
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [activityUser, setActivityUser] =
+    useState<IModeratorDashboardUser | null>(null);
+
+  const openActivity = (u: IModeratorDashboardUser) => {
+    setActivityUser(u);
+    setActivityOpen(true);
+  };
+
+  const closeActivity = () => {
+    setActivityOpen(false);
+  };
 
   const openEdit = (u: IModeratorDashboardUser) => {
     setEditUser(u);
@@ -198,7 +224,10 @@ export default function ParticipantsList({
       setEditUser(null);
       onRetry();
     } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || "Не удалось обновить пользователя";
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        "Не удалось обновить пользователя";
       const text = String(msg);
       setSaveError(text);
       toast.error(text);
@@ -241,7 +270,10 @@ export default function ParticipantsList({
 
       onRetry();
     } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || "Не удалось удалить пользователя";
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        "Не удалось удалить пользователя";
       const text = String(msg);
       setDelError(text);
       toast.error(text);
@@ -278,7 +310,10 @@ export default function ParticipantsList({
       setAssignUser(null);
       onRetry();
     } catch (e: any) {
-      const msg = e?.response?.data?.message || e?.message || "Не удалось привязать болезнь";
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        "Не удалось привязать болезнь";
       const text = String(msg);
       setAssignError(text);
       toast.error(text);
@@ -296,7 +331,8 @@ export default function ParticipantsList({
             <p className={styles.counter}>
               {isSuccess ? (
                 <>
-                  <span>Показано:</span> <b>{users.length}</b>/<b>{totalText}</b>
+                  <span>Показано:</span> <b>{users.length}</b>/
+                  <b>{totalText}</b>
                 </>
               ) : (
                 <>
@@ -305,7 +341,9 @@ export default function ParticipantsList({
               )}
             </p>
           </div>
-          <p className={styles.desc}>Отслеживание прогресса и активности участников</p>
+          <p className={styles.desc}>
+            Отслеживание прогресса и активности участников
+          </p>
         </header>
 
         <section className={styles.body}>
@@ -319,7 +357,11 @@ export default function ParticipantsList({
             <section className={styles.errorBox} role="alert">
               <h3 className={styles.errorTitle}>Не удалось загрузить</h3>
               <p className={styles.errorText}>{error}</p>
-              <button className={styles.retryBtn} type="button" onClick={onRetry}>
+              <button
+                className={styles.retryBtn}
+                type="button"
+                onClick={onRetry}
+              >
                 Повторить
               </button>
             </section>
@@ -348,14 +390,25 @@ export default function ParticipantsList({
                             </h3>
                             <p className={styles.email}>{u.email}</p>
                             <p className={styles.activity}>
-                              Последняя активность: {formatLastActivityHuman(u.lastActivityAt)}
+                              Последняя активность:{" "}
+                              {formatLastActivityHuman(u.lastActivityAt)}
                             </p>
                           </section>
                         </section>
 
-                        <section className={styles.actions} aria-label="Действия">
-                          <button type="button" className={styles.viewBtn} onClick={() => {}}>
-                            <span className={styles.viewIcon} aria-hidden="true">
+                        <section
+                          className={styles.actions}
+                          aria-label="Действия"
+                        >
+                          <button
+                            type="button"
+                            className={styles.viewBtn}
+                            onClick={() => openActivity(u)}
+                          >
+                            <span
+                              className={styles.viewIcon}
+                              aria-hidden="true"
+                            >
                               <EyeIcon className={styles.svgIcon} />
                             </span>
                             <span className={styles.viewText}>Просмотр</span>
@@ -392,8 +445,12 @@ export default function ParticipantsList({
 
                       <section className={styles.metrics} aria-label="Метрики">
                         <article className={styles.metric}>
-                          <p className={styles.metricLabel}>Активные проблемы</p>
-                          <p className={styles.metricValue}>{safeNum(u.activeDiseases)}</p>
+                          <p className={styles.metricLabel}>
+                            Активные проблемы
+                          </p>
+                          <p className={styles.metricValue}>
+                            {safeNum(u.activeDiseases)}
+                          </p>
                         </article>
 
                         <article className={styles.metric}>
@@ -409,15 +466,23 @@ export default function ParticipantsList({
                         </article>
                       </section>
 
-                      <section className={styles.progress} aria-label="Прогресс лечения">
+                      <section
+                        className={styles.progress}
+                        aria-label="Прогресс лечения"
+                      >
                         <div className={styles.progressTop}>
-                          <p className={styles.progressLabel}>Прогресс лечения</p>
+                          <p className={styles.progressLabel}>
+                            Прогресс лечения
+                          </p>
                           <span className={styles.badge}>{pct}%</span>
                         </div>
 
                         <section className={styles.progressRow}>
                           <span className={styles.track} aria-hidden="true">
-                            <span className={styles.fill} style={{ width: `${pct}%` }} />
+                            <span
+                              className={styles.fill}
+                              style={{ width: `${pct}%` }}
+                            />
                           </span>
                         </section>
                       </section>
@@ -431,7 +496,8 @@ export default function ParticipantsList({
 
         <footer className={styles.footer}>
           <p className={styles.footerMeta}>
-            Всего: <b>{totalText}</b> · Страница: <b>{pageText}</b>/<b>{pagesText}</b>
+            Всего: <b>{totalText}</b> · Страница: <b>{pageText}</b>/
+            <b>{pagesText}</b>
           </p>
 
           <section className={styles.pager} aria-label="Пагинация">
@@ -483,11 +549,24 @@ export default function ParticipantsList({
       <AssignDiseaseModal
         open={assignOpen}
         userId={assignUser?.id ?? ""}
-        userLabel={assignUser ? `${assignUser.name} ${assignUser.surname}` : "—"}
+        userLabel={
+          assignUser ? `${assignUser.name} ${assignUser.surname}` : "—"
+        }
         loading={assigning}
         error={assignError}
         onClose={closeAssign}
         onAssign={confirmAssign}
+      />
+
+      <UserActivityModal
+        open={activityOpen}
+        userId={activityUser?.id ?? ""}
+        title={
+          activityUser
+            ? `Активность: ${activityUser.name} ${activityUser.surname}`
+            : "Активность"
+        }
+        onClose={closeActivity}
       />
     </>
   );

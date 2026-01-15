@@ -16,6 +16,5 @@ export default function LandingPage() {
 
   if (!initialized || loading) return null;
 
-  // Можно syncUrl={false}, если на / не хочешь менять URL при кликах
   return <AuthScreen initialMode="login" syncUrl={false} />;
 }

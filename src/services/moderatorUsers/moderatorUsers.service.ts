@@ -7,6 +7,7 @@ import type {
   ModeratorUsersQuery,
   IUpdateModeratorUserRequest,
   IUpdateModeratorUserResponse,
+  IModeratorUserActivityResponse,
 } from "./moderatorUsers.types";
 import { getCookie } from "@/utils/cookies";
 
@@ -18,18 +19,29 @@ function authHeaders() {
 }
 
 class ModeratorUsersService {
-  async getDashboard(params?: ModeratorUsersQuery): Promise<IModeratorDashboardResponse> {
-    const res = await api.get<IModeratorDashboardResponse>("/api/v1/moderator/dashboard", {
-      params,
-      headers: authHeaders(),
-    });
+  async getDashboard(
+    params?: ModeratorUsersQuery
+  ): Promise<IModeratorDashboardResponse> {
+    const res = await api.get<IModeratorDashboardResponse>(
+      "/api/v1/moderator/dashboard",
+      {
+        params,
+        headers: authHeaders(),
+      }
+    );
     return res.data;
   }
 
-  async assignDisease(payload: IAssignDiseaseRequest): Promise<IAssignDiseaseResponse> {
-    const res = await api.post<IAssignDiseaseResponse>("/api/v1/admin/assign-disease", payload, {
-      headers: authHeaders(),
-    });
+  async assignDisease(
+    payload: IAssignDiseaseRequest
+  ): Promise<IAssignDiseaseResponse> {
+    const res = await api.post<IAssignDiseaseResponse>(
+      "/api/v1/admin/assign-disease",
+      payload,
+      {
+        headers: authHeaders(),
+      }
+    );
     return res.data;
   }
 
@@ -49,6 +61,17 @@ class ModeratorUsersService {
     await api.delete(`/api/v1/moderator/dashboard/users/${userId}`, {
       headers: authHeaders(),
     });
+  }
+
+  async getUserActivity(
+    userId: string,
+    params?: { limit?: number; offset?: number }
+  ): Promise<IModeratorUserActivityResponse> {
+    const res = await api.get<IModeratorUserActivityResponse>(
+      `/api/v1/moderator/users/${userId}/activity`,
+      { params }
+    );
+    return res.data;
   }
 }
 
