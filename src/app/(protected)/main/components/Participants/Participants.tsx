@@ -12,6 +12,8 @@ import type {
 import ParticipantsStats from "./components/ParticipantsStats/ParticipantsStats";
 import ParticipantsList from "./components/ParticipantsList/ParticipantsList";
 
+import { motion, useReducedMotion } from "motion/react";
+
 type LoadState = "idle" | "loading" | "success" | "error";
 
 function clampPct(v: number) {
@@ -31,9 +33,13 @@ function calcLimitByHeight(h: number) {
 }
 
 export default function Participants() {
+  const reduceMotion = useReducedMotion();
+
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [dashboard, setDashboard] = useState<IModeratorDashboardResponse | null>(null);
+  const [dashboard, setDashboard] = useState<IModeratorDashboardResponse | null>(
+    null
+  );
 
   const abortRef = useRef({ aborted: false });
 
@@ -57,7 +63,10 @@ export default function Participants() {
 
   const total = safeNum(dashboard?.users?.total);
   const totalPages = Math.max(1, Math.ceil(Math.max(0, total) / limit));
-  const currentPage = Math.min(totalPages, Math.max(1, Math.floor(offset / limit) + 1));
+  const currentPage = Math.min(
+    totalPages,
+    Math.max(1, Math.floor(offset / limit) + 1)
+  );
 
   const canPrev = offset > 0;
   const canNext = offset + limit < total;
@@ -79,7 +88,10 @@ export default function Participants() {
       setLoadState("success");
     } catch (e: any) {
       if (abortRef.current.aborted) return;
-      const msg = e?.response?.data?.message || e?.message || "Ошибка загрузки dashboard";
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        "Ошибка загрузки dashboard";
       setError(String(msg));
       setLoadState("error");
     }
@@ -103,7 +115,25 @@ export default function Participants() {
   const activeProblems = safeNum(stats?.activeProblems);
 
   return (
-    <section className={styles.wrap} aria-label="Участники">
+    <motion.section
+      className={styles.wrap}
+      aria-label="Участники"
+      initial={
+        reduceMotion
+          ? false
+          : { opacity: 0, y: 10, filter: "blur(8px)" as any }
+      }
+      animate={
+        reduceMotion
+          ? undefined
+          : { opacity: 1, y: 0, filter: "blur(0px)" as any }
+      }
+      transition={
+        reduceMotion
+          ? undefined
+          : { duration: 0.55, ease: [0.22, 1, 0.36, 1] }
+      }
+    >
       <div className={styles.statsSlot}>
         <ParticipantsStats
           loadState={loadState}
@@ -133,6 +163,6 @@ export default function Participants() {
           onSetOffset={setOffset}
         />
       </div>
-    </section>
+    </motion.section>
   );
 }

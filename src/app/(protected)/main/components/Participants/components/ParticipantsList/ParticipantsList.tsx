@@ -1,23 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { motion, useReducedMotion } from "motion/react";
+
 import styles from "./ParticipantsList.module.scss";
 
 import type { IModeratorDashboardUser } from "@/services/moderatorUsers/moderatorUsers.types";
-import {
-  DeleteIcon,
-  EditIcon,
-  EyeIcon,
-  PlusIcon,
-} from "./ParticipantsList.icons";
+import { DeleteIcon, EditIcon, EyeIcon, PlusIcon } from "./ParticipantsList.icons";
 
 import { moderatorUsersService } from "@/services/moderatorUsers/moderatorUsers.service";
 import EditParticipantModal from "@/app/components/EditParticipantModal/EditParticipantModal";
 import DeleteParticipantModal from "@/app/components/DeleteParticipantModal/DeleteParticipantModal";
 import AssignDiseaseModal from "@/app/components/AssignDiseaseModal/AssignDiseaseModal";
+import UserActivityModal from "@/app/components/UserActivityModal/UserActivityModal";
 
 import { useToast } from "@/app/components/Toast/ToastProvider";
-import UserActivityModal from "@/app/components/UserActivityModal/UserActivityModal";
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
@@ -59,6 +56,49 @@ function safeMaxOffset(totalAfter: number, limit: number) {
   return Math.floor(lastIndex / Math.max(1, limit)) * Math.max(1, limit);
 }
 
+function useCountUpPct(targetPct: number, enabled: boolean, durationMs = 900) {
+  const reduceMotion = useReducedMotion();
+  const [v, setV] = useState(0);
+
+  useEffect(() => {
+    if (!enabled) {
+      setV(0);
+      return;
+    }
+
+    const to = clampPct(targetPct);
+
+    if (reduceMotion) {
+      setV(to);
+      return;
+    }
+
+    let raf = 0;
+    const start = performance.now();
+    const duration = Math.max(250, durationMs);
+
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      const eased = ease(p);
+      const next = to * eased;
+
+      setV(next);
+
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [targetPct, enabled, durationMs, reduceMotion]);
+
+  return v;
+}
+
 type Props = {
   loadState: LoadState;
   error: string | null;
@@ -84,10 +124,7 @@ type Props = {
 function SkeletonCard({ idx }: { idx: number }) {
   return (
     <li className={styles.item} key={`sk_${idx}`}>
-      <article
-        className={`${styles.card} ${styles.cardSkeleton}`}
-        aria-hidden="true"
-      >
+      <article className={`${styles.card} ${styles.cardSkeleton}`} aria-hidden="true">
         <header className={styles.cardTop}>
           <section className={styles.userLeft}>
             <span className={`${styles.avatar} ${styles.skel}`} />
@@ -137,6 +174,147 @@ function SkeletonCard({ idx }: { idx: number }) {
   );
 }
 
+function ParticipantCard({
+  u,
+  index,
+  reduceMotion,
+  onOpenActivity,
+  onOpenAssign,
+  onOpenEdit,
+  onOpenDelete,
+}: {
+  u: IModeratorDashboardUser;
+  index: number;
+  reduceMotion: boolean;
+  onOpenActivity: (u: IModeratorDashboardUser) => void;
+  onOpenAssign: (u: IModeratorDashboardUser) => void;
+  onOpenEdit: (u: IModeratorDashboardUser) => void;
+  onOpenDelete: (u: IModeratorDashboardUser) => void;
+}) {
+  const pctTarget = clampPct(safeNum(u.overallProgressPct));
+  const animatedPct = useCountUpPct(pctTarget, true, 900);
+
+  const completed = safeNum(u.completedSteps);
+  const totalSteps = Math.max(1, safeNum(u.totalSteps));
+  const initials = getInitials(u.name, u.surname);
+
+  const pctText = `${Math.round(animatedPct)}%`;
+  const fillScale = Math.max(0, Math.min(1, animatedPct / 100));
+
+  return (
+    <motion.li
+      className={styles.item}
+      initial={reduceMotion ? false : { opacity: 0, y: 12, filter: "blur(6px)" as any }}
+      animate={reduceMotion ? undefined : { opacity: 1, y: 0, filter: "blur(0px)" as any }}
+      transition={reduceMotion ? undefined : { type: "tween", duration: 0.5, delay: 0.04 * index }}
+    >
+      <motion.article
+        className={styles.card}
+        whileHover={reduceMotion ? undefined : { y: -2 }}
+        whileTap={reduceMotion ? undefined : { scale: 0.99 }}
+        transition={reduceMotion ? undefined : { type: "tween", duration: 0.2 }}
+      >
+        <header className={styles.cardTop}>
+          <section className={styles.userLeft}>
+            <span className={styles.avatar} aria-hidden="true">
+              {initials}
+            </span>
+
+            <section className={styles.meta}>
+              <h3 className={styles.userName}>
+                {u.name} {u.surname}
+              </h3>
+              <p className={styles.email}>{u.email}</p>
+              <p className={styles.activity}>
+                Последняя активность: {formatLastActivityHuman(u.lastActivityAt)}
+              </p>
+            </section>
+          </section>
+
+          <section className={styles.actions} aria-label="Действия">
+            <motion.button
+              type="button"
+              className={styles.viewBtn}
+              onClick={() => onOpenActivity(u)}
+              whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+            >
+              <span className={styles.viewIcon} aria-hidden="true">
+                <EyeIcon className={styles.svgIcon} />
+              </span>
+              <span className={styles.viewText}>Просмотр</span>
+            </motion.button>
+
+            <motion.button
+              type="button"
+              className={styles.iconBtnPrimary}
+              aria-label="Привязать болезнь"
+              onClick={() => onOpenAssign(u)}
+              whileTap={reduceMotion ? undefined : { scale: 0.96 }}
+            >
+              <PlusIcon className={styles.plusIcon} />
+            </motion.button>
+
+            <motion.button
+              type="button"
+              className={styles.iconBtn}
+              aria-label="Редактировать"
+              onClick={() => onOpenEdit(u)}
+              whileTap={reduceMotion ? undefined : { scale: 0.96 }}
+            >
+              <EditIcon className={styles.svgIcon} />
+            </motion.button>
+
+            <motion.button
+              type="button"
+              className={styles.iconBtnDanger}
+              aria-label="Удалить"
+              onClick={() => onOpenDelete(u)}
+              whileTap={reduceMotion ? undefined : { scale: 0.96 }}
+            >
+              <DeleteIcon className={styles.svgIcon} />
+            </motion.button>
+          </section>
+        </header>
+
+        <section className={styles.metrics} aria-label="Метрики">
+          <article className={styles.metric}>
+            <p className={styles.metricLabel}>Активные проблемы</p>
+            <p className={styles.metricValue}>{safeNum(u.activeDiseases)}</p>
+          </article>
+
+          <article className={styles.metric}>
+            <p className={styles.metricLabel}>Выполнено шагов</p>
+            <p className={styles.metricValue}>
+              {completed}/{totalSteps}
+            </p>
+          </article>
+
+          <article className={styles.metric}>
+            <p className={styles.metricLabel}>Общий прогресс</p>
+            <p className={styles.metricValue}>{pctText}</p>
+          </article>
+        </section>
+
+        <section className={styles.progress} aria-label="Прогресс лечения">
+          <div className={styles.progressTop}>
+            <p className={styles.progressLabel}>Прогресс лечения</p>
+            <span className={styles.badge}>{pctText}</span>
+          </div>
+
+          <section className={styles.progressRow}>
+            <span className={styles.track} aria-hidden="true">
+              <span
+                className={styles.fill}
+                style={{ transform: `scaleX(${fillScale})` }}
+              />
+            </span>
+          </section>
+        </section>
+      </motion.article>
+    </motion.li>
+  );
+}
+
 export default function ParticipantsList({
   loadState,
   error,
@@ -154,6 +332,7 @@ export default function ParticipantsList({
   onSetOffset,
 }: Props) {
   const toast = useToast();
+  const reduceMotion = useReducedMotion();
 
   const isLoading = loadState === "loading";
   const isError = loadState === "error";
@@ -169,9 +348,7 @@ export default function ParticipantsList({
   const showEmpty = isSuccess && users.length === 0;
 
   const [editOpen, setEditOpen] = useState(false);
-  const [editUser, setEditUser] = useState<IModeratorDashboardUser | null>(
-    null
-  );
+  const [editUser, setEditUser] = useState<IModeratorDashboardUser | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -181,15 +358,17 @@ export default function ParticipantsList({
   const [delError, setDelError] = useState<string | null>(null);
 
   const [assignOpen, setAssignOpen] = useState(false);
-  const [assignUser, setAssignUser] = useState<IModeratorDashboardUser | null>(
-    null
-  );
+  const [assignUser, setAssignUser] = useState<IModeratorDashboardUser | null>(null);
   const [assigning, setAssigning] = useState(false);
   const [assignError, setAssignError] = useState<string | null>(null);
 
   const [activityOpen, setActivityOpen] = useState(false);
-  const [activityUser, setActivityUser] =
-    useState<IModeratorDashboardUser | null>(null);
+  const [activityUser, setActivityUser] = useState<IModeratorDashboardUser | null>(null);
+
+  const listKey = useMemo(
+    () => `${offset}_${limit}_${loadState}_${users.length}`,
+    [offset, limit, loadState, users.length]
+  );
 
   const openActivity = (u: IModeratorDashboardUser) => {
     setActivityUser(u);
@@ -224,10 +403,7 @@ export default function ParticipantsList({
       setEditUser(null);
       onRetry();
     } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.message ||
-        "Не удалось обновить пользователя";
+      const msg = e?.response?.data?.message || e?.message || "Не удалось обновить пользователя";
       const text = String(msg);
       setSaveError(text);
       toast.error(text);
@@ -270,10 +446,7 @@ export default function ParticipantsList({
 
       onRetry();
     } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.message ||
-        "Не удалось удалить пользователя";
+      const msg = e?.response?.data?.message || e?.message || "Не удалось удалить пользователя";
       const text = String(msg);
       setDelError(text);
       toast.error(text);
@@ -310,10 +483,7 @@ export default function ParticipantsList({
       setAssignUser(null);
       onRetry();
     } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.message ||
-        "Не удалось привязать болезнь";
+      const msg = e?.response?.data?.message || e?.message || "Не удалось привязать болезнь";
       const text = String(msg);
       setAssignError(text);
       toast.error(text);
@@ -324,15 +494,20 @@ export default function ParticipantsList({
 
   return (
     <>
-      <section className={styles.block} aria-label="Список участников">
+      <motion.section
+        className={styles.block}
+        aria-label="Список участников"
+        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+        animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+        transition={reduceMotion ? undefined : { type: "tween", duration: 0.55 }}
+      >
         <header className={styles.head}>
           <div className={styles.headTop}>
             <h2 className={styles.title}>Список участников</h2>
             <p className={styles.counter}>
               {isSuccess ? (
                 <>
-                  <span>Показано:</span> <b>{users.length}</b>/
-                  <b>{totalText}</b>
+                  <span>Показано:</span> <b>{users.length}</b>/<b>{totalText}</b>
                 </>
               ) : (
                 <>
@@ -341,9 +516,7 @@ export default function ParticipantsList({
               )}
             </p>
           </div>
-          <p className={styles.desc}>
-            Отслеживание прогресса и активности участников
-          </p>
+          <p className={styles.desc}>Отслеживание прогресса и активности участников</p>
         </header>
 
         <section className={styles.body}>
@@ -357,147 +530,33 @@ export default function ParticipantsList({
             <section className={styles.errorBox} role="alert">
               <h3 className={styles.errorTitle}>Не удалось загрузить</h3>
               <p className={styles.errorText}>{error}</p>
-              <button
-                className={styles.retryBtn}
-                type="button"
-                onClick={onRetry}
-              >
+              <button className={styles.retryBtn} type="button" onClick={onRetry}>
                 Повторить
               </button>
             </section>
           ) : showEmpty ? (
             <p className={styles.placeholder}>Пользователи не найдены</p>
           ) : (
-            <ul className={styles.list} aria-label="Участники">
-              {users.map((u) => {
-                const pct = clampPct(safeNum(u.overallProgressPct));
-                const completed = safeNum(u.completedSteps);
-                const totalSteps = Math.max(1, safeNum(u.totalSteps));
-                const initials = getInitials(u.name, u.surname);
-
-                return (
-                  <li key={u.id} className={styles.item}>
-                    <article className={styles.card}>
-                      <header className={styles.cardTop}>
-                        <section className={styles.userLeft}>
-                          <span className={styles.avatar} aria-hidden="true">
-                            {initials}
-                          </span>
-
-                          <section className={styles.meta}>
-                            <h3 className={styles.userName}>
-                              {u.name} {u.surname}
-                            </h3>
-                            <p className={styles.email}>{u.email}</p>
-                            <p className={styles.activity}>
-                              Последняя активность:{" "}
-                              {formatLastActivityHuman(u.lastActivityAt)}
-                            </p>
-                          </section>
-                        </section>
-
-                        <section
-                          className={styles.actions}
-                          aria-label="Действия"
-                        >
-                          <button
-                            type="button"
-                            className={styles.viewBtn}
-                            onClick={() => openActivity(u)}
-                          >
-                            <span
-                              className={styles.viewIcon}
-                              aria-hidden="true"
-                            >
-                              <EyeIcon className={styles.svgIcon} />
-                            </span>
-                            <span className={styles.viewText}>Просмотр</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            className={styles.iconBtnPrimary}
-                            aria-label="Привязать болезнь"
-                            onClick={() => openAssign(u)}
-                          >
-                            <PlusIcon className={styles.plusIcon} />
-                          </button>
-
-                          <button
-                            type="button"
-                            className={styles.iconBtn}
-                            aria-label="Редактировать"
-                            onClick={() => openEdit(u)}
-                          >
-                            <EditIcon className={styles.svgIcon} />
-                          </button>
-
-                          <button
-                            type="button"
-                            className={styles.iconBtnDanger}
-                            aria-label="Удалить"
-                            onClick={() => openDelete(u)}
-                          >
-                            <DeleteIcon className={styles.svgIcon} />
-                          </button>
-                        </section>
-                      </header>
-
-                      <section className={styles.metrics} aria-label="Метрики">
-                        <article className={styles.metric}>
-                          <p className={styles.metricLabel}>
-                            Активные проблемы
-                          </p>
-                          <p className={styles.metricValue}>
-                            {safeNum(u.activeDiseases)}
-                          </p>
-                        </article>
-
-                        <article className={styles.metric}>
-                          <p className={styles.metricLabel}>Выполнено шагов</p>
-                          <p className={styles.metricValue}>
-                            {completed}/{totalSteps}
-                          </p>
-                        </article>
-
-                        <article className={styles.metric}>
-                          <p className={styles.metricLabel}>Общий прогресс</p>
-                          <p className={styles.metricValue}>{pct}%</p>
-                        </article>
-                      </section>
-
-                      <section
-                        className={styles.progress}
-                        aria-label="Прогресс лечения"
-                      >
-                        <div className={styles.progressTop}>
-                          <p className={styles.progressLabel}>
-                            Прогресс лечения
-                          </p>
-                          <span className={styles.badge}>{pct}%</span>
-                        </div>
-
-                        <section className={styles.progressRow}>
-                          <span className={styles.track} aria-hidden="true">
-                            <span
-                              className={styles.fill}
-                              style={{ width: `${pct}%` }}
-                            />
-                          </span>
-                        </section>
-                      </section>
-                    </article>
-                  </li>
-                );
-              })}
+            <ul key={listKey} className={styles.list} aria-label="Участники">
+              {users.map((u, i) => (
+                <ParticipantCard
+                  key={u.id}
+                  u={u}
+                  index={i}
+                  reduceMotion={!!reduceMotion}
+                  onOpenActivity={openActivity}
+                  onOpenAssign={openAssign}
+                  onOpenEdit={openEdit}
+                  onOpenDelete={openDelete}
+                />
+              ))}
             </ul>
           )}
         </section>
 
         <footer className={styles.footer}>
           <p className={styles.footerMeta}>
-            Всего: <b>{totalText}</b> · Страница: <b>{pageText}</b>/
-            <b>{pagesText}</b>
+            Всего: <b>{totalText}</b> · Страница: <b>{pageText}</b>/<b>{pagesText}</b>
           </p>
 
           <section className={styles.pager} aria-label="Пагинация">
@@ -520,7 +579,7 @@ export default function ParticipantsList({
             </button>
           </section>
         </footer>
-      </section>
+      </motion.section>
 
       <EditParticipantModal
         open={editOpen}
@@ -549,9 +608,7 @@ export default function ParticipantsList({
       <AssignDiseaseModal
         open={assignOpen}
         userId={assignUser?.id ?? ""}
-        userLabel={
-          assignUser ? `${assignUser.name} ${assignUser.surname}` : "—"
-        }
+        userLabel={assignUser ? `${assignUser.name} ${assignUser.surname}` : "—"}
         loading={assigning}
         error={assignError}
         onClose={closeAssign}
