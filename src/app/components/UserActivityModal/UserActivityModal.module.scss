@@ -10,15 +10,15 @@
 }
 
 .modal {
-  width: min(760px, 100%);
-  max-height: min(82vh, 780px);
-  background: #0b0b0b;
+  width: min(920px, 100%);
+  max-height: min(86vh, 860px);
+  background: #000;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 16px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 16px 60px rgba(0, 0, 0, 0.55);
 }
 
 .head {
@@ -26,7 +26,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 16px;
+  padding: 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -36,9 +36,9 @@
 
 .title {
   margin: 0;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.92);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.2px;
 }
 
@@ -51,20 +51,160 @@
 .closeBtn {
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.06);
-  color: #fff;
+  color: rgba(255, 255, 255, 0.92);
   width: 36px;
   height: 36px;
   border-radius: 10px;
   cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
 }
 
-.closeBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
+.meta {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.summaryCard {
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.summaryLabel {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.summaryValue {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.summaryValueSm {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.chartsGrid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.chartCard {
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.chartHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.chartTitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.90);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.chartHint {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.70);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.chartBox {
+  margin-top: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.chart :global(.recharts-text),
+.chart :global(.recharts-label),
+.chart :global(.recharts-cartesian-axis-tick-value),
+.chart :global(.recharts-legend-item-text) {
+  fill: rgba(255, 255, 255, 0.92) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.chart :global(.recharts-cartesian-axis-tick text) {
+  fill: rgba(255, 255, 255, 0.92) !important;
+}
+
+.chart :global(.recharts-tooltip-wrapper) {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.emptySmall {
+  margin: 0;
+  padding: 16px 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.filters {
+  padding: 10px 16px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.filterBtn {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.10);
+  }
+}
+
+.filterBtnActive {
+  background: rgba(255, 255, 255, 0.92);
+  color: #000;
+  border-color: rgba(255, 255, 255, 0.92);
 }
 
 .body {
   padding: 14px 16px;
   overflow: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .list {
@@ -79,7 +219,7 @@
   border: 1px solid rgba(255, 255, 255, 0.10);
   background: rgba(255, 255, 255, 0.04);
   border-radius: 14px;
-  padding: 12px 12px;
+  padding: 12px;
 }
 
 .itemTop {
@@ -107,9 +247,9 @@
 
 .itemTitle {
   margin: 0;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.92);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 800;
 }
 
 .itemSub {
@@ -133,22 +273,26 @@
   padding: 0 14px;
   border-radius: 12px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 800;
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .secondaryBtn {
   background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-}
+  color: rgba(255, 255, 255, 0.92);
 
-.secondaryBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  &:hover {
+    background: rgba(255, 255, 255, 0.10);
+  }
 }
 
 .primaryBtn {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   color: #000;
+
+  &:hover {
+    filter: brightness(0.98);
+  }
 }
 
 .primaryBtn:disabled,
@@ -160,7 +304,7 @@
 .loadingBox {
   display: grid;
   place-items: center;
-  padding: 24px 0;
+  padding: 18px 0;
   gap: 10px;
 }
 
@@ -192,8 +336,8 @@
 
 .errorTitle {
   margin: 0;
-  color: #fff;
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 900;
 }
 
 .errorText {
@@ -210,11 +354,11 @@
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
+  color: rgba(255, 255, 255, 0.92);
 
-.retryBtn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
 }
 
 .empty {

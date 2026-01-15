@@ -1,4 +1,5 @@
 import { api } from "@/lib/axios";
+import { getCookie } from "@/utils/cookies";
 
 import type {
   IAssignDiseaseRequest,
@@ -8,8 +9,9 @@ import type {
   IUpdateModeratorUserRequest,
   IUpdateModeratorUserResponse,
   IModeratorUserActivityResponse,
+  IModeratorUserProgressResponse,
+  IModeratorUserTreatmentResponse,
 } from "./moderatorUsers.types";
-import { getCookie } from "@/utils/cookies";
 
 const ACCESS_COOKIE = "access_token";
 
@@ -19,28 +21,19 @@ function authHeaders() {
 }
 
 class ModeratorUsersService {
-  async getDashboard(
-    params?: ModeratorUsersQuery
-  ): Promise<IModeratorDashboardResponse> {
+  async getDashboard(params?: ModeratorUsersQuery): Promise<IModeratorDashboardResponse> {
     const res = await api.get<IModeratorDashboardResponse>(
       "/api/v1/moderator/dashboard",
-      {
-        params,
-        headers: authHeaders(),
-      }
+      { params, headers: authHeaders() }
     );
     return res.data;
   }
 
-  async assignDisease(
-    payload: IAssignDiseaseRequest
-  ): Promise<IAssignDiseaseResponse> {
+  async assignDisease(payload: IAssignDiseaseRequest): Promise<IAssignDiseaseResponse> {
     const res = await api.post<IAssignDiseaseResponse>(
       "/api/v1/admin/assign-disease",
       payload,
-      {
-        headers: authHeaders(),
-      }
+      { headers: authHeaders() }
     );
     return res.data;
   }
@@ -69,7 +62,23 @@ class ModeratorUsersService {
   ): Promise<IModeratorUserActivityResponse> {
     const res = await api.get<IModeratorUserActivityResponse>(
       `/api/v1/moderator/users/${userId}/activity`,
-      { params }
+      { params, headers: authHeaders() }
+    );
+    return res.data;
+  }
+
+  async getUserProgress(userId: string): Promise<IModeratorUserProgressResponse> {
+    const res = await api.get<IModeratorUserProgressResponse>(
+      `/api/v1/moderator/users/${userId}/progress`,
+      { headers: authHeaders() }
+    );
+    return res.data;
+  }
+
+  async getUserTreatment(userId: string): Promise<IModeratorUserTreatmentResponse> {
+    const res = await api.get<IModeratorUserTreatmentResponse>(
+      `/api/v1/moderator/users/${userId}/treatment`,
+      { headers: authHeaders() }
     );
     return res.data;
   }
