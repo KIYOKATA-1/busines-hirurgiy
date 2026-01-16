@@ -11,6 +11,8 @@ import type {
   IModeratorUserActivityResponse,
   IModeratorUserProgressResponse,
   IModeratorUserTreatmentResponse,
+  IModeratorCreateFeedbackRequest,
+  IModeratorCreateFeedbackResponse,
 } from "./moderatorUsers.types";
 
 const ACCESS_COOKIE = "access_token";
@@ -21,7 +23,9 @@ function authHeaders() {
 }
 
 class ModeratorUsersService {
-  async getDashboard(params?: ModeratorUsersQuery): Promise<IModeratorDashboardResponse> {
+  async getDashboard(
+    params?: ModeratorUsersQuery
+  ): Promise<IModeratorDashboardResponse> {
     const res = await api.get<IModeratorDashboardResponse>(
       "/api/v1/moderator/dashboard",
       { params, headers: authHeaders() }
@@ -29,7 +33,9 @@ class ModeratorUsersService {
     return res.data;
   }
 
-  async assignDisease(payload: IAssignDiseaseRequest): Promise<IAssignDiseaseResponse> {
+  async assignDisease(
+    payload: IAssignDiseaseRequest
+  ): Promise<IAssignDiseaseResponse> {
     const res = await api.post<IAssignDiseaseResponse>(
       "/api/v1/admin/assign-disease",
       payload,
@@ -67,7 +73,9 @@ class ModeratorUsersService {
     return res.data;
   }
 
-  async getUserProgress(userId: string): Promise<IModeratorUserProgressResponse> {
+  async getUserProgress(
+    userId: string
+  ): Promise<IModeratorUserProgressResponse> {
     const res = await api.get<IModeratorUserProgressResponse>(
       `/api/v1/moderator/users/${userId}/progress`,
       { headers: authHeaders() }
@@ -75,9 +83,23 @@ class ModeratorUsersService {
     return res.data;
   }
 
-  async getUserTreatment(userId: string): Promise<IModeratorUserTreatmentResponse> {
+  async getUserTreatment(
+    userId: string
+  ): Promise<IModeratorUserTreatmentResponse> {
     const res = await api.get<IModeratorUserTreatmentResponse>(
       `/api/v1/moderator/users/${userId}/treatment`,
+      { headers: authHeaders() }
+    );
+    return res.data;
+  }
+
+  async createUserFeedback(
+    userId: string,
+    payload: IModeratorCreateFeedbackRequest
+  ): Promise<IModeratorCreateFeedbackResponse> {
+    const res = await api.post<IModeratorCreateFeedbackResponse>(
+      `/api/v1/moderator/users/${userId}/feedback`,
+      payload,
       { headers: authHeaders() }
     );
     return res.data;

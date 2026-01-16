@@ -17,6 +17,8 @@ import type {
   IModeratorUserTreatmentResponse,
   ITreatmentDiseaseItem,
   ModeratorUserActivityType,
+  IModeratorCreateFeedbackRequest,
+  IModeratorCreateFeedbackResponse,
 } from "@/services/moderatorUsers/moderatorUsers.types";
 
 import { moderatorUsersService } from "@/services/moderatorUsers/moderatorUsers.service";
@@ -39,19 +41,14 @@ import {
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
-type FeedbackTargetType =
-  | "diary"
-  | "step_completed"
-  | "assignment"
-  | "status_change"
-  | "all";
-
+type FeedbackTargetType = "diary" | "step";
 type FeedbackItem = {
   id: string;
   userId: string;
   targetType: FeedbackTargetType;
-  targetId: string;
+  targetKey: string;
   message: string;
+  tags: string[];
   createdAtISO: string;
 };
 
@@ -65,8 +62,6 @@ type Props = {
 
   initialLimit?: number;
   initialOffset?: number;
-
-  onSubmitFeedback?: (payload: FeedbackItem) => void;
 };
 
 function fmtDateTime(iso: string) {
@@ -96,13 +91,144 @@ function ellipsize(s: string, max = 160) {
   return t.slice(0, max).trimEnd() + "…";
 }
 
+function isFeedbackItem(it: IModeratorUserActivityItem) {
+  return it.type === "feedback";
+}
+
+function getTargetKeyForEvent(it: IModeratorUserActivityItem): {
+  targetType: FeedbackTargetType;
+  targetKey: string;
+} | null {
+  if (it.type === "diary") {
+    const diaryId = safeStr(it.id);
+    return diaryId ? { targetType: "diary", targetKey: diaryId } : null;
+  }
+
+  if (it.type === "step_completed") {
+    const userStepId = safeStr(it.payload.userStepId);
+    return userStepId ? { targetType: "step", targetKey: userStepId } : null;
+  }
+
+  return null;
+}
+
+function mapServerFeedbackToLocal(
+  userId: string,
+  fb: Extract<IModeratorUserActivityItem, { type: "feedback" }>
+): FeedbackItem | null {
+  const targetType = fb.payload.targetType;
+  const targetKey =
+    targetType === "diary"
+      ? safeStr(fb.payload.diaryId)
+      : safeStr(fb.payload.userStepId);
+
+  if (!targetKey) return null;
+
+  return {
+    id: fb.id,
+    userId,
+    targetType,
+    targetKey,
+    message: safeStr(fb.payload.text),
+    tags: (fb.payload.tags || []).filter(Boolean),
+    createdAtISO: fb.createdAt,
+  };
+}
+
+function mergeFeedbackMaps(
+  prev: Record<string, FeedbackItem[]>,
+  next: Record<string, FeedbackItem[]>
+) {
+  const out: Record<string, FeedbackItem[]> = { ...prev };
+
+  Object.keys(next).forEach((k) => {
+    const a = out[k] ? [...out[k]] : [];
+    const b = next[k] || [];
+    const byId: Record<string, FeedbackItem> = {};
+    for (const it of a) byId[it.id] = it;
+    for (const it of b) byId[it.id] = it;
+
+    const merged = Object.values(byId).sort((x, y) => {
+      const dx = new Date(x.createdAtISO).getTime();
+      const dy = new Date(y.createdAtISO).getTime();
+      return dy - dx;
+    });
+
+    out[k] = merged;
+  });
+
+  return out;
+}
+
+function buildFeedbackRequest(
+  activityItem: IModeratorUserActivityItem,
+  text: string
+): IModeratorCreateFeedbackRequest | null {
+  const trimmed = (text ?? "").trim();
+  if (!trimmed) return null;
+
+  if (activityItem.type === "step_completed") {
+    const userStepId = safeStr(activityItem.payload.userStepId);
+    if (!userStepId) return null;
+
+    return {
+      text: trimmed,
+      tags: ["motivation"],
+      target: {
+        type: "step",
+        userStepId,
+      },
+    };
+  }
+
+  if (activityItem.type === "diary") {
+    const diaryId = safeStr(activityItem.id);
+    if (!diaryId) return null;
+
+    return {
+      text: trimmed,
+      tags: ["reflection", "progress"],
+      target: {
+        type: "diary",
+        diaryId,
+      },
+    };
+  }
+
+  return null;
+}
+
+function localFromCreateResponse(
+  userId: string,
+  req: IModeratorCreateFeedbackRequest,
+  res: IModeratorCreateFeedbackResponse
+): FeedbackItem | null {
+  const targetType: FeedbackTargetType =
+    req.target.type === "diary" ? "diary" : "step";
+  const targetKey =
+    req.target.type === "diary"
+      ? safeStr(req.target.diaryId)
+      : safeStr(req.target.userStepId);
+
+  if (!targetKey) return null;
+
+  return {
+    id: res.id,
+    userId,
+    targetType,
+    targetKey,
+    message: safeStr(res.payload.text),
+    tags: (res.payload.tags || []).filter(Boolean),
+    createdAtISO: res.createdAt,
+  };
+}
+
 function formatActivity(item: IModeratorUserActivityItem) {
   if (item.type === "assignment") {
     return {
       badge: "Назначение",
       title: `Назначено: ${item.payload.title}`,
       subtitle: `Шагов: ${item.payload.totalSteps} · userDiseaseId: ${item.payload.userDiseaseId}`,
-      targetType: "assignment" as const,
     };
   }
 
@@ -111,7 +237,6 @@ function formatActivity(item: IModeratorUserActivityItem) {
       badge: "Шаг",
       title: "Шаг выполнен",
       subtitle: `stepId: ${item.payload.stepId} · userDiseaseId: ${item.payload.userDiseaseId}`,
-      targetType: "step_completed" as const,
     };
   }
 
@@ -120,18 +245,28 @@ function formatActivity(item: IModeratorUserActivityItem) {
       badge: "Статус",
       title: `Статус: ${item.payload.to}`,
       subtitle: `Причина: ${item.payload.reason} · userDiseaseId: ${item.payload.userDiseaseId}`,
-      targetType: "status_change" as const,
+    };
+  }
+
+  if (item.type === "feedback") {
+    const tt = item.payload.targetType;
+    const tid =
+      tt === "diary" ? item.payload.diaryId : item.payload.userStepId;
+
+    return {
+      badge: "Feedback",
+      title: `${tt === "diary" ? "Дневник" : "Шаг"}`,
+      subtitle: `${ellipsize(item.payload.text, 220)} · targetId: ${tid ?? "—"}`,
     };
   }
 
   return {
     badge: "Дневник",
-    title: `Запись дневника · mood: ${item.payload.mood}`,
+    title: `Запись дневника: ${item.payload.mood}`,
     subtitle: `Теги: ${(item.payload.tags || []).join(", ") || "—"} · ${ellipsize(
       item.payload.text,
       220
     )}`,
-    targetType: "diary" as const,
   };
 }
 
@@ -144,11 +279,10 @@ const FILTERS: Array<{
   { key: "step_completed", label: "Шаги" },
   { key: "assignment", label: "Назначения" },
   { key: "status_change", label: "Статусы" },
+  { key: "feedback", label: "Feedback" },
 ];
 
 type EventsCtxValue = {
-  userId: string;
-
   filter: "all" | ModeratorUserActivityType;
   setFilter: React.Dispatch<
     React.SetStateAction<"all" | ModeratorUserActivityType>
@@ -163,19 +297,19 @@ type EventsCtxValue = {
   canLoadMore: boolean;
   isLoadingMore: boolean;
 
-  openFeedback: (it: IModeratorUserActivityItem) => void;
+  feedbackByTargetKey: Record<string, FeedbackItem[]>;
 
-  feedbackMap: Record<string, FeedbackItem[]>;
-  activeFeedbackFor: string;
+  activeFeedbackForEventId: string;
   feedbackText: string;
   setFeedbackText: React.Dispatch<React.SetStateAction<string>>;
   cancelFeedback: () => void;
+  openFeedback: (it: IModeratorUserActivityItem) => void;
   submitFeedback: (it: IModeratorUserActivityItem) => void;
+
+  isSendingFeedback: boolean;
 
   eventsScrollRef: React.RefObject<HTMLDivElement | null>;
   bottomSentinelRef: React.RefObject<HTMLDivElement | null>;
-
-  loadNextPage: () => Promise<void>;
 };
 
 const EventsCtx = createContext<EventsCtxValue | null>(null);
@@ -185,6 +319,7 @@ function useEventsCtx() {
   if (!ctx) throw new Error("EventsCtx is not provided");
   return ctx;
 }
+
 function EventsPage() {
   const {
     filter,
@@ -194,13 +329,14 @@ function EventsPage() {
     error,
     canLoadMore,
     isLoadingMore,
-    openFeedback,
-    feedbackMap,
-    activeFeedbackFor,
+    feedbackByTargetKey,
+    activeFeedbackForEventId,
     feedbackText,
     setFeedbackText,
     cancelFeedback,
+    openFeedback,
     submitFeedback,
+    isSendingFeedback,
     eventsScrollRef,
     bottomSentinelRef,
   } = useEventsCtx();
@@ -246,47 +382,58 @@ function EventsPage() {
             <ul className={styles.list}>
               {filteredItems.map((it) => {
                 const f = formatActivity(it);
-                const feedbackList = feedbackMap[it.id] || [];
-                const feedbackOpen = activeFeedbackFor === it.id;
+
+                const target = getTargetKeyForEvent(it);
+                const feedbackList =
+                  target?.targetKey ? feedbackByTargetKey[target.targetKey] || [] : [];
+
+                const hasFeedback = feedbackList.length > 0;
+
+                const canLeaveFeedback =
+                  (it.type === "diary" || it.type === "step_completed") && !hasFeedback;
+
+                const feedbackOpen = activeFeedbackForEventId === it.id;
 
                 return (
                   <li
                     key={it.id}
                     className={`${styles.item} ${
-                      f.targetType === "diary" ? styles.itemDiary : ""
+                      it.type === "diary" ? styles.itemDiary : ""
                     }`}
                   >
                     <div className={styles.itemTop}>
                       <span className={styles.badge}>{f.badge}</span>
-                      <span className={styles.date}>
-                        {fmtDateTime(it.createdAt)}
-                      </span>
+                      <span className={styles.date}>{fmtDateTime(it.createdAt)}</span>
                     </div>
 
                     <p className={styles.itemTitle}>{f.title}</p>
                     <p className={styles.itemSub}>{f.subtitle}</p>
 
-                    <div className={styles.itemActions}>
-                      <button
-                        type="button"
-                        className={styles.itemBtn}
-                        onClick={() => openFeedback(it)}
-                      >
-                        Оставить feedback
-                      </button>
+                    {it.type === "diary" || it.type === "step_completed" ? (
+                      <div className={styles.itemActions}>
+                        {hasFeedback ? (
+                          <span className={styles.feedbackCount}>
+                            Feedback: <b>{feedbackList.length}</b>
+                          </span>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              className={styles.itemBtn}
+                              onClick={() => openFeedback(it)}
+                              disabled={!canLeaveFeedback}
+                            >
+                              Оставить feedback
+                            </button>
+                            <span className={styles.feedbackCountMuted}>
+                              Feedback: 0
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    ) : null}
 
-                      {feedbackList.length > 0 ? (
-                        <span className={styles.feedbackCount}>
-                          Feedback: <b>{feedbackList.length}</b>
-                        </span>
-                      ) : (
-                        <span className={styles.feedbackCountMuted}>
-                          Feedback: 0
-                        </span>
-                      )}
-                    </div>
-
-                    {feedbackOpen ? (
+                    {feedbackOpen && canLeaveFeedback ? (
                       <div className={styles.feedbackBox}>
                         <div className={styles.feedbackHead}>
                           <p className={styles.feedbackTitle}>
@@ -294,7 +441,9 @@ function EventsPage() {
                           </p>
                           <p className={styles.feedbackHint}>
                             Привязка:{" "}
-                            <span className={styles.mono}>{it.id}</span>
+                            <span className={styles.mono}>
+                              {target?.targetKey || it.id}
+                            </span>
                           </p>
                         </div>
 
@@ -303,12 +452,11 @@ function EventsPage() {
                           value={feedbackText}
                           onChange={(e) => setFeedbackText(e.target.value)}
                           placeholder={
-                            f.targetType === "diary"
-                              ? "Комментарий к записи дневника: что улучшить, рекомендации, наблюдения…"
-                              : f.targetType === "step_completed"
-                                ? "Комментарий к выполнению шага: что сделано хорошо / что улучшить…"
-                                : "Комментарий/рекомендации по событию…"
+                            it.type === "diary"
+                              ? "Комментарий к записи дневника…"
+                              : "Комментарий к выполнению шага…"
                           }
+                          disabled={isSendingFeedback}
                         />
 
                         <div className={styles.feedbackBtns}>
@@ -316,6 +464,7 @@ function EventsPage() {
                             type="button"
                             className={styles.secondaryBtnSm}
                             onClick={cancelFeedback}
+                            disabled={isSendingFeedback}
                           >
                             Отмена
                           </button>
@@ -323,14 +472,15 @@ function EventsPage() {
                             type="button"
                             className={styles.primaryBtnSm}
                             onClick={() => submitFeedback(it)}
+                            disabled={isSendingFeedback}
                           >
-                            Сохранить
+                            {isSendingFeedback ? "Сохранение…" : "Сохранить"}
                           </button>
                         </div>
                       </div>
                     ) : null}
 
-                    {feedbackList.length > 0 ? (
+                    {hasFeedback ? (
                       <div className={styles.feedbackHistory}>
                         <p className={styles.feedbackHistoryTitle}>
                           История feedback
@@ -347,9 +497,7 @@ function EventsPage() {
                                   {fmtDateTime(fb.createdAtISO)}
                                 </span>
                               </div>
-                              <p className={styles.feedbackText}>
-                                {fb.message}
-                              </p>
+                              <p className={styles.feedbackText}>{fb.message}</p>
                             </li>
                           ))}
                         </ul>
@@ -389,7 +537,6 @@ export default function UserActivityModal({
   onClose,
   initialLimit = 3,
   initialOffset = 0,
-  onSubmitFeedback,
 }: Props) {
   const toast = useToast();
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -413,15 +560,17 @@ export default function UserActivityModal({
   const [limit, setLimit] = useState(initialLimit);
   const [offset, setOffset] = useState(initialOffset);
 
-  const [filter, setFilter] = useState<"all" | ModeratorUserActivityType>(
-    "all"
-  );
+  const [filter, setFilter] = useState<"all" | ModeratorUserActivityType>("all");
 
-  const [feedbackMap, setFeedbackMap] = useState<
+  const [feedbackByTargetKey, setFeedbackByTargetKey] = useState<
     Record<string, FeedbackItem[]>
   >({});
-  const [activeFeedbackFor, setActiveFeedbackFor] = useState<string>(""); 
+
+  const [activeFeedbackForEventId, setActiveFeedbackForEventId] =
+    useState<string>("");
   const [feedbackText, setFeedbackText] = useState<string>("");
+
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
 
   const eventsScrollRef = useRef<HTMLDivElement>(null);
   const bottomSentinelRef = useRef<HTMLDivElement>(null);
@@ -458,9 +607,10 @@ export default function UserActivityModal({
 
     setFilter("all");
 
-    setActiveFeedbackFor("");
+    setFeedbackByTargetKey({});
+    setActiveFeedbackForEventId("");
     setFeedbackText("");
-    setFeedbackMap({});
+    setIsSendingFeedback(false);
 
     loadingMoreRef.current = false;
   };
@@ -510,11 +660,25 @@ export default function UserActivityModal({
 
       setTotal(Number(res.total) || 0);
 
-      if (mode === "replace") {
-        setItems(res.items || []);
-      } else {
-        setItems((prev) => [...prev, ...(res.items || [])]);
+      const serverItems = res.items || [];
+
+      const fbDelta: Record<string, FeedbackItem[]> = {};
+      for (const it of serverItems) {
+        if (it.type !== "feedback") continue;
+        const local = mapServerFeedbackToLocal(userId, it);
+        if (!local) continue;
+        const k = local.targetKey;
+        if (!fbDelta[k]) fbDelta[k] = [];
+        fbDelta[k].push(local);
       }
+
+      if (mode === "replace") {
+        setItems(serverItems);
+      } else {
+        setItems((prev) => [...prev, ...serverItems]);
+      }
+
+      setFeedbackByTargetKey((prev) => mergeFeedbackMaps(prev, fbDelta));
 
       setLoadState("success");
     } catch (e: any) {
@@ -549,10 +713,7 @@ export default function UserActivityModal({
     loadingMoreRef.current = false;
     setOffset(initialOffset);
     offsetRef.current = initialOffset;
-    await Promise.all([
-      fetchMeta(),
-      fetchActivityPage(initialOffset, "replace"),
-    ]);
+    await Promise.all([fetchMeta(), fetchActivityPage(initialOffset, "replace")]);
   };
 
   useEffect(() => {
@@ -668,54 +829,79 @@ export default function UserActivityModal({
   }, [items, filter]);
 
   const openFeedback = (activityItem: IModeratorUserActivityItem) => {
-    setActiveFeedbackFor(activityItem.id);
+    const target = getTargetKeyForEvent(activityItem);
+    if (!target) {
+      toast.error("Feedback можно оставить только для дневника или шага");
+      return;
+    }
+
+    const already = feedbackByTargetKey[target.targetKey]?.length || 0;
+    if (already > 0) {
+      toast.error("Feedback уже оставлен — показываю историю");
+      return;
+    }
+
+    setActiveFeedbackForEventId(activityItem.id);
     setFeedbackText("");
     setPage("events");
   };
 
   const cancelFeedback = () => {
-    setActiveFeedbackFor("");
+    if (isSendingFeedback) return;
+    setActiveFeedbackForEventId("");
     setFeedbackText("");
   };
 
-  const submitFeedback = (activityItem: IModeratorUserActivityItem) => {
-    const msg = (feedbackText ?? "").trim();
-    if (!msg) {
-      toast.error("Введите текст обратной связи");
+  const submitFeedback = async (activityItem: IModeratorUserActivityItem) => {
+    if (!userId) return;
+    if (isSendingFeedback) return;
+
+    const req = buildFeedbackRequest(activityItem, feedbackText);
+    if (!req) {
+      toast.error("Введите текст / не удалось сформировать target");
       return;
     }
 
-    const f = formatActivity(activityItem);
+    const targetKey =
+      req.target.type === "diary"
+        ? safeStr(req.target.diaryId)
+        : safeStr(req.target.userStepId);
 
-    const payload: FeedbackItem = {
-      id: `${activityItem.id}_${Date.now()}`,
-      userId,
-      targetType: f.targetType,
-      targetId: activityItem.id,
-      message: msg,
-      createdAtISO: new Date().toISOString(),
-    };
+    if (targetKey && (feedbackByTargetKey[targetKey]?.length || 0) > 0) {
+      toast.error("Feedback уже существует");
+      return;
+    }
 
-    setFeedbackMap((prev) => {
-      const next = { ...prev };
-      const arr = next[activityItem.id] ? [...next[activityItem.id]] : [];
-      arr.unshift(payload);
-      next[activityItem.id] = arr;
-      return next;
-    });
+    try {
+      setIsSendingFeedback(true);
 
-    if (onSubmitFeedback) onSubmitFeedback(payload);
+      const res = await moderatorUsersService.createUserFeedback(userId, req);
 
-    toast.success("Feedback сохранён (локально)");
-    setActiveFeedbackFor("");
-    setFeedbackText("");
+      const local = localFromCreateResponse(userId, req, res);
+      if (local) {
+        setFeedbackByTargetKey((prev) =>
+          mergeFeedbackMaps(prev, { [local.targetKey]: [local] })
+        );
+      }
+
+      toast.success("Feedback отправлен");
+      setActiveFeedbackForEventId("");
+      setFeedbackText("");
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        "Не удалось отправить feedback";
+      toast.error(String(msg));
+    } finally {
+      setIsSendingFeedback(false);
+    }
   };
 
   const onOverlayMouseDown = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) onClose();
   };
 
- 
   useEffect(() => {
     if (!open) return;
     if (page !== "events") return;
@@ -728,32 +914,24 @@ export default function UserActivityModal({
 
     const obs = new IntersectionObserver(
       (entries) => {
-        const e = entries[0];
-        if (!e) return;
-
-        if (e.isIntersecting) {
-          loadNextPage();
-        }
+        const ent = entries[0];
+        if (ent?.isIntersecting) loadNextPage();
       },
       {
-        root: rootEl, 
-        rootMargin: "220px", 
+        root: rootEl,
+        rootMargin: "220px",
         threshold: 0.01,
       }
     );
 
     obs.observe(sentinelEl);
 
-    return () => {
-      obs.disconnect();
-    };
+    return () => obs.disconnect();
   }, [open, page, canLoadMore, filter, items.length]);
 
   if (!open) return null;
 
   const eventsCtxValue: EventsCtxValue = {
-    userId,
-
     filter,
     setFilter,
 
@@ -766,19 +944,19 @@ export default function UserActivityModal({
     canLoadMore,
     isLoadingMore,
 
-    openFeedback,
+    feedbackByTargetKey,
 
-    feedbackMap,
-    activeFeedbackFor,
+    activeFeedbackForEventId,
     feedbackText,
     setFeedbackText,
     cancelFeedback,
+    openFeedback,
     submitFeedback,
+
+    isSendingFeedback,
 
     eventsScrollRef,
     bottomSentinelRef,
-
-    loadNextPage,
   };
 
   return (
@@ -810,17 +988,14 @@ export default function UserActivityModal({
             </button>
           </header>
 
-          {/* TABS */}
-          <div
-            className={styles.tabs}
-            role="tablist"
-            aria-label="Разделы модалки"
-          >
+          <div className={styles.tabs} role="tablist" aria-label="Разделы модалки">
             <button
               type="button"
               role="tab"
               aria-selected={page === "analytics"}
-              className={`${styles.tabBtn} ${page === "analytics" ? styles.tabBtnActive : ""}`}
+              className={`${styles.tabBtn} ${
+                page === "analytics" ? styles.tabBtnActive : ""
+              }`}
               onClick={() => setPage("analytics")}
             >
               Аналитика
@@ -829,7 +1004,9 @@ export default function UserActivityModal({
               type="button"
               role="tab"
               aria-selected={page === "events"}
-              className={`${styles.tabBtn} ${page === "events" ? styles.tabBtnActive : ""}`}
+              className={`${styles.tabBtn} ${
+                page === "events" ? styles.tabBtnActive : ""
+              }`}
               onClick={() => setPage("events")}
             >
               События
@@ -837,7 +1014,6 @@ export default function UserActivityModal({
           </div>
 
           <div className={styles.content}>
-            {/* PAGE: ANALYTICS */}
             {page === "analytics" ? (
               <section className={styles.page} aria-label="Аналитика">
                 <div className={styles.pageScroll}>
@@ -864,12 +1040,8 @@ export default function UserActivityModal({
                     <>
                       <div className={styles.summaryGrid}>
                         <div className={styles.summaryCard}>
-                          <p className={styles.summaryLabel}>
-                            Активные проблемы
-                          </p>
-                          <p className={styles.summaryValue}>
-                            {overall.activeDiseases}
-                          </p>
+                          <p className={styles.summaryLabel}>Активные проблемы</p>
+                          <p className={styles.summaryValue}>{overall.activeDiseases}</p>
                         </div>
 
                         <div className={styles.summaryCard}>
@@ -881,15 +1053,11 @@ export default function UserActivityModal({
 
                         <div className={styles.summaryCard}>
                           <p className={styles.summaryLabel}>Общий прогресс</p>
-                          <p className={styles.summaryValue}>
-                            {overall.overallProgressPct}%
-                          </p>
+                          <p className={styles.summaryValue}>{overall.overallProgressPct}%</p>
                         </div>
 
                         <div className={styles.summaryCard}>
-                          <p className={styles.summaryLabel}>
-                            Последняя активность
-                          </p>
+                          <p className={styles.summaryLabel}>Последняя активность</p>
                           <p className={styles.summaryValueSm}>
                             {overall.lastActivityAt
                               ? fmtDateTime(overall.lastActivityAt)
@@ -944,9 +1112,7 @@ export default function UserActivityModal({
 
                         <div className={styles.chartCard}>
                           <div className={styles.chartHead}>
-                            <p className={styles.chartTitle}>
-                              Прогресс по болезням
-                            </p>
+                            <p className={styles.chartTitle}>Прогресс по болезням</p>
                             <p className={styles.chartHint}>%</p>
                           </div>
 
@@ -957,20 +1123,12 @@ export default function UserActivityModal({
                               <div className={styles.barScroll}>
                                 <div
                                   className={styles.barInner}
-                                  style={{ minWidth: barMinWidth }}
+                                  style={{ minWidth: Math.max(560, barData.length * 84) }}
                                 >
-                                  <ResponsiveContainer
-                                    width="100%"
-                                    height={280}
-                                  >
+                                  <ResponsiveContainer width="100%" height={280}>
                                     <BarChart
                                       data={barData}
-                                      margin={{
-                                        top: 10,
-                                        right: 14,
-                                        left: 0,
-                                        bottom: 54,
-                                      }}
+                                      margin={{ top: 10, right: 14, left: 0, bottom: 54 }}
                                     >
                                       <CartesianGrid
                                         stroke="rgba(255,255,255,0.10)"
@@ -1009,8 +1167,7 @@ export default function UserActivityModal({
                                       <Tooltip
                                         contentStyle={{
                                           background: "rgba(0,0,0,0.92)",
-                                          border:
-                                            "1px solid rgba(255,255,255,0.14)",
+                                          border: "1px solid rgba(255,255,255,0.14)",
                                           borderRadius: 12,
                                           color: "rgba(255,255,255,0.92)",
                                           fontSize: 12,
@@ -1021,25 +1178,12 @@ export default function UserActivityModal({
                                         itemStyle={{
                                           color: "rgba(255,255,255,0.92)",
                                         }}
-                                        formatter={(
-                                          value: any,
-                                          _name: any,
-                                          props: any
-                                        ) => {
+                                        formatter={(value: any, _name: any, props: any) => {
                                           const v = clampPct(safeNum(value));
-                                          const fullName = safeStr(
-                                            props?.payload?.fullName
-                                          );
-                                          const organ = safeStr(
-                                            props?.payload?.organ
-                                          );
-                                          const status = safeStr(
-                                            props?.payload?.status
-                                          );
-                                          return [
-                                            `${v}% · ${organ} · ${status}`,
-                                            fullName || "Прогресс",
-                                          ];
+                                          const fullName = safeStr(props?.payload?.fullName);
+                                          const organ = safeStr(props?.payload?.organ);
+                                          const status = safeStr(props?.payload?.status);
+                                          return [`${v}% · ${organ} · ${status}`, fullName || "Прогресс"];
                                         }}
                                       />
                                       <Bar
@@ -1061,7 +1205,6 @@ export default function UserActivityModal({
               </section>
             ) : null}
 
-            {/* PAGE: EVENTS (Context) */}
             {page === "events" ? (
               <EventsCtx.Provider value={eventsCtxValue}>
                 <EventsPage />
@@ -1069,13 +1212,8 @@ export default function UserActivityModal({
             ) : null}
           </div>
 
-          {/* FOOTER (без кнопки load more) */}
           <footer className={styles.footer}>
-            <button
-              className={styles.secondaryBtn}
-              type="button"
-              onClick={onClose}
-            >
+            <button className={styles.secondaryBtn} type="button" onClick={onClose}>
               Закрыть
             </button>
           </footer>

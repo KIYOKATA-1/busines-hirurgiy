@@ -61,12 +61,12 @@ export interface IUpdateModeratorUserResponse {
   surname: string;
 }
 
-
 export type ModeratorUserActivityType =
   | "assignment"
   | "step_completed"
   | "status_change"
-  | "diary";
+  | "diary"
+  | "feedback";
 
 export type ModeratorActivityAssignmentPayload = {
   diseaseId: string;
@@ -89,6 +89,14 @@ export type ModeratorActivityStatusChangePayload = {
 
 export type ModeratorActivityDiaryPayload = {
   mood: string;
+  tags: string[];
+  text: string;
+};
+
+export type ModeratorActivityFeedbackPayload = {
+  targetType: "diary" | "step";
+  diaryId?: string;
+  userStepId?: string;
   tags: string[];
   text: string;
 };
@@ -117,6 +125,12 @@ export type IModeratorUserActivityItem =
       id: string;
       type: "diary";
       payload: ModeratorActivityDiaryPayload;
+    }
+  | {
+      createdAt: string;
+      id: string;
+      type: "feedback";
+      payload: ModeratorActivityFeedbackPayload;
     };
 
 export interface IModeratorUserActivityResponse {
@@ -125,7 +139,6 @@ export interface IModeratorUserActivityResponse {
   offset: number;
   total: number;
 }
-
 
 export interface IModeratorUserProgressResponse {
   activeDiseases: number;
@@ -211,4 +224,27 @@ export interface IModeratorUserTreatmentResponse {
   diseases: ITreatmentDiseasesResponse;
   overall: ITreatmentOverall;
   userId: string;
+}
+
+export type ModeratorFeedbackTarget =
+  | { type: "step"; userStepId: string }
+  | { type: "diary"; diaryId: string };
+
+export interface IModeratorCreateFeedbackRequest {
+  text: string;
+  tags: string[];
+  target: ModeratorFeedbackTarget;
+}
+
+export interface IModeratorCreateFeedbackResponse {
+  createdAt: string;
+  id: string;
+  payload: {
+    diaryId?: string;
+    userStepId?: string;
+    tags: string[];
+    targetType: "diary" | "step";
+    text: string;
+  };
+  type: "feedback";
 }
