@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./AddDiaryEntryModal.module.scss";
 
+import ModalPortal from "@/app/components/ModalPortal/ModalPortal";
 import { diaryService } from "@/services/diary/diary.service";
 import type { CreateDiaryEntryPayload } from "@/services/diary/diary.types";
 import { useToast } from "@/app/components/Toast/ToastProvider";
@@ -10,6 +11,8 @@ import { useToast } from "@/app/components/Toast/ToastProvider";
 type Props = {
   open: boolean;
   onClose: () => void;
+  presetTags?: string[];
+  presetTitle?: string | null;
 };
 
 function uniq(arr: string[]) {
@@ -28,7 +31,7 @@ function splitTags(raw: string) {
     .filter(Boolean);
 }
 
-export default function AddDiaryEntryModal({ open, onClose }: Props) {
+export default function AddDiaryEntryModal({ open, onClose, presetTags, presetTitle }: Props) {
   const toast = useToast();
 
   const [mood, setMood] = useState("");
@@ -39,6 +42,8 @@ export default function AddDiaryEntryModal({ open, onClose }: Props) {
   const [saving, setSaving] = useState(false);
 
   const moodRef = useRef<HTMLInputElement | null>(null);
+
+  const baseTags = useMemo(() => uniq(presetTags ?? []), [presetTags]);
 
   const canSave = useMemo(() => {
     return !saving && mood.trim().length > 0 && text.trim().length > 0;
@@ -55,7 +60,6 @@ export default function AddDiaryEntryModal({ open, onClose }: Props) {
     };
 
     window.addEventListener("keydown", onKeyDown);
-
     setTimeout(() => moodRef.current?.focus(), 0);
 
     return () => {
@@ -89,7 +93,7 @@ export default function AddDiaryEntryModal({ open, onClose }: Props) {
 
     const payload: CreateDiaryEntryPayload = {
       mood: mood.trim(),
-      tags: uniq(tags),
+      tags: uniq([...baseTags, ...tags]),
       text: text.trim(),
     };
 
@@ -110,119 +114,132 @@ export default function AddDiaryEntryModal({ open, onClose }: Props) {
   }
 
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true" aria-label="Новая запись дневника">
-      <div
-        className={styles.backdrop}
-        onMouseDown={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
-      />
+    <ModalPortal>
+      <div className={styles.overlay} role="dialog" aria-modal="true" aria-label="Новая запись дневника">
+        <div
+          className={styles.backdrop}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+        />
 
-      <div className={styles.modal}>
-        <div className={styles.head}>
-          <div className={styles.headText}>
-            <div className={styles.title}>Новая запись</div>
-            <div className={styles.subtitle}>Заполните настроение, теги и описание действий</div>
-          </div>
+        <div className={styles.modal}>
+          <div className={styles.head}>
+            <div className={styles.headText}>
+              <div className={styles.title}>{presetTitle ?? "Новая запись"}</div>
+              <div className={styles.subtitle}>Заполните mood и текст. Теги — опционально.</div>
 
-          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Закрыть">
-            ✕
-          </button>
-        </div>
-
-        <div className={styles.body}>
-          <div className={styles.field}>
-            <label className={styles.label}>Mood</label>
-            <input
-              ref={moodRef}
-              className={styles.input}
-              value={mood}
-              onChange={(e) => setMood(e.target.value)}
-              placeholder="Например: спокойный, бодрый, тревожный..."
-            />
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label}>Tags</label>
-
-            <div className={styles.tagsRow}>
-              <input
-                className={styles.input}
-                value={tagsInput}
-                onChange={(e) => setTagsInput(e.target.value)}
-                placeholder="Введите теги и нажмите Enter (или запятую)"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addTagsFromInput();
-                  }
-                  if (e.key === ",") {
-                    e.preventDefault();
-                    addTagsFromInput();
-                  }
-                }}
-              />
-              <button
-                type="button"
-                className={styles.addTagBtn}
-                onClick={addTagsFromInput}
-                disabled={saving}
-              >
-                Добавить
-              </button>
-            </div>
-
-            {tags.length > 0 && (
-              <div className={styles.chips}>
-                {tags.map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    className={styles.chip}
-                    onClick={() => setTags((prev) => prev.filter((x) => x !== t))}
-                    disabled={saving}
-                    title="Нажмите чтобы удалить"
-                  >
-                    <span className={styles.chipText}>{t}</span>
-                    <span className={styles.chipX} aria-hidden="true">
-                      ✕
+              {baseTags.length > 0 && (
+                <div className={styles.presetTags}>
+                  {baseTags.map((t) => (
+                    <span key={t} className={styles.presetTag}>
+                      {t}
                     </span>
-                  </button>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Закрыть">
+              ✕
+            </button>
           </div>
 
-          <div className={styles.field}>
-            <label className={styles.label}>Text</label>
-            <textarea
-              className={styles.textarea}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Опишите, что вы сделали сегодня, что получилось, что было трудно, какой прогресс..."
-              rows={6}
-            />
-            <div className={styles.hint}>
-              Минимум: <b>mood</b> и <b>text</b>. Теги — по желанию.
+          <div className={styles.body}>
+            <div className={styles.field}>
+              <label className={styles.label}>Mood</label>
+              <input
+                ref={moodRef}
+                className={styles.input}
+                value={mood}
+                onChange={(e) => setMood(e.target.value)}
+                placeholder="Например: спокойный, бодрый, тревожный..."
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>Tags</label>
+
+              <div className={styles.tagsRow}>
+                <input
+                  className={styles.input}
+                  value={tagsInput}
+                  onChange={(e) => setTagsInput(e.target.value)}
+                  placeholder="Введите теги и нажмите Enter (или запятую)"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addTagsFromInput();
+                    }
+                    if (e.key === ",") {
+                      e.preventDefault();
+                      addTagsFromInput();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className={styles.addTagBtn}
+                  onClick={addTagsFromInput}
+                  disabled={saving}
+                >
+                  Добавить
+                </button>
+              </div>
+
+              {(baseTags.length > 0 || tags.length > 0) && (
+                <div className={styles.chips}>
+                  {baseTags.map((t) => (
+                    <span key={`base-${t}`} className={styles.chipBase} title="Контекст шага/болезни">
+                      {t}
+                    </span>
+                  ))}
+
+                  {tags.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      className={styles.chip}
+                      onClick={() => setTags((prev) => prev.filter((x) => x !== t))}
+                      disabled={saving}
+                      title="Нажмите чтобы удалить"
+                    >
+                      <span className={styles.chipText}>{t}</span>
+                      <span className={styles.chipX} aria-hidden="true">
+                        ✕
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>Text</label>
+              <textarea
+                className={styles.textarea}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Опишите, что вы сделали по шагу, что получилось, что было трудно, какой прогресс..."
+                rows={6}
+              />
+              <div className={styles.hint}>
+                Минимум: <b>mood</b> и <b>text</b>.
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className={styles.footer}>
-          <button type="button" className={styles.cancelBtn} onClick={onClose} disabled={saving}>
-            Отмена
-          </button>
+          <div className={styles.footer}>
+            <button type="button" className={styles.cancelBtn} onClick={onClose} disabled={saving}>
+              Отмена
+            </button>
 
-          <button
-            type="button"
-            className={styles.saveBtn}
-            onClick={onSave}
-            disabled={!canSave}
-          >
-            {saving ? "Сохранение..." : "Сохранить"}
-          </button>
+            <button type="button" className={styles.saveBtn} onClick={onSave} disabled={!canSave}>
+              {saving ? "Сохранение..." : "Сохранить"}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </ModalPortal>
   );
 }

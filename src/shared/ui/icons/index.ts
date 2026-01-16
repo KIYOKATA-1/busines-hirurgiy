@@ -15,3 +15,5 @@ export { ProgressIcon } from './ProgressIcon';
 export { MailIcon } from './MailIcon';
 export { PasswordIcon } from './PasswordIcon';
 export { ChevronIcon } from './ChevronIcon';
+export { BackIcon } from './BackIcon';
+export { CheckIcon } from './CheckIcon';
