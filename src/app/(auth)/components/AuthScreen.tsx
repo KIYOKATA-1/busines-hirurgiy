@@ -46,7 +46,6 @@ export default function AuthScreen({ initialMode = "login", syncUrl = true }: Pr
     if (!syncUrl) return;
     const m = modeFromPath(pathname);
     setMode(m);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, syncUrl]);
 
   useEffect(() => {

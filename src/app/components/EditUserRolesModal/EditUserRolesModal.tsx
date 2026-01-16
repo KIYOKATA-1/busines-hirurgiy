@@ -61,7 +61,6 @@ export default function EditUserRolesModal({
   useEffect(() => {
     if (!open) return;
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, userId]);
 
   useEffect(() => {

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import styles from "./DeleteParticipantModal.module.scss";
+import ModalPortal from "@/app/components/ModalPortal/ModalPortal";
 
 type Props = {
   open: boolean;
@@ -30,6 +31,23 @@ export default function DeleteParticipantModal({
   onClose,
   onConfirm,
 }: Props) {
+  const cancelRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    document.body.classList.add("modalOpen");
+
+    const t = window.setTimeout(() => {
+      cancelRef.current?.focus();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(t);
+      document.body.classList.remove("modalOpen");
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -55,58 +73,64 @@ export default function DeleteParticipantModal({
   };
 
   return (
-    <section
-      className={styles.overlay}
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      onMouseDown={onOverlayMouseDown}
-    >
-      <section className={styles.modal}>
-        <header className={styles.head}>
-          <h3 className={styles.title}>{title}</h3>
-
-          <button
-            type="button"
-            className={styles.closeBtn}
-            onClick={closeSafe}
-            aria-label="Закрыть"
-            disabled={loading}
-          >
-            ✕
-          </button>
-        </header>
-
-        <section className={styles.content}>
-          <p className={styles.desc}>{description}</p>
-
-          {error ? (
-            <div className={styles.serverError} role="alert">
-              {error}
+    <ModalPortal>
+      <section
+        className={styles.overlay}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onMouseDown={onOverlayMouseDown}
+      >
+        <section className={styles.modal}>
+          <header className={styles.head}>
+            <div className={styles.headText}>
+              <h3 className={styles.title}>{title}</h3>
+              <p className={styles.subTitle}>Подтвердите действие</p>
             </div>
-          ) : null}
+
+            <button
+              type="button"
+              className={styles.closeBtn}
+              onClick={closeSafe}
+              aria-label="Закрыть"
+              disabled={loading}
+            >
+              ✕
+            </button>
+          </header>
+
+          <section className={styles.content}>
+            <p className={styles.desc}>{description}</p>
+
+            {error ? (
+              <div className={styles.serverError} role="alert">
+                {error}
+              </div>
+            ) : null}
+          </section>
+
+          <footer className={styles.footer}>
+            <button
+              ref={cancelRef}
+              type="button"
+              className={styles.secondaryBtn}
+              onClick={closeSafe}
+              disabled={loading}
+            >
+              {cancelText}
+            </button>
+
+            <button
+              type="button"
+              className={styles.dangerBtn}
+              onClick={onConfirm}
+              disabled={loading}
+            >
+              {loading ? "Удаление..." : confirmText}
+            </button>
+          </footer>
         </section>
-
-        <footer className={styles.footer}>
-          <button
-            type="button"
-            className={styles.secondaryBtn}
-            onClick={closeSafe}
-            disabled={loading}
-          >
-            {cancelText}
-          </button>
-
-          <button
-            type="button"
-            className={styles.dangerBtn}
-            onClick={onConfirm}
-            disabled={loading}
-          >
-            {loading ? "Удаление..." : confirmText}
-          </button>
-        </footer>
       </section>
-    </section>
+    </ModalPortal>
   );
 }

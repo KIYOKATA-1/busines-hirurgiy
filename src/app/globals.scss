@@ -112,3 +112,7 @@ form {
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+
+body.modalOpen {
+  overflow: hidden;
+}

@@ -63,7 +63,6 @@ export default function MainPage() {
     if (!availableTabs.some((t) => t.key === tab)) {
       setTab(availableTabs[0].key);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role]);
 
   useEffect(() => {

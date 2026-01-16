@@ -8,6 +8,7 @@ import { diseaseService } from "@/services/disease/disease.service";
 import type { IDiseaseListEntry } from "@/services/disease/disease.types";
 
 import { useToast } from "@/app/components/Toast/ToastProvider";
+import ModalPortal from "@/app/components/ModalPortal/ModalPortal";
 
 type LoadState = "idle" | "loading" | "success" | "error";
 
@@ -50,6 +51,7 @@ export default function AssignDiseaseModal({
   const [items, setItems] = useState<IDiseaseListEntry[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
 
+  const closeRef = useRef<HTMLButtonElement | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -72,7 +74,8 @@ export default function AssignDiseaseModal({
       setLoadState("success");
     } catch (e: any) {
       if (!mountedRef.current) return;
-      const msg = e?.response?.data?.message || e?.message || "Не удалось загрузить болезни";
+      const msg =
+        e?.response?.data?.message || e?.message || "Не удалось загрузить болезни";
       const text = String(msg);
       setListError(text);
       setLoadState("error");
@@ -83,13 +86,23 @@ export default function AssignDiseaseModal({
   useEffect(() => {
     if (!open) return;
 
+    document.body.classList.add("modalOpen");
+
     setSelectedId("");
     setListError(null);
     setLoadState("idle");
     setItems([]);
 
+    const t = window.setTimeout(() => {
+      closeRef.current?.focus();
+    }, 0);
+
     fetchDiseases();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    return () => {
+      window.clearTimeout(t);
+      document.body.classList.remove("modalOpen");
+    };
   }, [open, userId]);
 
   useEffect(() => {
@@ -132,109 +145,114 @@ export default function AssignDiseaseModal({
   if (!open) return null;
 
   return (
-    <section
-      className={styles.overlay}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Привязать болезнь"
-      onMouseDown={onOverlayMouseDown}
-    >
-      <section className={styles.modal}>
-        <header className={styles.head}>
-          <div className={styles.headText}>
-            <h3 className={styles.title}>Привязать болезнь</h3>
-            <p className={styles.subTitle}>
-              Пользователь: <b>{userLabel}</b>
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className={styles.closeBtn}
-            onClick={closeSafe}
-            aria-label="Закрыть"
-            disabled={loading}
-          >
-            ✕
-          </button>
-        </header>
-
-        <section className={styles.content}>
-          {isLoading ? (
-            <p className={styles.stateText}>Загрузка списка болезней...</p>
-          ) : isError ? (
-            <div className={styles.errorBox} role="alert">
-              <p className={styles.errorText}>{listError}</p>
-              <button
-                type="button"
-                className={styles.retryBtn}
-                onClick={fetchDiseases}
-                disabled={loading}
-              >
-                Повторить
-              </button>
+    <ModalPortal>
+      <section
+        className={styles.overlay}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Привязать болезнь"
+        onMouseDown={onOverlayMouseDown}
+      >
+        <section className={styles.modal}>
+          <header className={styles.head}>
+            <div className={styles.headText}>
+              <h3 className={styles.title}>Привязать болезнь</h3>
+              <p className={styles.subTitle}>
+                Пользователь: <b>{userLabel}</b>
+              </p>
             </div>
-          ) : isSuccess && viewItems.length === 0 ? (
-            <p className={styles.stateText}>Болезни не найдены</p>
-          ) : (
-            <ul className={styles.list} aria-label="Список болезней">
-              {viewItems.map((d) => {
-                const active = d.id === selectedId;
 
-                return (
-                  <li key={d.id} className={styles.item}>
-                    <button
-                      type="button"
-                      className={`${styles.row} ${active ? styles.rowActive : ""}`}
-                      onClick={() => setSelectedId(d.id)}
-                      disabled={loading}
-                    >
-                      <span className={styles.radio} aria-hidden="true">
-                        <span className={`${styles.dot} ${active ? styles.dotActive : ""}`} />
-                      </span>
+            <button
+              ref={closeRef}
+              type="button"
+              className={styles.closeBtn}
+              onClick={closeSafe}
+              aria-label="Закрыть"
+              disabled={loading}
+            >
+              ✕
+            </button>
+          </header>
 
-                      <span className={styles.rowText}>
-                        <span className={styles.rowTitle}>{d.title}</span>
-                        {d.cat ? <span className={styles.rowSub}>Категория: {d.cat}</span> : null}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          <section className={styles.content}>
+            {isLoading ? (
+              <p className={styles.stateText}>Загрузка списка болезней...</p>
+            ) : isError ? (
+              <div className={styles.errorBox} role="alert">
+                <p className={styles.errorText}>{listError}</p>
+                <button
+                  type="button"
+                  className={styles.retryBtn}
+                  onClick={fetchDiseases}
+                  disabled={loading}
+                >
+                  Повторить
+                </button>
+              </div>
+            ) : isSuccess && viewItems.length === 0 ? (
+              <p className={styles.stateText}>Болезни не найдены</p>
+            ) : (
+              <ul className={styles.list} aria-label="Список болезней">
+                {viewItems.map((d) => {
+                  const active = d.id === selectedId;
 
-          {error ? (
-            <div className={styles.serverError} role="alert">
-              {error}
-            </div>
-          ) : null}
+                  return (
+                    <li key={d.id} className={styles.item}>
+                      <button
+                        type="button"
+                        className={`${styles.row} ${active ? styles.rowActive : ""}`}
+                        onClick={() => setSelectedId(d.id)}
+                        disabled={loading}
+                      >
+                        <span className={styles.radio} aria-hidden="true">
+                          <span className={`${styles.dot} ${active ? styles.dotActive : ""}`} />
+                        </span>
+
+                        <span className={styles.rowText}>
+                          <span className={styles.rowTitle}>{d.title}</span>
+                          {d.cat ? (
+                            <span className={styles.rowSub}>Категория: {d.cat}</span>
+                          ) : null}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {error ? (
+              <div className={styles.serverError} role="alert">
+                {error}
+              </div>
+            ) : null}
+          </section>
+
+          <footer className={styles.footer}>
+            <button
+              type="button"
+              className={styles.secondaryBtn}
+              onClick={closeSafe}
+              disabled={loading}
+            >
+              Отмена
+            </button>
+
+            <button
+              type="button"
+              className={styles.primaryBtn}
+              onClick={() => onAssign(selectedId)}
+              disabled={!canAssign}
+            >
+              {loading ? "Привязка..." : "Привязать"}
+            </button>
+          </footer>
+
+          <span className={styles.metaHidden} aria-hidden="true">
+            {userId}
+          </span>
         </section>
-
-        <footer className={styles.footer}>
-          <button
-            type="button"
-            className={styles.secondaryBtn}
-            onClick={closeSafe}
-            disabled={loading}
-          >
-            Отмена
-          </button>
-
-          <button
-            type="button"
-            className={styles.primaryBtn}
-            onClick={() => onAssign(selectedId)}
-            disabled={!canAssign}
-          >
-            {loading ? "Привязка..." : "Привязать"}
-          </button>
-        </footer>
-
-        <span className={styles.metaHidden} aria-hidden="true">
-          {userId}
-        </span>
       </section>
-    </section>
+    </ModalPortal>
   );
 }

@@ -102,7 +102,6 @@ export default function Participants() {
     return () => {
       abortRef.current.aborted = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offset, limit]);
 
   const users: IModeratorDashboardUser[] = useMemo(() => {

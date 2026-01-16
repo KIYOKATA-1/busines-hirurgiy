@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import styles from "./EditParticipantModal.module.scss";
+import ModalPortal from "@/app/components/ModalPortal/ModalPortal";
 
 type Props = {
   open: boolean;
@@ -37,16 +38,14 @@ export default function EditParticipantModal({
 
   const [name, setName] = useState(initialName ?? "");
   const [surname, setSurname] = useState(initialSurname ?? "");
-
-  const [touched, setTouched] = useState<{ name: boolean; surname: boolean }>({
-    name: false,
-    surname: false,
-  });
+  const [touched, setTouched] = useState({ name: false, surname: false });
 
   const nameRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
+
+    document.body.classList.add("modalOpen");
 
     setName(initialName ?? "");
     setSurname(initialSurname ?? "");
@@ -57,7 +56,10 @@ export default function EditParticipantModal({
       nameRef.current?.select();
     }, 0);
 
-    return () => window.clearTimeout(t);
+    return () => {
+      window.clearTimeout(t);
+      document.body.classList.remove("modalOpen");
+    };
   }, [open, initialName, initialSurname]);
 
   useEffect(() => {
@@ -101,74 +103,67 @@ export default function EditParticipantModal({
   };
 
   return (
-    <section
-      className={styles.overlay}
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      onMouseDown={onOverlayMouseDown}
-    >
-      <form className={styles.modal} onSubmit={submit}>
-        <header className={styles.head}>
-          <h3 className={styles.title}>{title}</h3>
-          <button type="button" className={styles.closeBtn} onClick={closeSafe} aria-label="Закрыть">
-            ✕
-          </button>
-        </header>
+    <ModalPortal>
+      <section
+        className={styles.overlay}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onMouseDown={onOverlayMouseDown}
+      >
+        <form className={styles.modal} onSubmit={submit}>
+          <header className={styles.head}>
+            <h3 className={styles.title}>{title}</h3>
+            <button type="button" className={styles.closeBtn} onClick={closeSafe} aria-label="Закрыть">
+              ✕
+            </button>
+          </header>
 
-        <section className={styles.content}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor={nameId}>
-              Имя
-            </label>
-            <input
-              ref={nameRef}
-              id={nameId}
-              className={`${styles.input} ${nameErr ? styles.inputError : ""}`}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onBlur={() => setTouched((s) => ({ ...s, name: true }))}
-              placeholder="Введите имя"
-              autoComplete="off"
-              disabled={loading}
-            />
-            {nameErr ? <p className={styles.hintError}>{nameErr}</p> : null}
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor={surnameId}>
-              Фамилия
-            </label>
-            <input
-              id={surnameId}
-              className={`${styles.input} ${surnameErr ? styles.inputError : ""}`}
-              value={surname}
-              onChange={(e) => setSurname(e.target.value)}
-              onBlur={() => setTouched((s) => ({ ...s, surname: true }))}
-              placeholder="Введите фамилию"
-              autoComplete="off"
-              disabled={loading}
-            />
-            {surnameErr ? <p className={styles.hintError}>{surnameErr}</p> : null}
-          </div>
-
-          {error ? (
-            <div className={styles.serverError} role="alert">
-              {error}
+          <section className={styles.content}>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor={nameId}>Имя</label>
+              <input
+                ref={nameRef}
+                id={nameId}
+                className={`${styles.input} ${nameErr ? styles.inputError : ""}`}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onBlur={() => setTouched((s) => ({ ...s, name: true }))}
+                placeholder="Введите имя"
+                autoComplete="off"
+                disabled={loading}
+              />
+              {nameErr ? <p className={styles.hintError}>{nameErr}</p> : null}
             </div>
-          ) : null}
-        </section>
 
-        <footer className={styles.footer}>
-          <button type="button" className={styles.secondaryBtn} onClick={closeSafe} disabled={loading}>
-            Отмена
-          </button>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor={surnameId}>Фамилия</label>
+              <input
+                id={surnameId}
+                className={`${styles.input} ${surnameErr ? styles.inputError : ""}`}
+                value={surname}
+                onChange={(e) => setSurname(e.target.value)}
+                onBlur={() => setTouched((s) => ({ ...s, surname: true }))}
+                placeholder="Введите фамилию"
+                autoComplete="off"
+                disabled={loading}
+              />
+              {surnameErr ? <p className={styles.hintError}>{surnameErr}</p> : null}
+            </div>
 
-          <button type="submit" className={styles.primaryBtn} disabled={!canSave}>
-            {loading ? "Сохранение..." : "Сохранить"}
-          </button>
-        </footer>
-      </form>
-    </section>
+            {error ? <div className={styles.serverError} role="alert">{error}</div> : null}
+          </section>
+
+          <footer className={styles.footer}>
+            <button type="button" className={styles.secondaryBtn} onClick={closeSafe} disabled={loading}>
+              Отмена
+            </button>
+            <button type="submit" className={styles.primaryBtn} disabled={!canSave}>
+              {loading ? "Сохранение..." : "Сохранить"}
+            </button>
+          </footer>
+        </form>
+      </section>
+    </ModalPortal>
   );
 }

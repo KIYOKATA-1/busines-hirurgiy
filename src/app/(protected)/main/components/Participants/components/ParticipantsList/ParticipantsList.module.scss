@@ -13,7 +13,7 @@
   display: flex;
   flex-direction: column;
 
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
 
   overflow: hidden;
@@ -42,6 +42,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      min-width: 0;
     }
 
     .counter {
@@ -64,10 +65,15 @@
   }
 
   .body {
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
+
     display: flex;
     flex-direction: column;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable both-edges;
+    padding-right: 6px;
 
     .placeholder {
       margin: 0;
@@ -476,16 +482,16 @@
   }
 
   .skelLineLg {
-    width: 220px;
+    width: min(220px, 55vw);
   }
 
   .skelLineMd {
-    width: 170px;
+    width: min(170px, 45vw);
     margin-top: 6px;
   }
 
   .skelLineSm {
-    width: 140px;
+    width: min(140px, 40vw);
     margin-top: 6px;
   }
 
@@ -536,8 +542,17 @@
     }
 
     .actions {
-      justify-content: flex-start;
-      flex-wrap: wrap;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 32px 32px 32px;
+      gap: 10px;
+      align-items: center;
+      justify-content: initial;
+
+      .viewBtn {
+        width: 100%;
+        justify-content: center;
+      }
     }
 
     .metrics {
@@ -552,6 +567,19 @@
 
       .pager {
         justify-content: flex-end;
+      }
+    }
+  }
+}
+
+@media (max-width: 420px) {
+  .card {
+    .actions {
+      grid-template-columns: 1fr 32px 32px;
+      grid-auto-rows: 32px;
+
+      .viewBtn {
+        grid-column: 1 / -1; 
       }
     }
   }
