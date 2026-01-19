@@ -4,7 +4,7 @@
   margin: 0;
 
   border-radius: 18px;
-  border: 1px solid rgba(140, 180, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   background: #000;
   box-shadow: 0 0 0 1px rgba(10, 18, 36, 0.35) inset;
 
@@ -159,7 +159,7 @@
         height: 32px;
         padding: 0 14px;
         border-radius: 999px;
-        border: 1px solid rgba(140, 180, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
         background: rgba(255, 255, 255, 0.06);
         color: inherit;
         cursor: pointer;
@@ -183,9 +183,10 @@
   min-width: 0;
 
   border-radius: 16px;
-  border: 1px solid rgba(140, 180, 255, 0.22);
-  background: rgba(29, 41, 61, 0.5);
-  box-shadow: 0 0 0 1px rgba(10, 18, 36, 0.35) inset;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) inset;
 
   padding: clamp(10px, 1.4vh, 14px);
   overflow: hidden;
@@ -367,7 +368,7 @@
 
     .metric {
       border-radius: 12px;
-      border: 1px solid rgba(140, 180, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.4);
       background: rgba(0, 0, 0, 0.5);
       padding: clamp(7px, 0.9vh, 9px) clamp(8px, 1vh, 10px);
       min-width: 0;
@@ -579,7 +580,7 @@
       grid-auto-rows: 32px;
 
       .viewBtn {
-        grid-column: 1 / -1; 
+        grid-column: 1 / -1;
       }
     }
   }
