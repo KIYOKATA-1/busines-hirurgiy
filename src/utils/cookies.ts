@@ -3,7 +3,12 @@ export function setCookie(name: string, value: string, days = 1): void {
   const date = new Date();
   date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
   const expires = `; expires=${date.toUTCString()}`;
-  document.cookie = `${name}=${encodeURIComponent(value)}${expires}; path=/`;
+  const sameSite = "; SameSite=Lax";
+  const secure =
+    typeof window !== "undefined" && window.location.protocol === "https:"
+      ? "; Secure"
+      : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}${expires}; path=/${sameSite}${secure}`;
 }
 
 export function getCookie(name: string): string | null {
@@ -14,5 +19,10 @@ export function getCookie(name: string): string | null {
 
 export function deleteCookie(name: string): void {
   if (typeof document === "undefined") return;
-  document.cookie = `${name}=; Max-Age=0; path=/`;
+  const sameSite = "; SameSite=Lax";
+  const secure =
+    typeof window !== "undefined" && window.location.protocol === "https:"
+      ? "; Secure"
+      : "";
+  document.cookie = `${name}=; Max-Age=0; path=/${sameSite}${secure}`;
 }

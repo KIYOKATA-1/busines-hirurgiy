@@ -1,5 +1,4 @@
 import { api } from "@/lib/axios";
-import { getCookie } from "@/utils/cookies";
 
 import type {
   IAssignDiseaseRequest,
@@ -15,20 +14,13 @@ import type {
   IModeratorCreateFeedbackResponse,
 } from "./moderatorUsers.types";
 
-const ACCESS_COOKIE = "access_token";
-
-function authHeaders() {
-  const token = getCookie(ACCESS_COOKIE);
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 class ModeratorUsersService {
   async getDashboard(
     params?: ModeratorUsersQuery
   ): Promise<IModeratorDashboardResponse> {
     const res = await api.get<IModeratorDashboardResponse>(
       "/api/v1/moderator/dashboard",
-      { params, headers: authHeaders() }
+      { params }
     );
     return res.data;
   }
@@ -38,8 +30,7 @@ class ModeratorUsersService {
   ): Promise<IAssignDiseaseResponse> {
     const res = await api.post<IAssignDiseaseResponse>(
       "/api/v1/admin/assign-disease",
-      payload,
-      { headers: authHeaders() }
+      payload
     );
     return res.data;
   }
@@ -50,16 +41,13 @@ class ModeratorUsersService {
   ): Promise<IUpdateModeratorUserResponse> {
     const res = await api.put<IUpdateModeratorUserResponse>(
       `/api/v1/moderator/dashboard/users/${userId}`,
-      payload,
-      { headers: authHeaders() }
+      payload
     );
     return res.data;
   }
 
   async deleteUser(userId: string): Promise<void> {
-    await api.delete(`/api/v1/moderator/dashboard/users/${userId}`, {
-      headers: authHeaders(),
-    });
+    await api.delete(`/api/v1/moderator/dashboard/users/${userId}`);
   }
 
   async getUserActivity(
@@ -68,7 +56,7 @@ class ModeratorUsersService {
   ): Promise<IModeratorUserActivityResponse> {
     const res = await api.get<IModeratorUserActivityResponse>(
       `/api/v1/moderator/users/${userId}/activity`,
-      { params, headers: authHeaders() }
+      { params }
     );
     return res.data;
   }
@@ -77,8 +65,7 @@ class ModeratorUsersService {
     userId: string
   ): Promise<IModeratorUserProgressResponse> {
     const res = await api.get<IModeratorUserProgressResponse>(
-      `/api/v1/moderator/users/${userId}/progress`,
-      { headers: authHeaders() }
+      `/api/v1/moderator/users/${userId}/progress`
     );
     return res.data;
   }
@@ -87,8 +74,7 @@ class ModeratorUsersService {
     userId: string
   ): Promise<IModeratorUserTreatmentResponse> {
     const res = await api.get<IModeratorUserTreatmentResponse>(
-      `/api/v1/moderator/users/${userId}/treatment`,
-      { headers: authHeaders() }
+      `/api/v1/moderator/users/${userId}/treatment`
     );
     return res.data;
   }
@@ -99,8 +85,7 @@ class ModeratorUsersService {
   ): Promise<IModeratorCreateFeedbackResponse> {
     const res = await api.post<IModeratorCreateFeedbackResponse>(
       `/api/v1/moderator/users/${userId}/feedback`,
-      payload,
-      { headers: authHeaders() }
+      payload
     );
     return res.data;
   }
