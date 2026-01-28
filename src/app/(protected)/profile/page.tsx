@@ -181,8 +181,6 @@ export default function ProfilePage() {
 
   const isAnyEditing = editingKey !== null;
 
-  const goSteps = () => router.push("/profile/steps");
-
   return (
     <div className={styles.page}>
       <Header user={current ?? null} onLogout={logout} />
@@ -273,18 +271,6 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  <div className={styles.actionRow}>
-                    <button type="button" className={styles.stepsCard} onClick={goSteps}>
-                      <span className={styles.stepsIcon} aria-hidden="true" />
-                      <span className={styles.stepsMeta}>
-                        <span className={styles.stepsTitle}>Шаги</span>
-                        <span className={styles.stepsDesc}>
-                          Посмотреть доступные болезни и выполнить шаги
-                        </span>
-                      </span>
-                      <span className={styles.stepsBtn}>Открыть</span>
-                    </button>
-                  </div>
                 </div>
 
                 <div className={styles.block}>

@@ -1,7 +1,8 @@
 export type ApiFreeString = string & {};
 
 export type UserDiseaseStatus = "active" | "resolved" | ApiFreeString;
-export type UserStepState = "pending" | "completed" | ApiFreeString;
+export type UserStepState = "pending" | "active" | "completed" | ApiFreeString;
+export type UserStepStateCode = 0 | 1 | 2;
 
 export interface IUserDiseaseItem {
   categoryName: string;

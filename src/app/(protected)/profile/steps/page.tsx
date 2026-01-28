@@ -19,6 +19,11 @@ import type {
   IUserDiseaseStepItem,
   UserStepState,
 } from "@/services/userDiseases/userDiseases.types";
+import {
+  normalizeStepStateValue,
+  STEP_STATE_VALUES,
+  stepStateToCode,
+} from "@/services/userDiseases/userDiseases.state";
 import type { IUserMe } from "@/services/user/user.types";
 
 function fmtDate(iso?: string | null) {
@@ -54,6 +59,8 @@ function stateClass(s: UserStepState) {
   return styles.badgeNeutral;
 }
 
+const DEFAULT_STEPS_LIMIT = 50;
+
 export default function ProfileStepsPage() {
   const router = useRouter();
   const toast = useToast();
@@ -70,6 +77,7 @@ export default function ProfileStepsPage() {
   const [completeLoadingId, setCompleteLoadingId] = useState<string | null>(
     null
   );
+  const [stateLoadingId, setStateLoadingId] = useState<string | null>(null);
   const [resolveLoading, setResolveLoading] = useState(false);
 
   useEffect(() => {
@@ -123,11 +131,17 @@ export default function ProfileStepsPage() {
   );
 
   const loadSteps = useCallback(
-    async (userDiseaseId: string) => {
+    async (userDiseaseId: string, totalSteps?: number) => {
       try {
         setStepsLoading(true);
-        const res =
-          await userDiseasesService.getStepsByUserDiseaseId(userDiseaseId);
+        const limit =
+          typeof totalSteps === "number" && Number.isFinite(totalSteps) && totalSteps > 0
+            ? Math.floor(totalSteps)
+            : DEFAULT_STEPS_LIMIT;
+        const res = await userDiseasesService.getStepsByUserDiseaseId(userDiseaseId, {
+          limit,
+          offset: 0,
+        });
 
         const items = (res.items ?? []).slice().sort((a, b) => {
           const da = new Date(a.createdAt).getTime();
@@ -166,7 +180,7 @@ export default function ProfileStepsPage() {
     async (d: IUserDiseaseItem) => {
       setSelected(d);
       setSteps([]);
-      await loadSteps(d.userDiseaseId);
+      await loadSteps(d.userDiseaseId, d.totalSteps);
     },
     [loadSteps]
   );
@@ -180,7 +194,7 @@ export default function ProfileStepsPage() {
         await userDiseasesService.completeStep(userStepId);
         toast.success("Шаг выполнен");
 
-        await loadSteps(selected.userDiseaseId);
+        await loadSteps(selected.userDiseaseId, selected.totalSteps);
         await loadDiseases(selected.userDiseaseId);
       } catch (e: unknown) {
         const err = e as {
@@ -202,6 +216,40 @@ export default function ProfileStepsPage() {
     [selected, toast, loadSteps, loadDiseases]
   );
 
+  const onChangeStepState = useCallback(
+    async (userStepId: string, nextState: UserStepState) => {
+      if (!selected) return;
+
+      try {
+        setStateLoadingId(userStepId);
+        await userDiseasesService.updateStepState(
+          userStepId,
+          stepStateToCode(nextState)
+        );
+        toast.success("Статус шага обновлён");
+
+        await loadSteps(selected.userDiseaseId, selected.totalSteps);
+        await loadDiseases(selected.userDiseaseId);
+      } catch (e: unknown) {
+        const err = e as {
+          response?: { data?: { message?: unknown; detail?: unknown } };
+          message?: unknown;
+        };
+
+        const msg =
+          err?.response?.data?.message ??
+          err?.response?.data?.detail ??
+          err?.message ??
+          "Ошибка обновления статуса шага.";
+
+        toast.error(String(msg));
+      } finally {
+        setStateLoadingId(null);
+      }
+    },
+    [selected, toast, loadSteps, loadDiseases]
+  );
+
   const onResolveDisease = useCallback(async () => {
     if (!selected) return;
 
@@ -210,7 +258,7 @@ export default function ProfileStepsPage() {
       await userDiseasesService.resolveDisease(selected.userDiseaseId);
       toast.success("Болезнь завершена");
 
-      await loadSteps(selected.userDiseaseId);
+      await loadSteps(selected.userDiseaseId, selected.totalSteps);
       await loadDiseases(selected.userDiseaseId);
     } catch (e: unknown) {
       const err = e as {
@@ -447,10 +495,7 @@ export default function ProfileStepsPage() {
                   </div>
                 ) : steps.length === 0 ? (
                   <div className={styles.empty}>
-                    <div className={styles.emptyTitle}>Шагов нет</div>
-                    <div className={styles.emptyText}>
-                      API не вернул user_steps для этой болезни.
-                    </div>
+                    <div className={styles.emptyTitle}>0 шагов</div>
                   </div>
                 ) : (
                   <div className={styles.steps}>
@@ -458,6 +503,8 @@ export default function ProfileStepsPage() {
                       const done =
                         String(s.state || "").toLowerCase() === "completed";
                       const completing = completeLoadingId === s.id;
+                      const updatingState = stateLoadingId === s.id;
+                      const stateValue = normalizeStepStateValue(s.state);
 
                       return (
                         <div key={s.id} className={styles.step}>
@@ -485,21 +532,43 @@ export default function ProfileStepsPage() {
                               </div>
 
                               <div className={styles.stepTopRight}>
-                                <span
+                                <select
                                   className={[
                                     styles.badge,
+                                    styles.stateSelect,
                                     stateClass(s.state),
                                   ].join(" ")}
+                                  value={stateValue}
+                                  onChange={(e) =>
+                                    onChangeStepState(
+                                      s.id,
+                                      e.target.value as UserStepState
+                                    )
+                                  }
+                                  disabled={
+                                    stepsLoading ||
+                                    selectedResolved ||
+                                    completing ||
+                                    updatingState
+                                  }
+                                  aria-label="Статус шага"
                                 >
-                                  {stateLabel(s.state)}
-                                </span>
+                                  {STEP_STATE_VALUES.map((value) => (
+                                    <option key={value} value={value}>
+                                      {stateLabel(value)}
+                                    </option>
+                                  ))}
+                                </select>
 
                                 <button
                                   type="button"
                                   className={styles.stepActionBtn}
                                   onClick={() => onCompleteStep(s.id)}
                                   disabled={
-                                    done || completing || selectedResolved
+                                    done ||
+                                    completing ||
+                                    updatingState ||
+                                    selectedResolved
                                   }
                                   title={
                                     selectedResolved

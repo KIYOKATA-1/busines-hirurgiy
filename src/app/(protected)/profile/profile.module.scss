@@ -1,9 +1,7 @@
-$pageMax: 1120px;
+$pageMax: 1240px;
 
-@mixin glass($alpha: 0.045, $blur: 18px) {
+@mixin glass($alpha: 0.03) {
   background: rgba(255, 255, 255, $alpha);
-  backdrop-filter: blur($blur);
-  -webkit-backdrop-filter: blur($blur);
   border: 1px solid var(--border-soft);
 }
 
@@ -33,22 +31,21 @@ $pageMax: 1120px;
   box-sizing: border-box;
 
   background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 40%),
     radial-gradient(
-      1200px 520px at 35% 5%,
-      rgba(96, 165, 250, 0.14),
+      900px 420px at 70% 0%,
+      rgba(255, 255, 255, 0.06),
       transparent 60%
     ),
-    radial-gradient(
-      900px 520px at 70% 20%,
-      rgba(255, 255, 255, 0.06),
-      transparent 65%
-    ),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(
       150deg,
       var(--bg-main-start) -100%,
       var(--bg-main-mid) 60%,
       var(--bg-main-end) 120%
     );
+  background-size: auto, auto, 48px 48px, 48px 48px, auto;
 }
 
 .container {
@@ -57,22 +54,18 @@ $pageMax: 1120px;
 }
 
 .hero {
-  border-radius: 26px;
+  border-radius: 22px;
 
-  @include glass(0.04, 18px);
+  @include glass(0.02);
 
   background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
     radial-gradient(
-      1200px 520px at 35% 5%,
-      rgba(96, 165, 250, 0.16),
+      800px 320px at 85% 0%,
+      rgba(255, 255, 255, 0.08),
       transparent 60%
     ),
-    radial-gradient(
-      1000px 520px at 65% 15%,
-      rgba(255, 255, 255, 0.05),
-      transparent 60%
-    ),
-    rgba(255, 255, 255, 0.03);
+    rgba(255, 255, 255, 0.02);
 
   @include softShadow;
 }
@@ -98,19 +91,18 @@ $pageMax: 1120px;
 .avatar {
   width: 62px;
   height: 62px;
-  border-radius: 22px;
+  border-radius: 16px;
   display: grid;
   place-items: center;
 
   background:
-    radial-gradient(
-      90px 80px at 30% 20%,
-      rgba(96, 165, 250, 0.3),
-      transparent 55%
-    ),
-    rgba(255, 255, 255, 0.05);
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.18),
+      rgba(255, 255, 255, 0.02)
+    );
 
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
 
   box-shadow:
     0 22px 55px rgba(0, 0, 0, 0.5),
@@ -161,12 +153,14 @@ $pageMax: 1120px;
   display: inline-flex;
   align-items: center;
 
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
 
-  color: rgba(191, 219, 254, 0.95);
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.22);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .pillMuted {
@@ -180,9 +174,9 @@ $pageMax: 1120px;
   font-size: 12px;
   font-weight: 750;
 
-  color: rgba(255, 255, 255, 0.75);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 
   max-width: 520px;
   @extend %textClamp1;
@@ -197,16 +191,16 @@ $pageMax: 1120px;
   padding: 0 14px;
   border-radius: 999px;
 
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .statusDot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: rgba(34, 197, 94, 0.95);
-  box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.1);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08);
 }
 
 .statusText {
@@ -228,20 +222,21 @@ $pageMax: 1120px;
 
 .blocks {
   margin-top: 18px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
   gap: 16px;
+  align-items: start;
 }
 
 .block {
-  border-radius: 22px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 18px;
 
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 
   box-shadow:
-    0 18px 55px rgba(0, 0, 0, 0.35),
+    0 18px 55px rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
@@ -253,14 +248,16 @@ $pageMax: 1120px;
 }
 
 .blockTitle {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.86);
+  color: rgba(255, 255, 255, 0.82);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
 }
 
 .blockHint {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.58);
 }
 
 .grid {
@@ -276,14 +273,14 @@ $pageMax: 1120px;
 }
 
 .item {
-  border-radius: 18px;
+  border-radius: 14px;
   padding: 14px;
 
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
 
   box-shadow:
-    0 16px 45px rgba(0, 0, 0, 0.35),
+    0 14px 40px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
   transition:
@@ -304,32 +301,33 @@ $pageMax: 1120px;
 }
 
 .label {
-  font-size: 11px;
-  font-weight: 850;
-  color: rgba(255, 255, 255, 0.55);
-  letter-spacing: 0.2px;
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
 }
 
 .value {
   margin-top: 6px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 850;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.95);
   word-break: break-word;
 }
 
 .editBtn {
   width: 32px;
   height: 32px;
-  border-radius: 12px;
+  border-radius: 10px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
 
   cursor: pointer;
   transition:
@@ -344,8 +342,8 @@ $pageMax: 1120px;
   }
 
   &:hover {
-    border-color: rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.04);
   }
 
   &:active {
@@ -354,7 +352,7 @@ $pageMax: 1120px;
 
   &:focus-visible {
     outline: 0;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.35);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 }
 
@@ -414,9 +412,9 @@ $pageMax: 1120px;
   border-radius: 14px;
   padding: 0 12px;
 
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-primary);
 
   font-size: 14px;
   font-weight: 850;
@@ -424,7 +422,7 @@ $pageMax: 1120px;
   outline: none;
 
   &:focus-visible {
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.35);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 }
 
@@ -443,9 +441,9 @@ $pageMax: 1120px;
   font-size: 12px;
   font-weight: 900;
 
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--btn-secondary-border);
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
 
   cursor: pointer;
   transition:
@@ -469,13 +467,13 @@ $pageMax: 1120px;
 }
 
 .saveBtn {
-  color: rgba(191, 219, 254, 0.95);
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.22);
+  color: var(--btn-primary-text);
+  background: var(--btn-primary-bg);
+  border-color: var(--btn-primary-border);
 
   &:hover {
-    background: rgba(59, 130, 246, 0.16);
-    border-color: rgba(59, 130, 246, 0.28);
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(255, 255, 255, 0.22);
   }
 }
 
@@ -505,7 +503,7 @@ $pageMax: 1120px;
   background:
     radial-gradient(
       900px 260px at 25% 10%,
-      rgba(59, 130, 246, 0.16),
+      rgba(255, 255, 255, 0.1),
       transparent 60%
     ),
     rgba(255, 255, 255, 0.03);
@@ -525,7 +523,7 @@ $pageMax: 1120px;
     background:
       radial-gradient(
         900px 260px at 25% 10%,
-        rgba(59, 130, 246, 0.2),
+        rgba(255, 255, 255, 0.14),
         transparent 60%
       ),
       rgba(255, 255, 255, 0.04);
@@ -537,7 +535,7 @@ $pageMax: 1120px;
 
   &:focus-visible {
     outline: 0;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.35);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 }
 
@@ -550,7 +548,7 @@ $pageMax: 1120px;
   background:
     radial-gradient(
       90px 80px at 30% 20%,
-      rgba(96, 165, 250, 0.35),
+      rgba(255, 255, 255, 0.22),
       transparent 55%
     ),
     rgba(255, 255, 255, 0.05);
@@ -604,17 +602,17 @@ $pageMax: 1120px;
   font-size: 12px;
   font-weight: 950;
 
-  color: rgba(191, 219, 254, 0.95);
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.22);
+  color: var(--btn-primary-text);
+  background: var(--btn-primary-bg);
+  border: 1px solid var(--btn-primary-border);
 
   transition:
     background 160ms ease,
     border-color 160ms ease;
 
   .stepsCard:hover & {
-    background: rgba(59, 130, 246, 0.16);
-    border-color: rgba(59, 130, 246, 0.28);
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(255, 255, 255, 0.24);
   }
 }
 

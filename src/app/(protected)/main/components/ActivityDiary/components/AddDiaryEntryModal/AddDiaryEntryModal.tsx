@@ -15,6 +15,8 @@ type Props = {
   presetTitle?: string | null;
 };
 
+const MAX_TAG_LENGTH = 32;
+
 function uniq(arr: string[]) {
   const s = new Set<string>();
   arr.forEach((x) => {
@@ -31,6 +33,20 @@ function splitTags(raw: string) {
     .filter(Boolean);
 }
 
+function normalizeTag(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  return trimmed.length > MAX_TAG_LENGTH ? trimmed.slice(0, MAX_TAG_LENGTH) : trimmed;
+}
+
+function normalizeTags(rawTags: string[]) {
+  return uniq(
+    rawTags
+      .map((tag) => normalizeTag(tag))
+      .filter((tag): tag is string => Boolean(tag))
+  );
+}
+
 export default function AddDiaryEntryModal({ open, onClose, presetTags, presetTitle }: Props) {
   const toast = useToast();
 
@@ -43,7 +59,7 @@ export default function AddDiaryEntryModal({ open, onClose, presetTags, presetTi
 
   const moodRef = useRef<HTMLInputElement | null>(null);
 
-  const baseTags = useMemo(() => uniq(presetTags ?? []), [presetTags]);
+  const baseTags = useMemo(() => normalizeTags(presetTags ?? []), [presetTags]);
 
   const canSave = useMemo(() => {
     return !saving && mood.trim().length > 0 && text.trim().length > 0;
@@ -84,7 +100,7 @@ export default function AddDiaryEntryModal({ open, onClose, presetTags, presetTi
     const incoming = splitTags(tagsInput);
     if (!incoming.length) return;
 
-    setTags((prev) => uniq([...prev, ...incoming]));
+    setTags((prev) => uniq([...prev, ...normalizeTags(incoming)]));
     setTagsInput("");
   }
 
@@ -93,7 +109,7 @@ export default function AddDiaryEntryModal({ open, onClose, presetTags, presetTi
 
     const payload: CreateDiaryEntryPayload = {
       mood: mood.trim(),
-      tags: uniq([...baseTags, ...tags]),
+      tags: normalizeTags([...baseTags, ...tags]),
       text: text.trim(),
     };
 

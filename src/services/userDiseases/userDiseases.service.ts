@@ -5,9 +5,12 @@ import type {
   IUserDiseaseStepsResponse,
   IUserDiseaseItem,
   IUserDiseaseStepItem,
+  UserStepState,
+  UserStepStateCode,
 } from "./userDiseases.types";
 
 type UnknownRecord = Record<string, unknown>;
+type ListParams = { limit?: number; offset?: number };
 
 function isRecord(v: unknown): v is UnknownRecord {
   return typeof v === "object" && v !== null;
@@ -40,6 +43,13 @@ function pick<T>(a: T | undefined, b: T | undefined): T | undefined {
 
 function pick3<T>(a: T | undefined, b: T | undefined, c: T | undefined): T | undefined {
   return a ?? b ?? c ?? undefined;
+}
+
+function mapStepStateCode(code: number): UserStepState | undefined {
+  if (code === 0) return "pending";
+  if (code === 1) return "active";
+  if (code === 2) return "completed";
+  return undefined;
 }
 
 function normalizeListResponse<T>(data: unknown, mapItem: (raw: unknown) => T): IListResponse<T> {
@@ -154,7 +164,11 @@ function normalizeUserDiseaseStepItem(raw: unknown): IUserDiseaseStepItem {
       readString(raw, "StepID")
     ) ?? "";
 
-  const state = pick(readString(raw, "state"), readString(raw, "State")) ?? "pending";
+  const stateRaw = pick(readString(raw, "state"), readString(raw, "State"));
+  const stateNum = pick(readNumber(raw, "state"), readNumber(raw, "State"));
+  const stateFromNum =
+    typeof stateNum === "number" ? mapStepStateCode(stateNum) ?? String(stateNum) : undefined;
+  const state = stateRaw ?? stateFromNum ?? "pending";
 
   const createdAt = pick(readString(raw, "createdAt"), readString(raw, "CreatedAt")) ?? "";
   const updatedAt = pick(readString(raw, "updatedAt"), readString(raw, "UpdatedAt")) ?? "";
@@ -182,9 +196,19 @@ class UserDiseasesService {
     return normalizeListResponse(res.data, normalizeUserDiseaseItem);
   }
 
-  async getStepsByUserDiseaseId(userDiseaseId: string): Promise<IUserDiseaseStepsResponse> {
-    const res = await api.get<unknown>(`/api/v1/me/diseases/${userDiseaseId}/steps`);
+  async getStepsByUserDiseaseId(
+    userDiseaseId: string,
+    params?: ListParams
+  ): Promise<IUserDiseaseStepsResponse> {
+    const res = await api.get<unknown>(
+      `/api/v1/me/diseases/${userDiseaseId}/steps`,
+      { params }
+    );
     return normalizeListResponse(res.data, normalizeUserDiseaseStepItem);
+  }
+
+  async updateStepState(userStepId: string, state: UserStepStateCode): Promise<void> {
+    await api.post(`/api/v1/me/steps/${userStepId}/state`, { state });
   }
 
   async completeStep(userStepId: string): Promise<void> {

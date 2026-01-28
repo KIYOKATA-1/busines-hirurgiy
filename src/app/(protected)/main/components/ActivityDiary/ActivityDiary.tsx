@@ -1,4 +1,3 @@
-// ActivityDiary.tsx
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -13,6 +12,11 @@ import type {
   IUserDiseaseStepItem,
   UserStepState,
 } from "@/services/userDiseases/userDiseases.types";
+import {
+  normalizeStepStateValue,
+  STEP_STATE_VALUES,
+  stepStateToCode,
+} from "@/services/userDiseases/userDiseases.state";
 import { ActivityDiaryIcon, BackIcon } from "@/shared/ui/icons";
 import { CheckIcon } from "@/shared/ui/icons/CheckIcon";
 import { ChatIcon } from "@/shared/ui/icons/ChatIcon";
@@ -25,6 +29,8 @@ type StatItem = {
 };
 
 type ViewMode = "diseases" | "steps";
+
+const DEFAULT_STEPS_LIMIT = 50;
 
 function StatIcon({ kind }: { kind: StatItem["icon"] }) {
   if (kind === "calendar") return <ActivityDiaryIcon className={styles.statSvg} />;
@@ -86,6 +92,7 @@ export default function ActivityDiary() {
   const [stepsLoading, setStepsLoading] = useState(false);
   const [steps, setSteps] = useState<IUserDiseaseStepItem[]>([]);
   const [completeLoadingId, setCompleteLoadingId] = useState<string | null>(null);
+  const [stateLoadingId, setStateLoadingId] = useState<string | null>(null);
 
   const outerRef = useRef<HTMLDivElement | null>(null);
   const innerRef = useRef<HTMLDivElement | null>(null);
@@ -161,10 +168,17 @@ export default function ActivityDiary() {
   }, [toast, selectedDisease]);
 
   const loadSteps = useCallback(
-    async (userDiseaseId: string) => {
+    async (userDiseaseId: string, totalSteps?: number) => {
       try {
         setStepsLoading(true);
-        const res = await userDiseasesService.getStepsByUserDiseaseId(userDiseaseId);
+        const limit =
+          typeof totalSteps === "number" && Number.isFinite(totalSteps) && totalSteps > 0
+            ? Math.floor(totalSteps)
+            : DEFAULT_STEPS_LIMIT;
+        const res = await userDiseasesService.getStepsByUserDiseaseId(userDiseaseId, {
+          limit,
+          offset: 0,
+        });
         const items = (res.items ?? []).slice().sort((a, b) => {
           const da = new Date(a.createdAt).getTime();
           const db = new Date(b.createdAt).getTime();
@@ -193,8 +207,8 @@ export default function ActivityDiary() {
   useEffect(() => {
     if (!selectedDisease?.userDiseaseId) return;
     if (view !== "steps") return;
-    loadSteps(selectedDisease.userDiseaseId);
-  }, [selectedDisease?.userDiseaseId, loadSteps, view]);
+    loadSteps(selectedDisease.userDiseaseId, selectedDisease.totalSteps);
+  }, [selectedDisease?.userDiseaseId, selectedDisease?.totalSteps, loadSteps, view]);
 
   useEffect(() => {
     animateToContentHeight();
@@ -237,7 +251,7 @@ export default function ActivityDiary() {
         await userDiseasesService.completeStep(userStepId);
         toast.success("Шаг выполнен");
 
-        await loadSteps(selectedDisease.userDiseaseId);
+        await loadSteps(selectedDisease.userDiseaseId, selectedDisease.totalSteps);
         await loadDiseases();
       } catch (e: any) {
         const msg =
@@ -253,25 +267,44 @@ export default function ActivityDiary() {
     [selectedDisease, toast, loadSteps, loadDiseases]
   );
 
+  const onChangeStepState = useCallback(
+    async (userStepId: string, nextState: UserStepState) => {
+      if (!selectedDisease) return;
+
+      try {
+        setStateLoadingId(userStepId);
+        await userDiseasesService.updateStepState(userStepId, stepStateToCode(nextState));
+        toast.success("Статус шага обновлён");
+
+        await loadSteps(selectedDisease.userDiseaseId, selectedDisease.totalSteps);
+        await loadDiseases();
+      } catch (e: any) {
+        const msg =
+          e?.response?.data?.message ||
+          e?.response?.data?.detail ||
+          e?.message ||
+          "Ошибка обновления статуса шага.";
+        toast.error(String(msg));
+      } finally {
+        setStateLoadingId(null);
+      }
+    },
+    [selectedDisease, toast, loadSteps, loadDiseases]
+  );
+
   const openReportModal = (opts?: { disease?: IUserDiseaseItem | null; step?: IUserDiseaseStepItem | null }) => {
     const diseaseName = opts?.disease?.diseaseName;
-    const userDiseaseId = opts?.disease?.userDiseaseId;
-
-    const stepId = opts?.step?.stepId;
-    const userStepId = opts?.step?.id;
+    const isStepReport = Boolean(opts?.step);
 
     const tags: string[] = [];
 
     if (diseaseName) tags.push(`disease:${diseaseName}`);
-    if (userDiseaseId) tags.push(`userDiseaseId:${userDiseaseId}`);
-    if (stepId != null) tags.push(`stepId:${String(stepId)}`);
-    if (userStepId) tags.push(`userStepId:${userStepId}`);
 
     setPresetTags(tags);
     setPresetTitle(
       diseaseName
-        ? stepId != null
-          ? `Отчёт по шагу • ${diseaseName} • StepId ${String(stepId)}`
+        ? isStepReport
+          ? `Отчёт по шагу • ${diseaseName}`
           : `Отчёт • ${diseaseName}`
         : "Новая запись"
     );
@@ -338,7 +371,7 @@ export default function ActivityDiary() {
                   className={styles.smallBtn}
                   onClick={() => {
                     if (!selectedDisease?.userDiseaseId) return;
-                    loadSteps(selectedDisease.userDiseaseId);
+                    loadSteps(selectedDisease.userDiseaseId, selectedDisease.totalSteps);
                   }}
                   disabled={stepsLoading || !selectedDisease?.userDiseaseId}
                 >
@@ -430,14 +463,15 @@ export default function ActivityDiary() {
                   <div className={styles.emptyBox}>Загрузка шагов...</div>
                 ) : steps.length === 0 ? (
                   <div className={styles.emptyBox}>
-                    <div className={styles.emptyTitle}>Шагов нет</div>
-                    <div className={styles.emptyText}>API не вернул user_steps для этой болезни.</div>
+                    <div className={styles.emptyTitle}>0 шагов</div>
                   </div>
                 ) : (
                   <div className={styles.stepsList}>
                     {steps.map((s, idx) => {
                       const done = isCompleted(s.state);
                       const completing = completeLoadingId === s.id;
+                      const updatingState = stateLoadingId === s.id;
+                      const stateValue = normalizeStepStateValue(s.state);
 
                       return (
                         <div key={s.id} className={styles.stepCard}>
@@ -460,7 +494,21 @@ export default function ActivityDiary() {
                               </div>
                             </div>
 
-                            <span className={styles.badge}>{stateLabel(s.state)}</span>
+                            <select
+                              className={[styles.badge, styles.stateSelect].join(" ")}
+                              value={stateValue}
+                              onChange={(e) =>
+                                onChangeStepState(s.id, e.target.value as UserStepState)
+                              }
+                              disabled={stepsLoading || completing || updatingState}
+                              aria-label="Статус шага"
+                            >
+                              {STEP_STATE_VALUES.map((value) => (
+                                <option key={value} value={value}>
+                                  {stateLabel(value)}
+                                </option>
+                              ))}
+                            </select>
                           </div>
 
                           <div className={styles.stepActions}>
@@ -468,7 +516,8 @@ export default function ActivityDiary() {
                               type="button"
                               className={styles.secondaryBtn}
                               onClick={() => openReportModal({ disease: selectedDisease, step: s })}
-                              disabled={!selectedDisease}
+                              disabled={!selectedDisease || !done || completing || updatingState}
+                              title={done ? "Отчитаться по шагу" : "Сначала выполните шаг"}
                             >
                               Отчитаться
                             </button>
@@ -477,7 +526,7 @@ export default function ActivityDiary() {
                               type="button"
                               className={styles.primaryBtn}
                               onClick={() => onCompleteStep(s.id)}
-                              disabled={done || completing}
+                              disabled={done || completing || updatingState}
                               title={done ? "Уже выполнено" : "Отметить выполненным"}
                             >
                               {completing ? "..." : "Выполнить"}

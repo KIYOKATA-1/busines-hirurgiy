@@ -34,12 +34,12 @@ $pageMax: 1120px;
   background:
     radial-gradient(
       1200px 520px at 35% 5%,
-      rgba(96, 165, 250, 0.14),
+      rgba(255, 255, 255, 0.08),
       transparent 60%
     ),
     radial-gradient(
       900px 520px at 70% 20%,
-      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.04),
       transparent 65%
     ),
     linear-gradient(
@@ -62,15 +62,15 @@ $pageMax: 1120px;
   background:
     radial-gradient(
       1200px 520px at 35% 5%,
-      rgba(96, 165, 250, 0.14),
+      rgba(255, 255, 255, 0.1),
       transparent 60%
     ),
     radial-gradient(
       1000px 520px at 65% 15%,
-      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.04),
       transparent 60%
     ),
-    rgba(255, 255, 255, 0.03);
+    rgba(255, 255, 255, 0.02);
 
   @include softShadow;
   padding: clamp(16px, 2.2vw, 24px);
@@ -149,13 +149,13 @@ $pageMax: 1120px;
 }
 
 .refreshBtn {
-  color: rgba(191, 219, 254, 0.95);
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.22);
+  color: var(--btn-secondary-text);
+  background: var(--btn-secondary-bg);
+  border-color: var(--btn-secondary-border);
 
   &:hover {
-    background: rgba(59, 130, 246, 0.16);
-    border-color: rgba(59, 130, 246, 0.28);
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
   }
 }
 
@@ -219,7 +219,7 @@ $pageMax: 1120px;
   background:
     radial-gradient(
       800px 240px at 25% 10%,
-      rgba(96, 165, 250, 0.1),
+      rgba(255, 255, 255, 0.08),
       transparent 60%
     ),
     rgba(255, 255, 255, 0.035);
@@ -238,7 +238,7 @@ $pageMax: 1120px;
     background:
       radial-gradient(
         800px 240px at 25% 10%,
-        rgba(96, 165, 250, 0.14),
+        rgba(255, 255, 255, 0.12),
         transparent 60%
       ),
       rgba(255, 255, 255, 0.04);
@@ -246,10 +246,10 @@ $pageMax: 1120px;
 }
 
 .cardActive {
-  border-color: rgba(59, 130, 246, 0.35);
+  border-color: rgba(255, 255, 255, 0.35);
   box-shadow:
     0 20px 55px rgba(0, 0, 0, 0.42),
-    0 0 0 1px rgba(59, 130, 246, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
@@ -336,9 +336,9 @@ $pageMax: 1120px;
 }
 
 .chip {
-  color: rgba(191, 219, 254, 0.95);
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.22);
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
 }
 
 .chipMuted {
@@ -388,8 +388,8 @@ $pageMax: 1120px;
 .progressFill {
   height: 100%;
   border-radius: 999px;
-  background: rgba(59, 130, 246, 0.55);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
 }
 
 .cardBottom {
@@ -444,9 +444,9 @@ $pageMax: 1120px;
   font-size: 12px;
   font-weight: 950;
 
-  color: rgba(191, 219, 254, 0.95);
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.22);
+  color: var(--btn-primary-text);
+  background: var(--btn-primary-bg);
+  border: 1px solid var(--btn-primary-border);
 
   cursor: pointer;
   transition:
@@ -455,8 +455,8 @@ $pageMax: 1120px;
     background 160ms ease;
 
   &:hover {
-    background: rgba(59, 130, 246, 0.16);
-    border-color: rgba(59, 130, 246, 0.28);
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(255, 255, 255, 0.22);
   }
 
   &:active {
@@ -510,15 +510,15 @@ $pageMax: 1120px;
 }
 
 .diseaseBadgeActive {
-  color: rgba(191, 219, 254, 0.95);
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.22);
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .diseaseBadgeDone {
-  color: rgba(187, 247, 208, 0.95);
-  background: rgba(34, 197, 94, 0.12);
-  border-color: rgba(34, 197, 94, 0.22);
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.32);
 }
 
 .resolveBtn {
@@ -526,9 +526,9 @@ $pageMax: 1120px;
   padding: 0 12px;
   border-radius: 12px;
 
-  border: 1px solid rgba(34, 197, 94, 0.22);
-  background: rgba(34, 197, 94, 0.10);
-  color: rgba(187, 247, 208, 0.95);
+  border: 1px solid var(--btn-primary-border);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
 
   font-size: 12px;
   font-weight: 950;
@@ -540,8 +540,8 @@ $pageMax: 1120px;
     background 160ms ease;
 
   &:hover {
-    background: rgba(34, 197, 94, 0.14);
-    border-color: rgba(34, 197, 94, 0.28);
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(255, 255, 255, 0.22);
   }
 
   &:active {
@@ -677,22 +677,32 @@ $pageMax: 1120px;
   white-space: nowrap;
 }
 
+.stateSelect {
+  cursor: pointer;
+  padding-right: 24px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 .badgePending {
-  background: rgba(251, 191, 36, 0.1);
-  border-color: rgba(251, 191, 36, 0.22);
-  color: rgba(253, 230, 138, 0.95);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .badgeActive {
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.22);
-  color: rgba(191, 219, 254, 0.95);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .badgeDone {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.2);
-  color: rgba(187, 247, 208, 0.95);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .badgeNeutral {
@@ -877,7 +887,7 @@ $pageMax: 1120px;
 
   &:focus-visible {
     outline: 0;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.35);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 }
 
