@@ -1,6 +1,12 @@
 export type ApiFreeString = string & {};
 
-export type UserDiseaseStatus = "active" | "resolved" | ApiFreeString;
+export type UserDiseaseStatus =
+  | "pending"
+  | "active"
+  | "completed"
+  | "resolved"
+  | ApiFreeString;
+export type UserDiseaseStatusCode = 0 | 1 | 2;
 export type UserStepState = "pending" | "active" | "completed" | ApiFreeString;
 export type UserStepStateCode = 0 | 1 | 2;
 

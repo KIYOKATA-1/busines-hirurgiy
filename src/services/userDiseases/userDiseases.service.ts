@@ -5,12 +5,15 @@ import type {
   IUserDiseaseStepsResponse,
   IUserDiseaseItem,
   IUserDiseaseStepItem,
+  UserDiseaseStatus,
   UserStepState,
   UserStepStateCode,
+  UserDiseaseStatusCode,
 } from "./userDiseases.types";
 
 type UnknownRecord = Record<string, unknown>;
 type ListParams = { limit?: number; offset?: number };
+type DiseaseListParams = ListParams & { status?: UserDiseaseStatusCode };
 
 function isRecord(v: unknown): v is UnknownRecord {
   return typeof v === "object" && v !== null;
@@ -46,6 +49,13 @@ function pick3<T>(a: T | undefined, b: T | undefined, c: T | undefined): T | und
 }
 
 function mapStepStateCode(code: number): UserStepState | undefined {
+  if (code === 0) return "pending";
+  if (code === 1) return "active";
+  if (code === 2) return "completed";
+  return undefined;
+}
+
+function mapDiseaseStatusCode(code: number): UserDiseaseStatus | undefined {
   if (code === 0) return "pending";
   if (code === 1) return "active";
   if (code === 2) return "completed";
@@ -117,8 +127,13 @@ function normalizeUserDiseaseItem(raw: unknown): IUserDiseaseItem {
   const updatedAt =
     pick(readString(raw, "updatedAt"), readString(raw, "UpdatedAt")) ?? "";
 
-  const status =
-    pick(readString(raw, "status"), readString(raw, "Status")) ?? "active";
+  const statusRaw = pick(readString(raw, "status"), readString(raw, "Status"));
+  const statusNum = pick(readNumber(raw, "status"), readNumber(raw, "Status"));
+  const statusFromNum =
+    typeof statusNum === "number"
+      ? mapDiseaseStatusCode(statusNum) ?? String(statusNum)
+      : undefined;
+  const status = statusRaw ?? statusFromNum ?? "active";
 
   return {
     categoryName,
@@ -191,8 +206,8 @@ function normalizeUserDiseaseStepItem(raw: unknown): IUserDiseaseStepItem {
 }
 
 class UserDiseasesService {
-  async getMyDiseases(): Promise<IUserDiseasesResponse> {
-    const res = await api.get<unknown>("/api/v1/me/diseases");
+  async getMyDiseases(params?: DiseaseListParams): Promise<IUserDiseasesResponse> {
+    const res = await api.get<unknown>("/api/v1/me/diseases", { params });
     return normalizeListResponse(res.data, normalizeUserDiseaseItem);
   }
 

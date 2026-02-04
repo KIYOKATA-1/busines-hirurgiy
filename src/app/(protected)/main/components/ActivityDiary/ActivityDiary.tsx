@@ -6,10 +6,13 @@ import AddDiaryEntryModal from "./components/AddDiaryEntryModal/AddDiaryEntryMod
 
 import { useToast } from "@/app/components/Toast/ToastProvider";
 
+import { diaryService } from "@/services/diary/diary.service";
+import type { IDiaryActivityItem } from "@/services/diary/diary.types";
 import { userDiseasesService } from "@/services/userDiseases/userDiseases.service";
 import type {
   IUserDiseaseItem,
   IUserDiseaseStepItem,
+  UserDiseaseStatusCode,
   UserStepState,
 } from "@/services/userDiseases/userDiseases.types";
 import {
@@ -23,14 +26,27 @@ import { ChatIcon } from "@/shared/ui/icons/ChatIcon";
 
 
 type StatItem = {
+  id: "awaiting" | "needsWork" | "answered";
   title: string;
   value: number;
   icon: "calendar" | "check" | "chat";
 };
 
-type ViewMode = "diseases" | "steps";
+type ViewMode = "diseases" | "steps" | "feedback";
+type DiseaseStatusFilter = "all" | UserDiseaseStatusCode;
+
+type DiaryEntryItem = Extract<IDiaryActivityItem, { type: "diary" }>;
+type DiaryFeedbackItem = Extract<IDiaryActivityItem, { type: "feedback" }>;
+
+const DISEASE_STATUS_FILTERS: Array<{ value: DiseaseStatusFilter; label: string }> = [
+  { value: "all", label: "Все статусы" },
+  { value: 0, label: "Ожидает" },
+  { value: 1, label: "В процессе" },
+  { value: 2, label: "Завершено" },
+];
 
 const DEFAULT_STEPS_LIMIT = 50;
+const DEFAULT_DIARY_LIMIT = 100;
 
 function StatIcon({ kind }: { kind: StatItem["icon"] }) {
   if (kind === "calendar") return <ActivityDiaryIcon className={styles.statSvg} />;
@@ -43,6 +59,11 @@ function fmtDate(iso?: string | null) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return String(iso);
   return d.toLocaleString();
+}
+
+function toTime(iso?: string | null) {
+  const t = new Date(iso ?? "").getTime();
+  return Number.isNaN(t) ? 0 : t;
 }
 
 function clampPct(v: number) {
@@ -62,6 +83,11 @@ function isCompleted(s: UserStepState) {
   return String(s || "").toLowerCase() === "completed";
 }
 
+function isResolved(status?: string | null) {
+  const s = String(status ?? "").toLowerCase();
+  return s === "resolved" || s === "done" || s === "completed";
+}
+
 function prefersReducedMotion() {
   if (typeof window === "undefined") return true;
   return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
@@ -73,26 +99,24 @@ export default function ActivityDiary() {
   const [open, setOpen] = useState(false);
   const [presetTags, setPresetTags] = useState<string[]>([]);
   const [presetTitle, setPresetTitle] = useState<string | null>(null);
+  const [reportDiseaseId, setReportDiseaseId] = useState<string | null>(null);
+  const [resolveAfterReport, setResolveAfterReport] = useState<IUserDiseaseItem | null>(null);
 
-  const stats: StatItem[] = useMemo(
-    () => [
-      { title: "Ожидают проверки", value: 0, icon: "calendar" },
-      { title: "Нужна доработка", value: 0, icon: "check" },
-      { title: "Есть ответ", value: 0, icon: "chat" },
-    ],
-    []
-  );
+  const [diaryItems, setDiaryItems] = useState<IDiaryActivityItem[]>([]);
+  const [diaryLoading, setDiaryLoading] = useState(false);
 
   const [view, setView] = useState<ViewMode>("diseases");
 
   const [diseasesLoading, setDiseasesLoading] = useState(false);
   const [diseases, setDiseases] = useState<IUserDiseaseItem[]>([]);
   const [selectedDisease, setSelectedDisease] = useState<IUserDiseaseItem | null>(null);
+  const [statusFilter, setStatusFilter] = useState<DiseaseStatusFilter>("all");
 
   const [stepsLoading, setStepsLoading] = useState(false);
   const [steps, setSteps] = useState<IUserDiseaseStepItem[]>([]);
   const [completeLoadingId, setCompleteLoadingId] = useState<string | null>(null);
   const [stateLoadingId, setStateLoadingId] = useState<string | null>(null);
+  const [resolveLoadingId, setResolveLoadingId] = useState<string | null>(null);
 
   const outerRef = useRef<HTMLDivElement | null>(null);
   const innerRef = useRef<HTMLDivElement | null>(null);
@@ -101,6 +125,70 @@ export default function ActivityDiary() {
 
   const [viewHeight, setViewHeight] = useState<number | "auto">("auto");
   const [heightAnimating, setHeightAnimating] = useState(false);
+
+  const diaryEntries = useMemo(() => {
+    return diaryItems.filter((item): item is DiaryEntryItem => item.type === "diary");
+  }, [diaryItems]);
+
+  const feedbackByDiaryId = useMemo(() => {
+    const map: Record<string, DiaryFeedbackItem[]> = {};
+    for (const item of diaryItems) {
+      if (item.type !== "feedback") continue;
+      if (item.payload.targetType !== "diary" || !item.payload.diaryId) continue;
+      if (!map[item.payload.diaryId]) map[item.payload.diaryId] = [];
+      map[item.payload.diaryId].push(item);
+    }
+    return map;
+  }, [diaryItems]);
+
+  const feedbackEntries = useMemo(() => {
+    return diaryEntries
+      .map((entry) => {
+        const feedback = (feedbackByDiaryId[entry.id] ?? [])
+          .slice()
+          .sort((a, b) => toTime(a.createdAt) - toTime(b.createdAt));
+        return { diary: entry, feedback };
+      })
+      .filter((entry) => entry.feedback.length > 0)
+      .sort((a, b) => toTime(b.diary.createdAt) - toTime(a.diary.createdAt));
+  }, [diaryEntries, feedbackByDiaryId]);
+
+  const diaryStats = useMemo(() => {
+    const answered = diaryEntries.filter(
+      (item) => (feedbackByDiaryId[item.id] ?? []).length > 0
+    ).length;
+    const awaiting = Math.max(0, diaryEntries.length - answered);
+
+    return {
+      awaiting,
+      needsWork: 0,
+      answered,
+    };
+  }, [diaryEntries, feedbackByDiaryId]);
+
+  const stats: StatItem[] = useMemo(
+    () => [
+      {
+        id: "awaiting",
+        title: "Ожидают проверки",
+        value: diaryStats.awaiting,
+        icon: "calendar",
+      },
+      {
+        id: "needsWork",
+        title: "Нужна доработка",
+        value: diaryStats.needsWork,
+        icon: "check",
+      },
+      {
+        id: "answered",
+        title: "Есть ответ",
+        value: diaryStats.answered,
+        icon: "chat",
+      },
+    ],
+    [diaryStats]
+  );
 
   const cleanupRaf = () => {
     if (raf1.current) cancelAnimationFrame(raf1.current);
@@ -145,27 +233,49 @@ export default function ActivityDiary() {
     return () => cleanupRaf();
   }, []);
 
-  const loadDiseases = useCallback(async () => {
-    try {
-      setDiseasesLoading(true);
-      const res = await userDiseasesService.getMyDiseases();
-      const items = res.items ?? [];
-      setDiseases(items);
+  const loadDiseases = useCallback(
+    async (opts?: { keepSelectedUserDiseaseId?: string | null; status?: DiseaseStatusFilter }) => {
+      try {
+        setDiseasesLoading(true);
+        const statusValue = opts?.status ?? statusFilter;
+        const statusParam = statusValue === "all" ? undefined : statusValue;
+        const res = await userDiseasesService.getMyDiseases(
+          statusParam === undefined ? undefined : { status: statusParam }
+        );
+        const items = res.items ?? [];
+        setDiseases(items);
 
-      if (!selectedDisease && items.length > 0) {
-        setSelectedDisease(items[0]);
+        const selectedId = opts?.keepSelectedUserDiseaseId ?? selectedDisease?.userDiseaseId ?? null;
+        if (selectedId) {
+          const nextSelected = items.find((d) => d.userDiseaseId === selectedId) ?? null;
+          if (nextSelected) {
+            setSelectedDisease(nextSelected);
+            return;
+          }
+          if (items.length > 0) {
+            setSelectedDisease(items[0]);
+            return;
+          }
+          setSelectedDisease(null);
+          return;
+        }
+
+        if (items.length > 0) {
+          setSelectedDisease(items[0]);
+        }
+      } catch (e: any) {
+        const msg =
+          e?.response?.data?.message ||
+          e?.response?.data?.detail ||
+          e?.message ||
+          "Не удалось загрузить болезни.";
+        toast.error(String(msg));
+      } finally {
+        setDiseasesLoading(false);
       }
-    } catch (e: any) {
-      const msg =
-        e?.response?.data?.message ||
-        e?.response?.data?.detail ||
-        e?.message ||
-        "Не удалось загрузить болезни.";
-      toast.error(String(msg));
-    } finally {
-      setDiseasesLoading(false);
-    }
-  }, [toast, selectedDisease]);
+    },
+    [toast, selectedDisease?.userDiseaseId, statusFilter]
+  );
 
   const loadSteps = useCallback(
     async (userDiseaseId: string, totalSteps?: number) => {
@@ -200,8 +310,30 @@ export default function ActivityDiary() {
     [toast]
   );
 
+  const loadDiary = useCallback(async () => {
+    try {
+      setDiaryLoading(true);
+      const res = await diaryService.getMyDiary({
+        limit: DEFAULT_DIARY_LIMIT,
+        offset: 0,
+      });
+      setDiaryItems(res.items ?? []);
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data?.detail ||
+        e?.message ||
+        "Не удалось загрузить дневник.";
+      toast.error(String(msg));
+      setDiaryItems([]);
+    } finally {
+      setDiaryLoading(false);
+    }
+  }, [toast]);
+
   useEffect(() => {
     loadDiseases();
+    loadDiary();
   }, []);
 
   useEffect(() => {
@@ -220,6 +352,8 @@ export default function ActivityDiary() {
     diseases.length,
     stepsLoading,
     steps.length,
+    diaryLoading,
+    feedbackEntries.length,
   ]);
 
   useEffect(() => {
@@ -242,6 +376,22 @@ export default function ActivityDiary() {
     setSteps([]);
   };
 
+  const onShowFeedback = () => {
+    setView("feedback");
+    loadDiary();
+  };
+
+  const onStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const nextRaw = e.target.value;
+    const nextFilter =
+      nextRaw === "all" ? "all" : (Number(nextRaw) as UserDiseaseStatusCode);
+    setStatusFilter(nextFilter);
+    loadDiseases({
+      keepSelectedUserDiseaseId: selectedDisease?.userDiseaseId ?? null,
+      status: nextFilter,
+    });
+  };
+
   const onCompleteStep = useCallback(
     async (userStepId: string) => {
       if (!selectedDisease) return;
@@ -252,7 +402,7 @@ export default function ActivityDiary() {
         toast.success("Шаг выполнен");
 
         await loadSteps(selectedDisease.userDiseaseId, selectedDisease.totalSteps);
-        await loadDiseases();
+        await loadDiseases({ keepSelectedUserDiseaseId: selectedDisease.userDiseaseId });
       } catch (e: any) {
         const msg =
           e?.response?.data?.message ||
@@ -267,6 +417,31 @@ export default function ActivityDiary() {
     [selectedDisease, toast, loadSteps, loadDiseases]
   );
 
+  const onResolveDisease = useCallback(
+    async (disease: IUserDiseaseItem) => {
+      try {
+        setResolveLoadingId(disease.userDiseaseId);
+        await userDiseasesService.resolveDisease(disease.userDiseaseId);
+        toast.success("Болезнь завершена");
+
+        await loadDiseases({ keepSelectedUserDiseaseId: disease.userDiseaseId });
+        if (selectedDisease?.userDiseaseId === disease.userDiseaseId && view === "steps") {
+          await loadSteps(disease.userDiseaseId, disease.totalSteps);
+        }
+      } catch (e: any) {
+        const msg =
+          e?.response?.data?.message ||
+          e?.response?.data?.detail ||
+          e?.message ||
+          "Ошибка завершения болезни.";
+        toast.error(String(msg));
+      } finally {
+        setResolveLoadingId(null);
+      }
+    },
+    [loadDiseases, loadSteps, selectedDisease?.userDiseaseId, toast, view]
+  );
+
   const onChangeStepState = useCallback(
     async (userStepId: string, nextState: UserStepState) => {
       if (!selectedDisease) return;
@@ -277,7 +452,7 @@ export default function ActivityDiary() {
         toast.success("Статус шага обновлён");
 
         await loadSteps(selectedDisease.userDiseaseId, selectedDisease.totalSteps);
-        await loadDiseases();
+        await loadDiseases({ keepSelectedUserDiseaseId: selectedDisease.userDiseaseId });
       } catch (e: any) {
         const msg =
           e?.response?.data?.message ||
@@ -292,24 +467,41 @@ export default function ActivityDiary() {
     [selectedDisease, toast, loadSteps, loadDiseases]
   );
 
-  const openReportModal = (opts?: { disease?: IUserDiseaseItem | null; step?: IUserDiseaseStepItem | null }) => {
-    const diseaseName = opts?.disease?.diseaseName;
-    const isStepReport = Boolean(opts?.step);
+  const openReportModal = (opts?: { disease?: IUserDiseaseItem | null; resolveAfter?: boolean }) => {
+    const fallbackId = diseases[0]?.userDiseaseId ?? null;
+    const nextDiseaseId =
+      opts?.disease?.userDiseaseId ?? selectedDisease?.userDiseaseId ?? fallbackId;
 
-    const tags: string[] = [];
-
-    if (diseaseName) tags.push(`disease:${diseaseName}`);
-
-    setPresetTags(tags);
-    setPresetTitle(
-      diseaseName
-        ? isStepReport
-          ? `Отчёт по шагу • ${diseaseName}`
-          : `Отчёт • ${diseaseName}`
-        : "Новая запись"
-    );
-
+    setReportDiseaseId(nextDiseaseId);
+    setPresetTags([]);
+    setPresetTitle("Отчёт");
+    if (opts?.resolveAfter && opts?.disease) {
+      setResolveAfterReport(opts.disease);
+    } else {
+      setResolveAfterReport(null);
+    }
     setOpen(true);
+  };
+
+  const handleReportClose = () => {
+    setOpen(false);
+    setResolveAfterReport(null);
+    setReportDiseaseId(null);
+  };
+
+  const handleReportSaved = useCallback(
+    async () => {
+      await loadDiary();
+      if (!resolveAfterReport) return;
+      const diseaseToResolve = resolveAfterReport;
+      setResolveAfterReport(null);
+      await onResolveDisease(diseaseToResolve);
+    },
+    [loadDiary, onResolveDisease, resolveAfterReport]
+  );
+
+  const onAddReport = () => {
+    openReportModal({ resolveAfter: false });
   };
 
   const selectedPct = clampPct(selectedDisease?.progressPercent ?? 0);
@@ -323,23 +515,55 @@ export default function ActivityDiary() {
       </div>
 
       <div className={styles.stats}>
-        {stats.map((s) => (
-          <div key={s.title} className={styles.statCard}>
-            <div className={styles.statHead}>
-              <span className={styles.statIco} aria-hidden="true">
-                <StatIcon kind={s.icon} />
-              </span>
-              <span className={styles.statTitle}>{s.title}</span>
+        {stats.map((s) => {
+          const isAnswered = s.id === "answered";
+          const isActive = isAnswered && view === "feedback";
+          const cardClass = [
+            styles.statCard,
+            isAnswered ? styles.statCardClickable : "",
+            isActive ? styles.statCardActive : "",
+          ].join(" ");
+
+          const content = (
+            <>
+              <div className={styles.statHead}>
+                <span className={styles.statIco} aria-hidden="true">
+                  <StatIcon kind={s.icon} />
+                </span>
+                <span className={styles.statTitle}>{s.title}</span>
+              </div>
+              <div className={styles.statValue}>{s.value}</div>
+            </>
+          );
+
+          if (isAnswered) {
+            return (
+              <button
+                key={s.id}
+                type="button"
+                className={cardClass}
+                onClick={onShowFeedback}
+                aria-pressed={isActive}
+              >
+                {content}
+              </button>
+            );
+          }
+
+          return (
+            <div key={s.id} className={cardClass}>
+              {content}
             </div>
-            <div className={styles.statValue}>{s.value}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <section className={styles.panel}>
         <div className={styles.panelHead}>
           <div className={styles.panelHeadLeft}>
-            <div className={styles.panelTitle}>{view === "steps" ? "Шаги" : "Болезни"}</div>
+            <div className={styles.panelTitle}>
+              {view === "steps" ? "Шаги" : view === "feedback" ? "Ответы" : "Болезни"}
+            </div>
 
             {view === "steps" ? (
               <div className={styles.panelSub}>
@@ -353,6 +577,8 @@ export default function ActivityDiary() {
                   <span className={styles.panelPillMuted}>{selectedPct}%</span>
                 </div>
               </div>
+            ) : view === "feedback" ? (
+              <div className={styles.panelHint}>Отчёты с ответами модератора</div>
             ) : (
               <div className={styles.panelHint}>Выберите болезнь → выполняйте шаги → отчитывайтесь</div>
             )}
@@ -378,15 +604,54 @@ export default function ActivityDiary() {
                   {stepsLoading ? "..." : "Обновить"}
                 </button>
               </>
+            ) : view === "feedback" ? (
+              <>
+                <button type="button" className={styles.ghostBtn} onClick={onBack}>
+                  <BackIcon className={styles.backIcon} />
+                  <span className={styles.backText}>Назад</span>
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.smallBtn}
+                  onClick={loadDiary}
+                  disabled={diaryLoading}
+                >
+                  {diaryLoading ? "..." : "Обновить"}
+                </button>
+              </>
             ) : (
-              <button
-                type="button"
-                className={styles.smallBtn}
-                onClick={loadDiseases}
-                disabled={diseasesLoading}
-              >
-                {diseasesLoading ? "..." : "Обновить"}
-              </button>
+              <>
+                <div className={styles.filter}>
+                  <label className={styles.filterLabel} htmlFor="disease-status-filter">
+                    Статус
+                  </label>
+                  <select
+                    id="disease-status-filter"
+                    className={[styles.badge, styles.filterSelect].join(" ")}
+                    value={String(statusFilter)}
+                    onChange={onStatusFilterChange}
+                    disabled={diseasesLoading}
+                  >
+                    {DISEASE_STATUS_FILTERS.map((option) => (
+                      <option key={String(option.value)} value={String(option.value)}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.smallBtn}
+                  onClick={() =>
+                    loadDiseases({ keepSelectedUserDiseaseId: selectedDisease?.userDiseaseId ?? null })
+                  }
+                  disabled={diseasesLoading}
+                >
+                  {diseasesLoading ? "..." : "Обновить"}
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -412,47 +677,76 @@ export default function ActivityDiary() {
                     <div className={styles.emptyText}>Когда болезнь будет назначена — она появится здесь.</div>
                   </div>
                 ) : (
-                  <div className={styles.diseaseGrid}>
-                    {diseases.map((d) => {
-                      const active = selectedDisease?.userDiseaseId === d.userDiseaseId;
-                      const pct = clampPct(d.progressPercent ?? 0);
+                  <>
+                    <div className={styles.diseaseGrid}>
+                      {diseases.map((d) => {
+                        const active = selectedDisease?.userDiseaseId === d.userDiseaseId;
+                        const pct = clampPct(d.progressPercent ?? 0);
+                        const resolved = isResolved(d.status);
+                        const resolving = resolveLoadingId === d.userDiseaseId;
 
-                      return (
-                        <button
-                          key={d.userDiseaseId}
-                          type="button"
-                          className={[styles.diseaseCard, active ? styles.diseaseCardActive : ""].join(" ")}
-                          onClick={() => onPickDisease(d)}
-                        >
-                          <div className={styles.diseaseTop}>
-                            <div className={styles.diseaseName}>{d.diseaseName}</div>
-                            <div className={styles.diseaseStatus}>{String(d.status || "—")}</div>
-                          </div>
+                        return (
+                          <div key={d.userDiseaseId} className={styles.diseaseItem}>
+                            <button
+                              type="button"
+                              className={[styles.diseaseCard, active ? styles.diseaseCardActive : ""].join(" ")}
+                              onClick={() => onPickDisease(d)}
+                            >
+                              <div className={styles.diseaseTop}>
+                                <div className={styles.diseaseName}>{d.diseaseName}</div>
+                                <div className={styles.diseaseStatus}>{String(d.status || "—")}</div>
+                              </div>
 
-                          <div className={styles.diseaseChips}>
-                            <span className={styles.chip}>{d.categoryName}</span>
-                            <span className={styles.chipMuted}>{d.organName}</span>
-                          </div>
+                              <div className={styles.diseaseChips}>
+                                <span className={styles.chip}>{d.categoryName}</span>
+                                <span className={styles.chipMuted}>{d.organName}</span>
+                              </div>
 
-                          <div className={styles.diseaseProg}>
-                            <div className={styles.diseaseProgMeta}>
-                              <span className={styles.diseaseProgText}>
-                                {Math.max(0, Number(d.completedSteps ?? 0))}/{Math.max(0, Number(d.totalSteps ?? 0))} шагов
-                              </span>
-                              <span className={styles.diseaseProgPct}>{pct}%</span>
+                              <div className={styles.diseaseProg}>
+                                <div className={styles.diseaseProgMeta}>
+                                  <span className={styles.diseaseProgText}>
+                                    {Math.max(0, Number(d.completedSteps ?? 0))}/
+                                    {Math.max(0, Number(d.totalSteps ?? 0))} шагов
+                                  </span>
+                                  <span className={styles.diseaseProgPct}>{pct}%</span>
+                                </div>
+
+                                <div className={styles.progressBar}>
+                                  <div className={styles.progressFill} style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            </button>
+
+                            <div className={styles.diseaseActions}>
+                              <button
+                                type="button"
+                                className={styles.primaryBtn}
+                                onClick={() => openReportModal({ disease: d, resolveAfter: true })}
+                                disabled={resolved || resolving}
+                                title={resolved ? "Болезнь уже завершена" : "Завершить болезнь"}
+                              >
+                                {resolving ? "..." : resolved ? "Завершено" : "Завершить"}
+                              </button>
                             </div>
-
-                            <div className={styles.progressBar}>
-                              <div className={styles.progressFill} style={{ width: `${pct}%` }} />
-                            </div>
                           </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className={styles.reportActions}>
+                      <button
+                        type="button"
+                        className={styles.primaryBtn}
+                        onClick={onAddReport}
+                        disabled={diseasesLoading}
+                      >
+                        Добавить отчет
+                      </button>
+                    </div>
+                  </>
                 )}
               </>
-            ) : (
+            ) : view === "steps" ? (
               <>
                 {!selectedDisease?.userDiseaseId ? (
                   <div className={styles.emptyBox}>
@@ -514,16 +808,6 @@ export default function ActivityDiary() {
                           <div className={styles.stepActions}>
                             <button
                               type="button"
-                              className={styles.secondaryBtn}
-                              onClick={() => openReportModal({ disease: selectedDisease, step: s })}
-                              disabled={!selectedDisease || !done || completing || updatingState}
-                              title={done ? "Отчитаться по шагу" : "Сначала выполните шаг"}
-                            >
-                              Отчитаться
-                            </button>
-
-                            <button
-                              type="button"
                               className={styles.primaryBtn}
                               onClick={() => onCompleteStep(s.id)}
                               disabled={done || completing || updatingState}
@@ -538,6 +822,60 @@ export default function ActivityDiary() {
                   </div>
                 )}
               </>
+            ) : (
+              <>
+                {diaryLoading ? (
+                  <div className={styles.emptyBox}>Загрузка ответов...</div>
+                ) : feedbackEntries.length === 0 ? (
+                  <div className={styles.emptyBox}>
+                    <div className={styles.emptyTitle}>Ответов нет</div>
+                    <div className={styles.emptyText}>
+                      Когда модератор оставит feedback — он появится здесь.
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.feedbackList}>
+                    {feedbackEntries.map((entry) => (
+                      <div key={entry.diary.id} className={styles.feedbackCard}>
+                        <div className={styles.feedbackHead}>
+                          <div className={styles.feedbackTitle}>
+                            {entry.diary.payload.mood || "Отчёт"}
+                          </div>
+                          <div className={styles.feedbackDate}>
+                            {fmtDate(entry.diary.createdAt)}
+                          </div>
+                        </div>
+
+                        <div className={styles.feedbackText}>{entry.diary.payload.text}</div>
+
+                        {entry.diary.payload.tags?.length ? (
+                          <div className={styles.feedbackTags}>
+                            {entry.diary.payload.tags.map((tag) => (
+                              <span key={`${entry.diary.id}-${tag}`} className={styles.feedbackTag}>
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        <div className={styles.feedbackReplies}>
+                          {entry.feedback.map((fb) => (
+                            <div key={fb.id} className={styles.feedbackReply}>
+                              <div className={styles.feedbackReplyHead}>
+                                <span className={styles.feedbackBadge}>MOD</span>
+                                <span className={styles.feedbackDate}>
+                                  {fmtDate(fb.createdAt)}
+                                </span>
+                              </div>
+                              <div className={styles.feedbackText}>{fb.payload.text}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -545,9 +883,13 @@ export default function ActivityDiary() {
 
       <AddDiaryEntryModal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={handleReportClose}
         presetTitle={presetTitle}
         presetTags={presetTags}
+        diseases={diseases}
+        defaultDiseaseId={reportDiseaseId}
+        lockDisease={Boolean(resolveAfterReport)}
+        onSaved={handleReportSaved}
       />
     </div>
   );

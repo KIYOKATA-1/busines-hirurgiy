@@ -35,11 +35,16 @@
   }
 
   .statCard {
+    width: 100%;
+    appearance: none;
+    text-align: left;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.03);
     padding: 16px 16px 14px;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    color: inherit;
+    font: inherit;
 
     .statHead {
       display: flex;
@@ -74,6 +79,33 @@
       color: rgba(255, 255, 255, 0.92);
     }
   }
+}
+
+.statCardClickable {
+  cursor: pointer;
+  transition: transform 120ms ease, background 140ms ease, border-color 140ms ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: rgba(59, 130, 246, 0.45);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+}
+
+.statCardActive {
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(59, 130, 246, 0.25);
 }
 
 .statSvg {
@@ -122,6 +154,7 @@
     display: flex;
     gap: 10px;
     align-items: center;
+    flex-wrap: wrap;
 
     @media (max-width: 720px) {
       justify-content: flex-start;
@@ -179,6 +212,29 @@
     color: rgba(255, 255, 255, 0.9);
     border-color: rgba(59, 130, 246, 0.25);
     background: rgba(59, 130, 246, 0.12);
+  }
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filterLabel {
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.filterSelect {
+  cursor: pointer;
+  padding-right: 22px;
+  min-width: 140px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 }
 
@@ -319,6 +375,11 @@
   }
 }
 
+.diseaseItem {
+  display: grid;
+  gap: 8px;
+}
+
 .diseaseCard {
   width: 100%;
   text-align: left;
@@ -339,6 +400,19 @@
   &:active {
     transform: translateY(1px);
   }
+}
+
+.diseaseActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.reportActions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .diseaseCardActive {
@@ -466,6 +540,107 @@
   gap: 10px;
 }
 
+.feedbackList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feedbackCard {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.feedbackHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.feedbackTitle {
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feedbackDate {
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.6);
+  flex: 0 0 auto;
+}
+
+.feedbackText {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.feedbackTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.feedbackTag {
+  height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(191, 219, 254, 0.95);
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+}
+
+.feedbackReplies {
+  display: grid;
+  gap: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  padding-top: 10px;
+}
+
+.feedbackReply {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.feedbackReplyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.feedbackBadge {
+  height: 18px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(191, 219, 254, 0.95);
+  background: rgba(59, 130, 246, 0.16);
+  border: 1px solid rgba(59, 130, 246, 0.28);
+}
+
 .stepCard {
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.10);
@@ -588,13 +763,10 @@
 }
 
 .stepActions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 10px;
-
-  @media (max-width: 520px) {
-    grid-template-columns: 1fr;
-  }
 }
 
 .primaryBtn,

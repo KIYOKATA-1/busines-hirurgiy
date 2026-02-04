@@ -4,8 +4,11 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./AddDiaryEntryModal.module.scss";
 
 import ModalPortal from "@/app/components/ModalPortal/ModalPortal";
+import DiseaseDropdown from "@/app/components/DiseaseDropdown/DiseaseDropdown";
+import type { DiseaseDropdownOption } from "@/app/components/DiseaseDropdown/DiseaseDropdown.types";
 import { diaryService } from "@/services/diary/diary.service";
 import type { CreateDiaryEntryPayload } from "@/services/diary/diary.types";
+import type { IUserDiseaseItem } from "@/services/userDiseases/userDiseases.types";
 import { useToast } from "@/app/components/Toast/ToastProvider";
 
 type Props = {
@@ -13,6 +16,10 @@ type Props = {
   onClose: () => void;
   presetTags?: string[];
   presetTitle?: string | null;
+  diseases?: IUserDiseaseItem[];
+  defaultDiseaseId?: string | null;
+  lockDisease?: boolean;
+  onSaved?: (opts?: { diseaseId?: string }) => void | Promise<void>;
 };
 
 const MAX_TAG_LENGTH = 32;
@@ -47,23 +54,63 @@ function normalizeTags(rawTags: string[]) {
   );
 }
 
-export default function AddDiaryEntryModal({ open, onClose, presetTags, presetTitle }: Props) {
+export default function AddDiaryEntryModal({
+  open,
+  onClose,
+  presetTags,
+  presetTitle,
+  diseases,
+  defaultDiseaseId,
+  lockDisease = false,
+  onSaved,
+}: Props) {
   const toast = useToast();
 
   const [mood, setMood] = useState("");
   const [tagsInput, setTagsInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [text, setText] = useState("");
+  const [selectedDiseaseId, setSelectedDiseaseId] = useState("");
 
   const [saving, setSaving] = useState(false);
 
   const moodRef = useRef<HTMLInputElement | null>(null);
 
-  const baseTags = useMemo(() => normalizeTags(presetTags ?? []), [presetTags]);
+  const diseaseOptions: DiseaseDropdownOption[] = useMemo(() => {
+    return (diseases ?? []).map((d) => ({
+      value: d.userDiseaseId,
+      label: d.diseaseName || "Без названия",
+      subLabel: [d.categoryName, d.organName].filter(Boolean).join(" • "),
+    }));
+  }, [diseases]);
+
+  const selectedDisease = useMemo(() => {
+    return (diseases ?? []).find((d) => d.userDiseaseId === selectedDiseaseId) ?? null;
+  }, [diseases, selectedDiseaseId]);
+
+  const diseaseTag = selectedDisease?.diseaseName
+    ? `disease:${selectedDisease.diseaseName}`
+    : null;
+
+  const baseTags = useMemo(() => {
+    const incoming = presetTags ?? [];
+    return normalizeTags([...incoming, ...(diseaseTag ? [diseaseTag] : [])]);
+  }, [presetTags, diseaseTag]);
+
+  const hasDiseaseOptions = diseaseOptions.length > 0;
+  const requiresDisease = typeof diseases !== "undefined";
 
   const canSave = useMemo(() => {
+    if (requiresDisease && !selectedDiseaseId) return false;
     return !saving && mood.trim().length > 0 && text.trim().length > 0;
-  }, [mood, text, saving]);
+  }, [mood, text, saving, requiresDisease, selectedDiseaseId]);
+
+  const modalTitle = useMemo(() => {
+    if (selectedDisease?.diseaseName) {
+      return `Отчёт • ${selectedDisease.diseaseName}`;
+    }
+    return presetTitle ?? "Новая запись";
+  }, [presetTitle, selectedDisease?.diseaseName]);
 
   useEffect(() => {
     if (!open) return;
@@ -94,6 +141,12 @@ export default function AddDiaryEntryModal({ open, onClose, presetTags, presetTi
     setSaving(false);
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const nextId = defaultDiseaseId ?? diseases?.[0]?.userDiseaseId ?? "";
+    setSelectedDiseaseId(nextId);
+  }, [open, defaultDiseaseId, diseases]);
+
   if (!open) return null;
 
   function addTagsFromInput() {
@@ -117,6 +170,7 @@ export default function AddDiaryEntryModal({ open, onClose, presetTags, presetTi
     try {
       await diaryService.createEntry(payload);
       toast.success("Запись сохранена и отправлена модератору.");
+      void onSaved?.({ diseaseId: selectedDiseaseId || undefined });
       onClose();
     } catch (e: any) {
       const msg =
@@ -142,7 +196,7 @@ export default function AddDiaryEntryModal({ open, onClose, presetTags, presetTi
         <div className={styles.modal}>
           <div className={styles.head}>
             <div className={styles.headText}>
-              <div className={styles.title}>{presetTitle ?? "Новая запись"}</div>
+              <div className={styles.title}>{modalTitle}</div>
               <div className={styles.subtitle}>Заполните mood и текст. Теги — опционально.</div>
 
               {baseTags.length > 0 && (
@@ -162,6 +216,20 @@ export default function AddDiaryEntryModal({ open, onClose, presetTags, presetTi
           </div>
 
           <div className={styles.body}>
+            <div className={styles.field}>
+              <label className={styles.label}>Болезнь</label>
+              <DiseaseDropdown
+                value={selectedDiseaseId}
+                options={diseaseOptions}
+                placeholder={hasDiseaseOptions ? "Выберите болезнь" : "Нет доступных болезней"}
+                onChange={setSelectedDiseaseId}
+                disabled={lockDisease || saving || !hasDiseaseOptions}
+              />
+              {requiresDisease && !hasDiseaseOptions && (
+                <div className={styles.hint}>Нет доступных болезней для отчёта.</div>
+              )}
+            </div>
+
             <div className={styles.field}>
               <label className={styles.label}>Mood</label>
               <input
