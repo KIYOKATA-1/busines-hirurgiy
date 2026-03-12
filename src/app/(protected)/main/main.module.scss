@@ -36,6 +36,10 @@
   height: 100%;
 }
 
+.containerLong {
+  max-width: 1560px;
+}
+
 .tabletWrap {
   width: 100%;
   min-width: 0;
@@ -104,6 +108,203 @@
   flex-direction: column;
 
   overflow: hidden;
+}
+
+.analysisBlock {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.analysisToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.analysisAddBtn {
+  border: 1px solid rgba(124, 210, 255, 0.36);
+  background: rgba(50, 116, 255, 0.2);
+  color: #edf3ff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(62, 132, 255, 0.3);
+    border-color: rgba(124, 210, 255, 0.64);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.analysisState {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
+
+.analysisBoards {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px;
+  align-content: start;
+  box-sizing: border-box;
+}
+
+.analysisBoard {
+  position: relative;
+  width: auto;
+  min-width: 0;
+  height: 240px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(circle at 20% 16%, rgba(90, 169, 255, 0.08), transparent 34%),
+    radial-gradient(circle at 82% 84%, rgba(84, 235, 170, 0.08), transparent 32%),
+    #020303;
+  padding: 10px;
+  overflow: hidden;
+  box-sizing: border-box;
+  cursor: pointer;
+  box-shadow:
+    0 18px 60px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    border-color: rgba(150, 226, 255, 0.42);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px rgba(112, 203, 255, 0.72),
+      0 18px 60px rgba(0, 0, 0, 0.6),
+      0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+  }
+}
+
+.analysisBoardLoading {
+  cursor: wait;
+  pointer-events: none;
+}
+
+.analysisBoardOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: rgba(2, 6, 11, 0.68);
+  color: rgba(237, 244, 252, 0.95);
+  font-size: 13px;
+  font-weight: 650;
+  z-index: 4;
+}
+
+.analysisMap {
+  position: relative;
+  min-height: 100%;
+  height: 100%;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  background:
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.12) 1px, transparent 0) 0 0 / 24px
+      24px,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  overflow: hidden;
+}
+
+.analysisMapCore {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 48px);
+  max-width: 280px;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(140, 227, 255, 0.4);
+  background: linear-gradient(135deg, rgba(52, 123, 255, 0.28), rgba(27, 191, 255, 0.2));
+  color: #f8fafc;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  box-shadow:
+    0 22px 40px rgba(6, 16, 33, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  z-index: 2;
+  word-break: break-word;
+}
+
+.analysisMeta {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  z-index: 3;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(5, 9, 14, 0.74);
+    color: rgba(231, 239, 248, 0.88);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+  }
+}
+
+@media (max-width: 1100px) {
+  .analysisBoard {
+    height: 220px;
+  }
+
+  .analysisMapCore {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  .analysisBoards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .analysisBoard {
+    height: 210px;
+  }
+}
+
+@media (max-width: 680px) {
+  .analysisBoards {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
 }
 
 .loader {

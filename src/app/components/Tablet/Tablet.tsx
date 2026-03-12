@@ -4,7 +4,13 @@ import React, { useEffect, useLayoutEffect, useRef } from "react";
 import styles from "./Tablet.module.scss";
 
 export type Role = "participant" | "moderator" | "admin";
-export type TabKey = "anatomy" | "progress" | "diary" | "library" | "participants";
+export type TabKey =
+  | "anatomy"
+  | "progress"
+  | "diary"
+  | "library"
+  | "participants"
+  | "analysis";
 
 export type TabConfig = {
   key: TabKey;
@@ -29,6 +35,7 @@ export function Tablet({ role, tabsByRole, value, onChange }: Props) {
     diary: null,
     library: null,
     participants: null,
+    analysis: null,
   });
 
   const tabs = tabsByRole[role];
