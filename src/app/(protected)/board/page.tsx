@@ -196,7 +196,6 @@ export default function BoardPage() {
               onClick={() => setOpenMenu((prev) => (prev === "disease" ? null : "disease"))}
             >
               <span>Болезни</span>
-              <span className={styles.islandDropdownChevron} aria-hidden />
             </button>
 
             <div className={styles.islandDropdownMenu}>
@@ -227,7 +226,6 @@ export default function BoardPage() {
               onClick={() => setOpenMenu((prev) => (prev === "plan" ? null : "plan"))}
             >
               <span>План лечения</span>
-              <span className={styles.islandDropdownChevron} aria-hidden />
             </button>
 
             <div className={styles.islandDropdownMenu}>
