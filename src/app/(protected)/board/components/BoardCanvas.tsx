@@ -466,6 +466,9 @@ export function BoardCanvas({
         {topicList.map((topic) => {
           const isDragging = draggingTopicId === topic.id;
           const isTemplateRoot = templateRootIdSet.has(topic.id);
+          const normalizedTitle = topic.title.trim().toLowerCase();
+          const isGeneralTemplateRoot = isTemplateRoot && normalizedTitle === "общие данные";
+          const isAnalysisTemplateRoot = isTemplateRoot && normalizedTitle === "разбор";
           const isRoot = rootTopicId === topic.id || isTemplateRoot;
           const isSelected = selectedTopicId === topic.id;
           const isConnectHintTarget = proximityConnectHint?.parentTopicId === topic.id;
@@ -477,6 +480,8 @@ export function BoardCanvas({
               className={[
                 styles.topicNode,
                 isRoot ? styles.topicNodeRoot : "",
+                isGeneralTemplateRoot ? styles.topicNodeTemplateRootGeneral : "",
+                isAnalysisTemplateRoot ? styles.topicNodeTemplateRootAnalysis : "",
                 isSelected ? styles.topicNodeSelected : "",
                 isDragging ? styles.topicNodeDragging : "",
                 isConnectHintTarget ? styles.topicNodeConnectHint : "",

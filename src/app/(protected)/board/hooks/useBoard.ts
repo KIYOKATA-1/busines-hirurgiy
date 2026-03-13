@@ -631,6 +631,85 @@ export function useBoard(boardId: string) {
     }
   }, [boardId, createParentChildLink, setBoardVersion]);
 
+  const createTopicFromPicker = useCallback(
+    async (rawTitle: string) => {
+      const title = rawTitle.trim();
+      if (!boardId || !title) return false;
+
+      try {
+        setCreatingTopic(true);
+        setError(null);
+
+        const currentBoard = boardRef.current;
+        const currentTopics = topicsRef.current;
+        const hasAnyTopics = Object.keys(currentTopics).length > 0;
+        const shouldCreateRoot = !currentBoard?.rootTopicId && !hasAnyTopics;
+
+        if (shouldCreateRoot) {
+          const response = await createRootTopic(boardId, {
+            clientPoint: { x: 0, y: 0 },
+            height: DEFAULT_TOPIC_HEIGHT,
+            title,
+            width: DEFAULT_TOPIC_WIDTH,
+          });
+
+          setBoard((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              rootAnchor: response.board.rootAnchor,
+              rootTopicId: response.board.rootTopicId,
+              status: response.board.status,
+              version: response.board.version,
+            };
+          });
+
+          setTopics((prev) => ({
+            ...prev,
+            [response.rootTopic.id]: topicFromCore(response.rootTopic, prev[response.rootTopic.id]),
+          }));
+          setSelectedTopicId(response.rootTopic.id);
+          return true;
+        }
+
+        const anchorTopicId =
+          selectedTopicIdRef.current ??
+          currentBoard?.rootTopicId ??
+          Object.values(currentTopics).find((topic) => topic.inDegree === 0)?.id ??
+          null;
+        const anchorTopic = anchorTopicId ? currentTopics[anchorTopicId] : null;
+
+        const created = await createTopic(boardId, {
+          clientPoint: anchorTopic
+            ? {
+                x: anchorTopic.x + 28,
+                y: anchorTopic.y + 28,
+              }
+            : { x: 0, y: 0 },
+          height: DEFAULT_TOPIC_HEIGHT,
+          title,
+          width: DEFAULT_TOPIC_WIDTH,
+        });
+
+        const createdTopicId = created.topic.id;
+        setTopics((prev) => ({
+          ...prev,
+          [createdTopicId]: topicFromCore(created.topic, prev[createdTopicId]),
+        }));
+        setBoardVersion(created.version);
+        setSelectedTopicId(createdTopicId);
+
+        return true;
+      } catch {
+        setError("Не удалось создать тему");
+        return false;
+      } finally {
+        setCreatingTopic(false);
+      }
+    },
+    [boardId, setBoardVersion]
+  );
+
   const onTopicPointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>, topicId: string) => {
       if (event.button !== 0) return;
@@ -901,6 +980,7 @@ export function useBoard(boardId: string) {
     onDraftTopicCancel,
     onDraftTopicChange,
     onDraftTopicSubmit,
+    createTopicFromPicker,
     setPan,
     setSelectedTopicId,
     setZoom,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import Header from "@/app/components/Header/Header";
@@ -21,19 +21,39 @@ import MyProgress from "@/app/(protected)/main/components/MyProgress/MyProgress"
 import ActivityDiary from "@/app/(protected)/main/components/ActivityDiary/ActivityDiary";
 import DiseaseLibrary from "@/app/(protected)/main/components/DiseaseLibrary/DiseaseLibrary";
 import Participants from "@/app/(protected)/main/components/Participants/Participants";
-import { createBoard, getBoardSnapshot, getBoards } from "@/app/(protected)/board/api/boards";
-import type { BoardListItem } from "@/app/(protected)/board/types";
+import { createBoard, getBoardSnapshot } from "@/app/(protected)/board/api/boards";
+import {
+  AnalysisBoardsProvider,
+  useAnalysisBoards,
+} from "@/app/(protected)/main/context/AnalysisBoardsContext";
 
 import styles from "./main.module.scss";
 
 export default function MainPage() {
+  return (
+    <AnalysisBoardsProvider>
+      <MainPageContent />
+    </AnalysisBoardsProvider>
+  );
+}
+
+function MainPageContent() {
   const router = useRouter();
   const toast = useToast();
   const { initialized, loading, isAuth, logout, user } = useSession();
   const [creatingBoard, setCreatingBoard] = useState(false);
-  const [analysisBoards, setAnalysisBoards] = useState<BoardListItem[]>([]);
-  const [analysisBoardsLoading, setAnalysisBoardsLoading] = useState(false);
   const [openingBoardId, setOpeningBoardId] = useState<string | null>(null);
+  const analysisScrollRef = useRef<HTMLDivElement | null>(null);
+  const analysisSentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const {
+    boards: analysisBoards,
+    hasMore: analysisBoardsHasMore,
+    loading: analysisBoardsLoading,
+    ensureLoaded,
+    loadMore,
+    prependBoard,
+  } = useAnalysisBoards();
 
   const role: Role =
     user?.role === "admin" || user?.role === "moderator" ? user.role : "participant";
@@ -73,23 +93,46 @@ export default function MainPage() {
     if (!isAuth) router.replace("/login");
   }, [initialized, isAuth, router]);
 
-  const loadAnalysisBoards = useCallback(async () => {
-    try {
-      setAnalysisBoardsLoading(true);
-      const response = await getBoards();
-      setAnalysisBoards(response ?? []);
-    } catch {
-      toast.error("Не удалось загрузить доски");
-    } finally {
-      setAnalysisBoardsLoading(false);
-    }
-  }, [toast]);
-
   useEffect(() => {
     if (!initialized || !isAuth) return;
     if (safeTab !== "analysis") return;
-    void loadAnalysisBoards();
-  }, [initialized, isAuth, safeTab, loadAnalysisBoards]);
+
+    void (async () => {
+      try {
+        await ensureLoaded();
+      } catch {
+        toast.error("Не удалось загрузить доски");
+      }
+    })();
+  }, [initialized, isAuth, safeTab, ensureLoaded, toast]);
+
+  useEffect(() => {
+    if (safeTab !== "analysis") return;
+    if (!analysisBoardsHasMore) return;
+
+    const root = analysisScrollRef.current;
+    const target = analysisSentinelRef.current;
+
+    if (!root || !target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const isIntersecting = entries.some((entry) => entry.isIntersecting);
+        if (!isIntersecting) return;
+        loadMore();
+      },
+      {
+        root,
+        rootMargin: "0px 0px 220px 0px",
+      }
+    );
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [safeTab, analysisBoardsHasMore, analysisBoards.length, loadMore]);
 
   const onCreateBoard = async () => {
     if (creatingBoard) return;
@@ -115,10 +158,7 @@ export default function MainPage() {
       }
 
       toast.success("Доска создана");
-      setAnalysisBoards((prev) => {
-        const next = prev.filter((item) => item.id !== response.id);
-        return [response, ...next];
-      });
+      prependBoard(response);
       router.push(`/board/${encodeURIComponent(boardId)}`);
     } catch {
       toast.error("Не удалось создать доску");
@@ -174,41 +214,56 @@ export default function MainPage() {
                   </button>
                 </div>
 
-                {analysisBoardsLoading && analysisBoards.length === 0 && (
-                  <div className={styles.analysisState}>Загрузка досок...</div>
-                )}
+                <div className={styles.analysisScroll} ref={analysisScrollRef}>
+                  {analysisBoardsLoading && analysisBoards.length === 0 && (
+                    <div className={styles.analysisState}>Загрузка досок...</div>
+                  )}
 
-                {!analysisBoardsLoading && analysisBoards.length === 0 && (
-                  <div className={styles.analysisState}>Досок пока нет</div>
-                )}
+                  {!analysisBoardsLoading && analysisBoards.length === 0 && (
+                    <div className={styles.analysisState}>Досок пока нет</div>
+                  )}
 
-                {analysisBoards.length > 0 && (
-                  <div className={styles.analysisBoards}>
-                    {analysisBoards.map((board) => {
-                      const isOpening = openingBoardId === board.id;
+                  {analysisBoards.length > 0 && (
+                    <>
+                      <div className={styles.analysisBoards}>
+                        {analysisBoards.map((board) => {
+                          const isOpening = openingBoardId === board.id;
 
-                      return (
-                        <button
-                          key={board.id}
-                          type="button"
-                          className={`${styles.analysisBoard} ${isOpening ? styles.analysisBoardLoading : ""}`}
-                          onClick={() => void onOpenBoard(board.id)}
-                        >
-                          {isOpening && <div className={styles.analysisBoardOverlay}>Открытие...</div>}
+                          return (
+                            <button
+                              key={board.id}
+                              type="button"
+                              className={`${styles.analysisBoard} ${isOpening ? styles.analysisBoardLoading : ""}`}
+                              onClick={() => void onOpenBoard(board.id)}
+                            >
+                              {isOpening && (
+                                <div className={styles.analysisBoardOverlay}>Открытие...</div>
+                              )}
 
-                          <div className={styles.analysisMap}>
-                            <div className={styles.analysisMapCore}>{board.title || "Без названия"}</div>
-                          </div>
+                              <div className={styles.analysisMap}>
+                                <div className={styles.analysisMapCore}>
+                                  {board.title || "Без названия"}
+                                </div>
+                              </div>
 
-                          <div className={styles.analysisMeta}>
-                            <span>{board.status}</span>
-                            <span>v{board.version}</span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                              <div className={styles.analysisMeta}>
+                                <span>{board.status}</span>
+                                <span>v{board.version}</span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {analysisBoardsHasMore && (
+                        <>
+                          <div ref={analysisSentinelRef} className={styles.analysisSentinel} />
+                          <div className={styles.analysisLoadMore}>Подгружаем доски...</div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </section>
           ) : (
@@ -220,7 +275,6 @@ export default function MainPage() {
               {safeTab === "participants" && <Participants />}
             </section>
           )}
-
         </div>
       </main>
 
