@@ -19,6 +19,7 @@ const CONNECT_PROXIMITY_THRESHOLD = 128;
 const AUTO_LINK_HORIZONTAL_GAP = 280;
 const AUTO_LINK_VERTICAL_GAP = 112;
 const TEMPLATE_ROOT_VERTICAL_GAP = 220;
+const TEMPLATE_SECTION_DIVIDER_PADDING = 18;
 
 const TEMPLATE_ROOT_TITLE_ORDER: Record<string, number> = {
   "Стратегия лечения": 0,
@@ -33,6 +34,7 @@ type DragState = {
   isSubtree: boolean;
   moved: boolean;
   pointerId: number;
+  sectionRootByTopicId: Record<string, string | null>;
   startPointerCanvas: CanvasPoint;
   topicId: string;
   topicIdsToMove: string[];
@@ -236,14 +238,159 @@ function getBranchDirectionSign(boardDirection: string | undefined, parent: Topi
   return child.x >= parent.x ? 1 : -1;
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+type TemplateSectionBounds = {
+  maxY: number;
+  minY: number;
+};
+
+function resolveTemplateSectionRootId(params: {
+  fallbackToNearest?: boolean;
+  links: Link[];
+  templateRootIds: Set<string>;
+  topicId: string;
+  topics: TopicsMap;
+}) {
+  const { fallbackToNearest = false, links, templateRootIds, topicId, topics } = params;
+  if (templateRootIds.size === 0) return null;
+
+  const parentByChild = new Map<string, string>();
+  links.forEach((link) => {
+    parentByChild.set(link.childTopicId, link.parentTopicId);
+  });
+
+  const visited = new Set<string>();
+  let cursor: string | undefined = topicId;
+
+  while (cursor && !templateRootIds.has(cursor)) {
+    if (visited.has(cursor)) {
+      cursor = undefined;
+      break;
+    }
+    visited.add(cursor);
+    cursor = parentByChild.get(cursor);
+  }
+
+  if (cursor && templateRootIds.has(cursor)) return cursor;
+  if (!fallbackToNearest) return null;
+
+  const source = topics[topicId];
+  if (!source) return null;
+
+  let bestId: string | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  templateRootIds.forEach((rootId) => {
+    const root = topics[rootId];
+    if (!root) return;
+
+    const distance = Math.abs(root.y - source.y);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestId = rootId;
+    }
+  });
+
+  return bestId;
+}
+
+function getTemplateSectionBounds(params: {
+  links: Link[];
+  sectionRootId?: string | null;
+  templateRootIds: Set<string>;
+  topicId: string;
+  topics: TopicsMap;
+}): TemplateSectionBounds | null {
+  const { links, sectionRootId = null, templateRootIds, topicId, topics } = params;
+  if (templateRootIds.size < 2) return null;
+
+  const templateRoots = Array.from(templateRootIds)
+    .map((id) => topics[id])
+    .filter((topic): topic is Topic => Boolean(topic))
+    .sort((a, b) => a.y - b.y);
+
+  if (templateRoots.length < 2) return null;
+
+  const resolvedSectionRootId =
+    sectionRootId ??
+    resolveTemplateSectionRootId({
+      fallbackToNearest: true,
+      links,
+      templateRootIds,
+      topicId,
+      topics,
+    });
+
+  if (!resolvedSectionRootId) return null;
+  const sectionIndex = templateRoots.findIndex((topic) => topic.id === resolvedSectionRootId);
+  if (sectionIndex === -1) return null;
+
+  const dividerYByIndex = templateRoots.slice(0, -1).map((rootTopic, index) => {
+    const nextRootTopic = templateRoots[index + 1];
+    return (rootTopic.y + nextRootTopic.y) / 2;
+  });
+
+  const minY = sectionIndex > 0 ? dividerYByIndex[sectionIndex - 1] : Number.NEGATIVE_INFINITY;
+  const maxY = sectionIndex < templateRoots.length - 1 ? dividerYByIndex[sectionIndex] : Number.POSITIVE_INFINITY;
+
+  return { maxY, minY };
+}
+
+function clampTopicYInTemplateSection(params: {
+  height: number;
+  links: Link[];
+  padding?: number;
+  sectionRootId?: string | null;
+  templateRootIds: Set<string>;
+  topicId: string;
+  topics: TopicsMap;
+  y: number;
+}) {
+  const {
+    height,
+    links,
+    padding = TEMPLATE_SECTION_DIVIDER_PADDING,
+    sectionRootId = null,
+    templateRootIds,
+    topicId,
+    topics,
+    y,
+  } = params;
+  const bounds = getTemplateSectionBounds({
+    links,
+    sectionRootId,
+    templateRootIds,
+    topicId,
+    topics,
+  });
+  if (!bounds) return y;
+
+  const halfHeightWithPadding = height / 2 + padding;
+  const minY = Number.isFinite(bounds.minY) ? bounds.minY + halfHeightWithPadding : bounds.minY;
+  const maxY = Number.isFinite(bounds.maxY) ? bounds.maxY - halfHeightWithPadding : bounds.maxY;
+
+  if (minY > maxY) {
+    if (Number.isFinite(bounds.minY) && Number.isFinite(bounds.maxY)) {
+      return (bounds.minY + bounds.maxY) / 2;
+    }
+    return y;
+  }
+
+  return clamp(y, minY, maxY);
+}
+
 function getAutoPlacedChildPoint(params: {
   boardDirection: string | undefined;
   childTopicId: string;
   links: Link[];
   parentTopicId: string;
+  templateRootIds: Set<string>;
   topics: TopicsMap;
 }) {
-  const { boardDirection, childTopicId, links, parentTopicId, topics } = params;
+  const { boardDirection, childTopicId, links, parentTopicId, templateRootIds, topics } = params;
   const parent = topics[parentTopicId];
   const child = topics[childTopicId];
   if (!parent || !child) return null;
@@ -266,10 +413,18 @@ function getAutoPlacedChildPoint(params: {
 
   const directionSign = getBranchDirectionSign(boardDirection, parent, child);
   const offsetY = (childIndex - (siblings.length - 1) / 2) * AUTO_LINK_VERTICAL_GAP;
+  const nextY = clampTopicYInTemplateSection({
+    height: child.height,
+    links,
+    templateRootIds,
+    topicId: childTopicId,
+    topics,
+    y: parent.y + offsetY,
+  });
 
   return {
     x: parent.x + directionSign * AUTO_LINK_HORIZONTAL_GAP,
-    y: parent.y + offsetY,
+    y: nextY,
   };
 }
 
@@ -394,6 +549,7 @@ export function useBoard(boardId: string) {
         childTopicId,
         links: nextLinks,
         parentTopicId,
+        templateRootIds: templateRootIdsRef.current,
         topics: topicsRef.current,
       });
 
@@ -678,12 +834,22 @@ export function useBoard(boardId: string) {
           Object.values(currentTopics).find((topic) => topic.inDegree === 0)?.id ??
           null;
         const anchorTopic = anchorTopicId ? currentTopics[anchorTopicId] : null;
+        const initialY = anchorTopic
+          ? clampTopicYInTemplateSection({
+              height: DEFAULT_TOPIC_HEIGHT,
+              links: linksRef.current,
+              templateRootIds: templateRootIdsRef.current,
+              topicId: anchorTopicId,
+              topics: currentTopics,
+              y: anchorTopic.y + 28,
+            })
+          : 0;
 
         const created = await createTopic(boardId, {
           clientPoint: anchorTopic
             ? {
                 x: anchorTopic.x + 28,
-                y: anchorTopic.y + 28,
+                y: initialY,
               }
             : { x: 0, y: 0 },
           height: DEFAULT_TOPIC_HEIGHT,
@@ -735,12 +901,23 @@ export function useBoard(boardId: string) {
         };
         return acc;
       }, {});
+      const sectionRootByTopicId = topicIdsToMove.reduce<Record<string, string | null>>((acc, id) => {
+        acc[id] = resolveTemplateSectionRootId({
+          fallbackToNearest: true,
+          links: linksRef.current,
+          templateRootIds: templateRootIdsRef.current,
+          topicId: id,
+          topics: topicsRef.current,
+        });
+        return acc;
+      }, {});
 
       dragRef.current = {
         initialPositions,
         isSubtree: autoParent && topicIdsToMove.length > 1,
         moved: false,
         pointerId: event.pointerId,
+        sectionRootByTopicId,
         startPointerCanvas,
         topicId,
         topicIdsToMove,
@@ -780,10 +957,20 @@ export function useBoard(boardId: string) {
           const node = next[id];
           if (!base || !node) return;
 
+          const nextY = clampTopicYInTemplateSection({
+            height: node.height,
+            links: linksRef.current,
+            sectionRootId: drag.sectionRootByTopicId[id],
+            templateRootIds: templateRootIdsRef.current,
+            topicId: id,
+            topics: next,
+            y: base.y + dy,
+          });
+
           next[id] = {
             ...node,
             x: base.x + dx,
-            y: base.y + dy,
+            y: nextY,
           };
         });
 
